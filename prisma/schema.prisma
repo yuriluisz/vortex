@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id         String   @id @default(uuid())
+  slug       String   @unique // ex: imersao-despertar-do-libido
+  name       String   // Nome interno da campanha
+  rawHtml    String   @db.Text // Código HTML estático com a tag {{FORM_SLOT}}
+  formSchema Json     // JSONB contendo as perguntas dinâmicas do formulário
+  pixelId    String?  // ID do Meta Pixel para injeção dinâmica
+  active     Boolean  @default(true)
+  groups     Group[]
+  leads      Lead[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Group {
+  id           String   @id @default(uuid())
+  campaignId   String
+  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name         String   // Ex: Grupo 01
+  url          String   // Link de convite do WhatsApp
+  currentCount Int      @default(0) // Contagem real de acessos
+  maxCapacity  Int      @default(150) // Limite antes de rotacionar
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Lead {
+  id         String   @id @default(uuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name       String?
+  whatsapp   String
+  answers    Json?    // JSONB com as respostas mapeadas do formSchema
+  metadata   Json?    // JSONB com IP, cf-ipcountry, user-agent, etc.
+  datadb     String   // OBRIGATÓRIO: Data de registro no formato DD/MM/YYYY
+  horadb     String   // OBRIGATÓRIO: Hora de registro no formato HH:MM:SS
+  createdAt  DateTime @default(now())
+}
