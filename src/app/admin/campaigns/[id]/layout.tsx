@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { getSession } from "@/lib/session";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { CampaignTabs } from "@/components/admin/campaign-tabs";
@@ -12,12 +13,17 @@ export default async function CampaignLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
+  const session = await getSession();
+  if (!session?.email || !session.tenantId) {
+    redirect("/admin/login");
+  }
+
   const { id } = await params;
   const campaign = await prisma.campaign.findUnique({
     where: { id },
   });
 
-  if (!campaign) {
+  if (!campaign || campaign.tenantId !== session.tenantId) {
     notFound();
   }
 

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { getSession } from "@/lib/session";
+import { notFound, redirect } from "next/navigation";
 import CreateGroupForm from "./CreateGroupForm";
 import { Trash2, PowerOff, Power } from "lucide-react";
 import { toggleGroupStatusAction, deleteGroupAction } from "../../../actions";
@@ -10,6 +11,11 @@ export default async function CampaignGroupsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getSession();
+  if (!session?.email || !session.tenantId) {
+    redirect("/admin/login");
+  }
+
   const { id } = await params;
   
   const campaign = await prisma.campaign.findUnique({
@@ -21,7 +27,7 @@ export default async function CampaignGroupsPage({
     },
   });
 
-  if (!campaign) {
+  if (!campaign || campaign.tenantId !== session.tenantId) {
     notFound();
   }
 

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { getSession } from "@/lib/session";
+import { notFound, redirect } from "next/navigation";
 import { Download } from "lucide-react";
 
 export default async function CampaignLeadsPage({
@@ -7,6 +8,11 @@ export default async function CampaignLeadsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getSession();
+  if (!session?.email || !session.tenantId) {
+    redirect("/admin/login");
+  }
+
   const { id } = await params;
   
   const campaign = await prisma.campaign.findUnique({
@@ -18,7 +24,7 @@ export default async function CampaignLeadsPage({
     },
   });
 
-  if (!campaign) {
+  if (!campaign || campaign.tenantId !== session.tenantId) {
     notFound();
   }
 

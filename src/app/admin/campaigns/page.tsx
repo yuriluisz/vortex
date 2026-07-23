@@ -1,9 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Plus, Megaphone, CheckCircle2, XCircle, Users, MessageCircle, ExternalLink } from "lucide-react";
 
 export default async function CampaignsPage() {
+  const session = await getSession();
+  if (!session?.email || !session.tenantId) {
+    redirect("/admin/login");
+  }
+
   const campaigns = await prisma.campaign.findMany({
+    where: { tenantId: session.tenantId },
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
