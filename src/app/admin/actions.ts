@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { canCreateResource } from "@/lib/plans";
 import { logAudit } from "@/lib/audit";
 import { requireTenantOwnership } from "@/lib/tenant-guard";
-import { Plan } from "@prisma/client";
+import { Plan } from ".prisma/client";
 
 // ============================================================================
 // SEGURANÇA: Validação de sessão reutilizável para todas as mutations

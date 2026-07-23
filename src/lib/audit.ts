@@ -1,7 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { AuditAction, Prisma } from "@prisma/client";
+import { AuditAction, Prisma } from ".prisma/client";
 
 /**
  * Registra uma ação no audit log.

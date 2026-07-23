@@ -1,5 +1,5 @@
 import "server-only";
-import { Plan } from "@prisma/client";
+import { Plan } from ".prisma/client";
 
 /**
  * Limites e recursos de cada plano.
