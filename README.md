@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/yuriluisz/vortex/main/public/Vortex%20Padr%C3%A3o.svg">
-    <img src="https://raw.githubusercontent.com/yuriluisz/vortex/main/public/Vortex%20Padr%C3%A3o.svg" alt="Vórtex+" height="64">
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/yuriluisz/vortex/public/Vortex%20Padr%C3%A3o.svg">
+    <img src="https://cdn.jsdelivr.net/gh/yuriluisz/vortex/public/Vortex%20Padr%C3%A3o.svg" alt="Vórtex+" height="64">
   </picture>
 </p>
 
@@ -283,7 +283,7 @@ MIT &copy; 2026 — [Vórtex+](https://github.com/yuriluisz/vortex)
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/yuriluisz/vortex/main/public/Vortex%20Logo%20Only.svg" height="32" alt="Vórtex+">
+  <img src="https://cdn.jsdelivr.net/gh/yuriluisz/vortex/public/Vortex%20Logo%20Only.svg" height="32" alt="Vórtex+">
   <br>
   <sub>Feito com 💜 pra nunca mais deixar um lead escapar.</sub>
 </p>
