@@ -263,7 +263,7 @@ export async function verifyEmailChangeAction(
 // ============================================================================
 
 const PlanChangeSchema = z.object({
-  plan: z.enum(["FREE", "PRO", "ENTERPRISE"]),
+  plan: z.enum(["FREE", "PRO", "ULTRA"]),
 });
 
 export async function changePlanCheckoutAction(

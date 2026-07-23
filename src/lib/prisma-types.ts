@@ -4,7 +4,7 @@
  * que o Turbopack do Next.js 16 não consegue resolver.
  */
 
-export type Plan = "FREE" | "PRO" | "ENTERPRISE";
+export type Plan = "FREE" | "PRO" | "ULTRA";
 
 export type AuditAction =
   | "LOGIN"

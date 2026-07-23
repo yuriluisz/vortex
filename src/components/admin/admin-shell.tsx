@@ -88,8 +88,8 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       ? "Grátis"
       : tenantInfo?.plan === "PRO"
       ? "Pro"
-      : tenantInfo?.plan === "ENTERPRISE"
-      ? "Enterprise"
+      : tenantInfo?.plan === "ULTRA"
+      ? "Ultra"
       : null;
 
   return (

@@ -10,7 +10,7 @@ interface CheckoutPageProps {
 const PLAN_LABELS: Record<string, { name: string; price: string }> = {
   FREE: { name: "Free", price: "Grátis" },
   PRO: { name: "Pro", price: "R$ 97/mês" },
-  ENTERPRISE: { name: "Enterprise", price: "Sob medida" },
+  ULTRA: { name: "Ultra", price: "R$ 157/mês" },
 };
 
 export default async function CheckoutPage({

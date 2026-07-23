@@ -41,10 +41,10 @@ const PLANS = [
     ],
   },
   {
-    id: "ENTERPRISE" as Plan,
-    name: "Enterprise",
-    price: "Sob medida",
-    period: "",
+    id: "ULTRA" as Plan,
+    name: "Ultra",
+    price: "R$ 157",
+    period: "/mês",
     description: "Para agências e alto volume.",
     features: [
       "Campanhas ilimitadas",

@@ -32,7 +32,7 @@ export const PLAN_LIMITS: Record<
     removeBranding: true,
     prioritySupport: false,
   },
-  ENTERPRISE: {
+  ULTRA: {
     maxCampaigns: -1, // ilimitado
     maxGroups: -1,
     maxLeads: -1,

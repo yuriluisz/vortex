@@ -14,7 +14,7 @@ const COOKIE_NAME = "vortex_admin_session";
 const PLAN_LABELS: Record<string, string> = {
   FREE: "Grátis",
   PRO: "Pro",
-  ENTERPRISE: "Enterprise",
+  ULTRA: "Ultra",
 };
 
 export default async function SuperAdminPage() {
@@ -109,7 +109,7 @@ export default async function SuperAdminPage() {
                     >
                       <option value="FREE">Grátis</option>
                       <option value="PRO">Pro</option>
-                      <option value="ENTERPRISE">Enterprise</option>
+                      <option value="ULTRA">Ultra</option>
                     </select>
                     <button type="submit" className="sr-only">Salvar</button>
                   </form>

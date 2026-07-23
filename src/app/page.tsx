@@ -103,9 +103,9 @@ export default function Home() {
       href: "/signup",
     },
     {
-      name: "Enterprise",
-      price: "Sob medida",
-      period: "",
+      name: "Ultra",
+      price: "R$ 157",
+      period: "/mês",
       description: "Para agências e alto volume.",
       highlight: false,
       features: [
@@ -117,8 +117,8 @@ export default function Home() {
         "Suporte dedicado 24h",
         "SLA de uptime",
       ],
-      cta: "Falar com vendas",
-      href: "#",
+      cta: "Assinar Ultra",
+      href: "/signup",
     },
   ];
 
