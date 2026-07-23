@@ -2,13 +2,19 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { loginAction, registerAction, verifyOTPAction } from "./actions";
 import type { LoginState } from "./actions";
 import { Loader2, Mail, ArrowRight, Building2, User } from "lucide-react";
 
 export default function AdminLoginPage() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+
   // Toggle entre login e registro
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(
+    tabParam === "register" ? "register" : "login"
+  );
 
   // Login form
   const [loginState, loginFormAction, loginPending] = useActionState<
