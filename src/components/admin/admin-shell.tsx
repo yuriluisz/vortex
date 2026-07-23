@@ -23,7 +23,7 @@ const PRIMARY_NAV = [
 
 const SECONDARY_NAV = [
   { href: "/admin/settings", label: "Configurações", icon: Settings },
-  { href: "/docs", label: "Documentação", icon: BookText, exact: true },
+  { href: "/admin/docs", label: "Documentação", icon: BookText, exact: true },
 ];
 
 interface TenantInfo {
