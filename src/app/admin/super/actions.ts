@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { logAudit } from "@/lib/audit";
 import { z } from "zod";
-import { Plan } from ".prisma/client";
+import type { Plan } from "@/lib/prisma-types";
 
 // ============================================================================
 // SEGURANÇA: Apenas SUPER_ADMIN

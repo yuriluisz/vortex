@@ -9,7 +9,7 @@ import { logAudit } from "@/lib/audit";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { generateOTP, storeOTP, verifyOTP, sendOTPEmail } from "@/lib/auth";
-import { Plan } from ".prisma/client";
+import type { Plan } from "@/lib/prisma-types";
 
 // ============================================================================
 // SEGURANÇA: Validação de sessão reutilizável
