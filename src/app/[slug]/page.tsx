@@ -10,8 +10,8 @@ interface PageProps {
 export default async function CampaignPage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Buscar campanha pelo slug
-  const campaign = await prisma.campaign.findUnique({
+  // Buscar campanha pelo slug (agora slug é único por tenant, não global)
+  const campaign = await prisma.campaign.findFirst({
     where: { slug, active: true },
   });
 

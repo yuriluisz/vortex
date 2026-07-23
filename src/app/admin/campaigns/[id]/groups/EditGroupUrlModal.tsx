@@ -22,8 +22,8 @@ export function EditGroupUrlModal({ groupId, campaignId, initialUrl }: EditGroup
     try {
       await updateGroupUrlAction(groupId, campaignId, url);
       setIsEditing(false);
-    } catch (err: any) {
-      setError(err.message || "Erro ao atualizar URL");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao atualizar URL");
     } finally {
       setIsPending(false);
     }

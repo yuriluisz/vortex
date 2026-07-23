@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { UAParser } from "ua-parser-js";
+import { logAudit } from "@/lib/audit";
+import { canCreateResource } from "@/lib/plans";
 
 const LeadSchema = z.object({
   campaignId: z.string().uuid(),
@@ -20,6 +22,7 @@ export type LeadFormState = {
 
 /**
  * Server Action: Submissão do formulário dinâmico de lead.
+ * Agora é tenant-aware: busca o tenantId da campanha e salva junto.
  * Captura headers Cloudflare, device info, e salva no banco.
  */
 export async function submitLeadAction(
@@ -43,9 +46,38 @@ export async function submitLeadAction(
     };
   }
 
+  // Buscar campanha para obter tenantId e validar existência
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: campaignId },
+    select: { id: true, tenantId: true, active: true },
+  });
+
+  if (!campaign || !campaign.active) {
+    return { error: "Campanha não encontrada ou inativa." };
+  }
+
+  // Verificar limite de leads do plano
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: campaign.tenantId },
+    select: { plan: true, maxLeads: true },
+  });
+
+  if (tenant) {
+    const currentCount = await prisma.lead.count({
+      where: { tenantId: campaign.tenantId },
+    });
+    const limitCheck = canCreateResource(tenant.plan, "leads", currentCount);
+    if (!limitCheck.allowed) {
+      return { error: limitCheck.reason };
+    }
+  }
+
   // Capturar headers do Cloudflare e metadata
   const headersList = await headers();
-  const ip = headersList.get("x-forwarded-for") || headersList.get("cf-connecting-ip") || "unknown";
+  const ip =
+    headersList.get("x-forwarded-for") ||
+    headersList.get("cf-connecting-ip") ||
+    "unknown";
   const country = headersList.get("cf-ipcountry") || "unknown";
   const city = headersList.get("cf-ipcity") || "unknown";
   const userAgentString = headersList.get("user-agent") || "";
@@ -59,18 +91,20 @@ export async function submitLeadAction(
   // Coletar respostas dinâmicas do formSchema
   const answers: Record<string, string> = {};
   for (const [key, value] of formData.entries()) {
-    if (
-      key.startsWith("field_") &&
-      typeof value === "string"
-    ) {
+    if (key.startsWith("field_") && typeof value === "string") {
       answers[key] = value;
     }
   }
 
   // Data e hora local da submissão
   const now = new Date();
-  const datadb = now.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }); // DD/MM/YYYY
-  const horadb = now.toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour12: false }); // HH:MM:SS
+  const datadb = now.toLocaleDateString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+  }); // DD/MM/YYYY
+  const horadb = now.toLocaleTimeString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour12: false,
+  }); // HH:MM:SS
 
   // Metadata
   const metadata = {
@@ -97,6 +131,7 @@ export async function submitLeadAction(
     await prisma.lead.create({
       data: {
         campaignId: parsed.data.campaignId,
+        tenantId: campaign.tenantId,
         name: parsed.data.name || null,
         whatsapp: parsed.data.whatsapp || "Não informado",
         answers: Object.keys(answers).length > 0 ? answers : undefined,

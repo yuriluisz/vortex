@@ -108,7 +108,70 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* ─── SCROLLBAR CUSTOMIZADA ─── */
+  /* WebKit (Chrome, Edge, Safari, Opera) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  /* Remove outline feio ao clicar em gráficos Recharts */
+  .recharts-wrapper:focus,
+  .recharts-wrapper:focus-visible,
+  .recharts-surface:focus,
+  .recharts-surface:focus-visible {
+    outline: none !important;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+}
+
+@layer components {
+  .glow-card {
+    position: relative;
+  }
+
+  .glow-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      220px circle at var(--gx, 50%) var(--gy, 50%),
+      color-mix(in oklab, var(--primary) 14%, transparent),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.35s var(--ease-out-strong, ease);
+    pointer-events: none;
+  }
+
+  .glow-card:hover::before {
+    opacity: 1;
   }
 }

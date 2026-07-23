@@ -5,16 +5,20 @@ import { decrypt } from "@/lib/session";
 const COOKIE_NAME = "vortex_admin_session";
 
 /**
- * Proxy do Vórtex+ (anteriormente Middleware, renomeado no Next.js 16).
- * Intercepta rotas /admin/* e valida sessão JWT.
- * Rota /admin/login é pública (permite acesso sem autenticação).
+ * Proxy do Vórtex+ (Next.js 16).
+ *
+ * Pipeline:
+ * 1. /admin/login → pública (redireciona se já logado)
+ * 2. /admin/* → verifica sessão JWT
+ * 3. Demais rotas → NextResponse.next()
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Permitir acesso à página de login sem autenticação
+  // ==========================================================================
+  // PASSO 1: /admin/login — rota pública
+  // ==========================================================================
   if (pathname === "/admin/login") {
-    // Se já autenticado, redirecionar para o dashboard
     const cookie = request.cookies.get(COOKIE_NAME)?.value;
     const session = await decrypt(cookie);
 
@@ -25,13 +29,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Para todas as outras rotas /admin/*, exigir autenticação
+  // ==========================================================================
+  // PASSO 2: /admin/* — proteção de autenticação
+  // ==========================================================================
   if (pathname.startsWith("/admin")) {
     const cookie = request.cookies.get(COOKIE_NAME)?.value;
     const session = await decrypt(cookie);
 
     if (!session?.email) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      const loginUrl = new URL("/admin/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
@@ -39,5 +46,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.webmanifest|api/webhooks).*)",
+  ],
 };

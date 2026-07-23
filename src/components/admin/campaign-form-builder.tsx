@@ -14,9 +14,10 @@ export type FormField = {
 interface CampaignFormBuilderProps {
   defaultValue?: string;
   error?: string;
+  onChange?: (schema: string) => void;
 }
 
-export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilderProps) {
+export function CampaignFormBuilder({ defaultValue, error, onChange }: CampaignFormBuilderProps) {
   const [fields, setFields] = useState<FormField[]>(() => {
     try {
       if (defaultValue) return JSON.parse(defaultValue);
@@ -41,8 +42,12 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
     }
   });
 
+  const notifyChange = (newFields: FormField[]) => {
+    onChange?.(JSON.stringify(newFields));
+  };
+
   const addField = () => {
-    setFields([
+    const newFields = [
       ...fields,
       {
         id: `field_${Date.now()}`,
@@ -51,17 +56,22 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
         placeholder: "Ex: Digite sua resposta",
         required: false,
       },
-    ]);
+    ];
+    setFields(newFields);
+    notifyChange(newFields);
   };
 
   const removeField = (index: number) => {
-    setFields(fields.filter((_, i) => i !== index));
+    const newFields = fields.filter((_, i) => i !== index);
+    setFields(newFields);
+    notifyChange(newFields);
   };
 
   const updateField = (index: number, key: keyof FormField, value: string | boolean) => {
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], [key]: value };
     setFields(newFields);
+    notifyChange(newFields);
   };
 
   const moveFieldUp = (index: number) => {
@@ -69,6 +79,7 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
     const newFields = [...fields];
     [newFields[index - 1], newFields[index]] = [newFields[index], newFields[index - 1]];
     setFields(newFields);
+    notifyChange(newFields);
   };
 
   const moveFieldDown = (index: number) => {
@@ -76,6 +87,7 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
     const newFields = [...fields];
     [newFields[index + 1], newFields[index]] = [newFields[index], newFields[index + 1]];
     setFields(newFields);
+    notifyChange(newFields);
   };
 
   return (
@@ -189,7 +201,11 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
         {!fields.some(f => f.id === "email") && (
           <button
             type="button"
-            onClick={() => setFields([...fields, { id: "email", type: "email", label: "E-mail", placeholder: "seu@email.com", required: true }])}
+            onClick={() => {
+              const newFields = [...fields, { id: "email", type: "email", label: "E-mail", placeholder: "seu@email.com", required: true }];
+              setFields(newFields);
+              notifyChange(newFields);
+            }}
             className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-3 h-3" /> E-mail
@@ -198,7 +214,11 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
         {!fields.some(f => f.id === "whatsapp") && (
           <button
             type="button"
-            onClick={() => setFields([...fields, { id: "whatsapp", type: "text", label: "WhatsApp", placeholder: "(11) 99999-9999", required: true }])}
+            onClick={() => {
+              const newFields = [...fields, { id: "whatsapp", type: "text", label: "WhatsApp", placeholder: "(11) 99999-9999", required: true }];
+              setFields(newFields);
+              notifyChange(newFields);
+            }}
             className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-3 h-3" /> WhatsApp
@@ -207,7 +227,11 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
         {!fields.some(f => f.id === "endereco") && (
           <button
             type="button"
-            onClick={() => setFields([...fields, { id: "endereco", type: "text", label: "Endereço Completo", placeholder: "Rua, Número, Bairro", required: false }])}
+            onClick={() => {
+              const newFields = [...fields, { id: "endereco", type: "text", label: "Endereço Completo", placeholder: "Rua, Número, Bairro", required: false }];
+              setFields(newFields);
+              notifyChange(newFields);
+            }}
             className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-3 h-3" /> Endereço
@@ -216,7 +240,11 @@ export function CampaignFormBuilder({ defaultValue, error }: CampaignFormBuilder
         {!fields.some(f => f.id === "idade") && (
           <button
             type="button"
-            onClick={() => setFields([...fields, { id: "idade", type: "number", label: "Idade", placeholder: "Ex: 25", required: false }])}
+            onClick={() => {
+              const newFields = [...fields, { id: "idade", type: "number", label: "Idade", placeholder: "Ex: 25", required: false }];
+              setFields(newFields);
+              notifyChange(newFields);
+            }}
             className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-3 h-3" /> Idade

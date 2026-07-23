@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import { updateCampaignAction } from "../../actions";
 import type { ActionState } from "../../actions";
 import { Loader2, CheckCircle2 } from "lucide-react";
@@ -13,7 +13,7 @@ interface Campaign {
   slug: string;
   pixelId: string | null;
   rawHtml: string;
-  formSchema: any;
+  formSchema: unknown;
 }
 
 export function EditCampaignForm({ campaign }: { campaign: Campaign }) {

@@ -6,6 +6,7 @@ import { Code2, X, Check } from "lucide-react";
 interface HtmlTemplateManagerProps {
   defaultValue?: string;
   error?: string;
+  onChange?: (code: string) => void;
 }
 
 const TEMPLATES = [
@@ -45,12 +46,13 @@ const TEMPLATES = [
   }
 ];
 
-export function HtmlTemplateManager({ defaultValue, error }: HtmlTemplateManagerProps) {
+export function HtmlTemplateManager({ defaultValue, error, onChange }: HtmlTemplateManagerProps) {
   const [htmlCode, setHtmlCode] = useState(defaultValue || TEMPLATES[0].code);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSelectTemplate = (code: string) => {
     setHtmlCode(code);
+    onChange?.(code);
     setIsModalOpen(false);
   };
 
@@ -77,12 +79,12 @@ export function HtmlTemplateManager({ defaultValue, error }: HtmlTemplateManager
       </div>
 
       <textarea
-        id="rawHtml"
-        name="rawHtml"
-        required
         rows={12}
         value={htmlCode}
-        onChange={(e) => setHtmlCode(e.target.value)}
+        onChange={(e) => {
+          setHtmlCode(e.target.value);
+          onChange?.(e.target.value);
+        }}
         className="w-full font-mono text-xs leading-relaxed rounded-lg border border-input bg-muted px-4 py-4 text-foreground/80 outline-none transition-all focus:border-ring focus:ring-2 focus:ring-ring/20 resize-y"
       />
       {error && <p className="text-xs text-destructive">{error}</p>}

@@ -13,8 +13,8 @@ interface PageProps {
 export default async function RedirectPage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Buscar campanha
-  const campaign = await prisma.campaign.findUnique({
+  // Buscar campanha (slug agora é único por tenant, não global)
+  const campaign = await prisma.campaign.findFirst({
     where: { slug, active: true },
     select: { id: true, slug: true },
   });

@@ -1,87 +1,96 @@
 import "server-only";
 
-import bcrypt from "bcryptjs";
 import { redis } from "@/lib/redis";
 import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const OTP_TTL_SECONDS = 300; // 5 minutos
-const OTP_KEY_PREFIX = "admin:otp:";
+const OTP_KEY_PREFIX = "auth:otp:";
+const OTP_RATE_LIMIT_PREFIX = "auth:otp_rate:";
+const MAX_OTP_ATTEMPTS = 3;
 
-/**
- * Valida as credenciais do admin contra as variáveis de ambiente.
- * Compara email exato e senha via bcrypt hash.
- */
-export async function validateCredentials(
-  email: string,
-  password: string
-): Promise<boolean> {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+// ============================================================================
+// BUSCA TENANT DO USUÁRIO (simplificado: User.tenantId direto)
+// ============================================================================
 
-  console.log("DEBUG: ADMIN_EMAIL =", adminEmail);
-  console.log("DEBUG: ADMIN_PASSWORD_HASH =", adminPasswordHash);
+export async function getUserTenant(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      tenantId: true,
+      role: true,
+      tenant: { select: { id: true, name: true, slug: true, plan: true, active: true } },
+    },
+  });
 
-  if (!adminEmail || !adminPasswordHash) {
-    console.error("ADMIN_EMAIL or ADMIN_PASSWORD_HASH not configured");
-    return false;
-  }
+  if (!user?.tenant) return null;
 
-  if (email.toLowerCase() !== adminEmail.toLowerCase()) {
-    return false;
-  }
+  // 🔒 S1: Bloquear login se o tenant estiver inativo (desativado pelo super admin)
+  if (!user.tenant.active) return null;
 
-  return bcrypt.compare(password, adminPasswordHash);
+  return {
+    tenantId: user.tenant.id,
+    tenantName: user.tenant.name,
+    tenantSlug: user.tenant.slug,
+    plan: user.tenant.plan,
+    role: user.role,
+  };
 }
 
-/**
- * Gera um código OTP de 6 dígitos aleatórios.
- */
+// ============================================================================
+// OTP (Autenticação de Dois Fatores)
+// ============================================================================
+
 export function generateOTP(): string {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const otp = (array[0] % 900000 + 100000).toString();
   return otp;
 }
 
-/**
- * Salva o OTP no Redis com TTL de 5 minutos.
- * Chave: admin:otp:{email}
- */
 export async function storeOTP(email: string, otp: string): Promise<void> {
   const key = `${OTP_KEY_PREFIX}${email.toLowerCase()}`;
   await redis.set(key, otp, "EX", OTP_TTL_SECONDS);
 }
 
-/**
- * Verifica o OTP no Redis.
- * Se válido, deleta a chave (uso único) e retorna true.
- */
 export async function verifyOTP(
   email: string,
   otp: string
 ): Promise<boolean> {
   const key = `${OTP_KEY_PREFIX}${email.toLowerCase()}`;
+  const rateKey = `${OTP_RATE_LIMIT_PREFIX}${email.toLowerCase()}`;
+
+  const attempts = await redis.incr(rateKey);
+  if (attempts === 1) {
+    await redis.expire(rateKey, OTP_TTL_SECONDS);
+  }
+  if (attempts > MAX_OTP_ATTEMPTS) {
+    throw new Error("Muitas tentativas. Aguarde 5 minutos.");
+  }
+
   const storedOTP = await redis.get(key);
 
   if (!storedOTP || storedOTP !== otp) {
     return false;
   }
 
-  // OTP consumido — deletar do Redis
   await redis.del(key);
+  await redis.del(rateKey);
   return true;
 }
 
-/**
- * Envia o OTP por e-mail via Resend.
- */
 export async function sendOTPEmail(
   email: string,
   otp: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
-    
+    const fromEmail =
+      process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
+
     await resend.emails.send({
       from: fromEmail,
       to: email,
