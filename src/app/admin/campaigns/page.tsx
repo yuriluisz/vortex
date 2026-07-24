@@ -54,7 +54,7 @@ export default async function CampaignsPage() {
             <Link
               key={campaign.id}
               href={`/admin/campaigns/${campaign.id}`}
-              className="group relative flex flex-col rounded-xl border border-border bg-card overflow-hidden shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5"
+              className="group relative flex flex-col rounded-xl border border-border bg-card overflow-hidden shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1"
             >
               {/* Status bar */}
               <div className={`h-1 w-full ${campaign.active ? "bg-primary" : "bg-muted-foreground/30"}`} />

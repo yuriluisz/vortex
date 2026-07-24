@@ -119,7 +119,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert" />
           {planLabel && (
-            <span className="ml-2 text-xs font-semibold uppercase tracking-wider text-sidebar-primary">
+            <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               {planLabel}
             </span>
           )}
@@ -149,13 +149,13 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           {tenantInfo?.role === "SUPER_ADMIN" && (
             <Link
               href="/admin/super"
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 pathname === "/admin/super"
                   ? "bg-amber-500/10 text-amber-400 shadow-sm"
                   : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-400"
               }`}
             >
-              <Shield className="h-5 w-5" />
+              <Shield className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
               Super Admin
             </Link>
           )}
@@ -170,13 +170,13 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                 {item.label}
               </Link>
             );
@@ -210,13 +210,13 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                 {item.label}
               </Link>
             );

@@ -6,7 +6,21 @@ import {
   Megaphone,
   MessageCircle,
   LayoutDashboard,
+  MessageSquareMore,
+  Plus,
+  ArrowUpRight,
+  Filter,
+  ChevronDown
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 type MockGroup = {
   name: string;
@@ -14,17 +28,23 @@ type MockGroup = {
 };
 
 const INITIAL_GROUPS: MockGroup[] = [
-  { name: "Grupo 01", pct: 100 },
-  { name: "Grupo 02", pct: 64 },
+  { name: "VIP 01", pct: 100 },
+  { name: "VIP 02", pct: 100 },
+  { name: "VIP 03", pct: 64 },
 ];
 
 const INITIAL_LEADS = 1284;
 
-/**
- * Mockup "vivo" do painel de campanhas: o contador de leads
- * incrementa sozinho e as barras dos grupos de WhatsApp enchem,
- * simulando a rotação automática do Vórtex+.
- */
+const MOCK_CHART_DATA = [
+  { date: "Seg", leads: 400, views: 2400 },
+  { date: "Ter", leads: 300, views: 1398 },
+  { date: "Qua", leads: 200, views: 9800 },
+  { date: "Qui", leads: 278, views: 3908 },
+  { date: "Sex", leads: 189, views: 4800 },
+  { date: "Sáb", leads: 239, views: 3800 },
+  { date: "Dom", leads: 349, views: 4300 },
+];
+
 export function HeroMockup() {
   const [leads, setLeads] = useState(INITIAL_LEADS);
   const [groups, setGroups] = useState<MockGroup[]>(INITIAL_GROUPS);
@@ -35,7 +55,7 @@ export function HeroMockup() {
     }
 
     const id = setInterval(() => {
-      setLeads((value) => value + Math.floor(Math.random() * 3) + 1);
+      setLeads((value) => value + Math.floor(Math.random() * 5) + 2);
 
       setGroups((prev) => {
         const next = prev.map((group) => ({ ...group }));
@@ -44,165 +64,224 @@ export function HeroMockup() {
         if (filling) {
           filling.pct = Math.min(
             100,
-            filling.pct + Math.floor(Math.random() * 4) + 2
+            filling.pct + Math.floor(Math.random() * 6) + 3
           );
           return next;
         }
 
-        // Grupo encheu: a rotação abre o próximo grupo automaticamente
-        if (next.length < 3) {
-          next.push({ name: `Grupo 0${next.length + 1}`, pct: 4 });
+        // Grupo encheu: abre o próximo
+        if (next.length < 5) {
+          next.push({ name: `VIP 0${next.length + 1}`, pct: 4 });
           return next;
         }
 
-        // Reinicia o ciclo da demonstração
+        // Reinicia
         return INITIAL_GROUPS.map((group) => ({ ...group }));
       });
-    }, 1600);
+    }, 1200);
 
     return () => clearInterval(id);
   }, []);
 
-  const metrics = [
-    {
-      icon: Megaphone,
-      label: "Campanhas Ativas",
-      value: "3",
-      color: "text-chart-1 bg-chart-1/10",
-    },
-    {
-      icon: Users,
-      label: "Leads Capturados",
-      value: leads.toLocaleString("pt-BR"),
-      color: "text-chart-2 bg-chart-2/10",
-    },
-    {
-      icon: MessageCircle,
-      label: "Grupos Ativos",
-      value: String(groups.length + 2),
-      color: "text-chart-3 bg-chart-3/10",
-    },
-  ];
-
   return (
-    <div className="rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
+    <div className="rounded-xl border border-border/60 bg-background shadow-2xl overflow-hidden backdrop-blur-xl w-[900px] max-w-[120vw] -ml-[10vw] sm:w-[1000px] sm:ml-0 lg:w-[1000px] xl:w-[1100px] transform-gpu transition-all">
       {/* Browser chrome */}
-      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-border bg-muted/50 px-3 sm:px-4 py-2.5 sm:py-3">
-        <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-destructive/60" />
-        <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-border" />
-        <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-primary/60" />
-        <div className="ml-2 sm:ml-3 flex items-center gap-1.5 sm:gap-2 rounded-md bg-background/60 px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] text-muted-foreground max-w-[130px] sm:max-w-none overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/Vortex Logo Only.svg" alt="V" className="h-3.5 w-3.5 sm:h-5 sm:w-5 invert opacity-70 shrink-0" />
-          <span className="truncate">vortex.app/admin</span>
-        </div>
-        <div className="ml-auto flex items-center gap-1 sm:gap-1.5 rounded-full border border-border bg-background/60 px-2 sm:px-2.5 py-0.5 sm:py-1 shrink-0">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground">
-            Ao vivo
-          </span>
+      <div className="flex items-center gap-2 border-b border-border/50 bg-muted/40 px-4 py-3">
+        <span className="h-3 w-3 rounded-full bg-destructive/80" />
+        <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+        <span className="h-3 w-3 rounded-full bg-chart-2/80" />
+        <div className="ml-4 flex items-center gap-2 rounded-md bg-background/80 px-3 py-1.5 text-[11px] text-muted-foreground border border-border/30 w-64 shadow-sm">
+          <span className="truncate">app.vortex.com/admin</span>
         </div>
       </div>
 
-      <div className="flex">
-        {/* Mini sidebar - hidden on mobile to save space */}
-        <div className="hidden sm:flex w-44 flex-shrink-0 flex-col border-r border-border bg-sidebar p-5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-5 w-auto invert" />
-          <div className="mt-6 space-y-2">
-            <div className="flex items-center gap-2.5 rounded-md bg-sidebar-primary px-3 py-2 text-xs font-medium text-sidebar-primary-foreground">
-              <LayoutDashboard className="h-4 w-4" />
+      <div className="flex h-[550px]">
+        {/* Sidebar idêntica a real */}
+        <div className="hidden sm:flex w-[240px] flex-shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-3 py-4">
+          <div className="flex items-center gap-2 mb-8 px-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sidebar-primary bg-sidebar-primary/10 px-1.5 py-0.5 rounded ml-2">ULTRA</span>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex items-center gap-3 rounded-lg bg-sidebar-primary px-3 py-2.5 text-sm font-medium text-sidebar-primary-foreground shadow-sm">
+              <LayoutDashboard className="h-5 w-5" />
               Dashboard
             </div>
-            <div className="flex items-center gap-2.5 rounded-md px-3 py-2 text-xs text-sidebar-foreground/60">
-              <Megaphone className="h-4 w-4" />
+            <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70">
+              <Megaphone className="h-5 w-5" />
               Campanhas
+            </div>
+            <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70">
+              <MessageSquareMore className="h-5 w-5" />
+              WhatsApp
             </div>
           </div>
         </div>
 
-        {/* Panel content */}
-        <div className="flex-1 p-3 sm:p-6 lg:p-8 text-left">
-          {/* Metrics grid: 2 cols on mobile, 3 cols on sm+ */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-            {metrics.map((metric) => (
-              <div
-                key={metric.label}
-                className="rounded-lg border border-border bg-background/60 p-2.5 sm:p-4"
-              >
-                <div
-                  className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md ${metric.color}`}
-                >
-                  <metric.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </div>
-                <p className="mt-1.5 sm:mt-3 text-base sm:text-xl font-bold text-card-foreground leading-none tabular-nums">
-                  {metric.value}
-                </p>
-                <p className="mt-0.5 sm:mt-1.5 text-[10px] sm:text-[11px] text-muted-foreground leading-tight">
-                  {metric.label}
-                </p>
+        {/* Dashboard Content Fiel */}
+        <div className="flex-1 bg-background p-8 overflow-hidden flex flex-col">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-foreground tracking-tight">
+                Dashboard
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Bem-vindo de volta,{" "}
+                <span className="font-medium text-foreground/80">admin@vortex.app</span>.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md cursor-default">
+                <Plus className="h-4 w-4" />
+                Nova campanha
               </div>
-            ))}
+            </div>
           </div>
 
-          {/* Campaign list */}
-          <div className="mt-3 sm:mt-5 space-y-2.5 sm:space-y-4">
-            <div className="rounded-lg border border-border bg-background/60 p-2.5 sm:p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs sm:text-sm font-medium text-card-foreground truncate">
-                  Lançamento Black Friday
-                </p>
-                <span className="text-[10px] sm:text-xs text-muted-foreground tabular-nums shrink-0">
-                  {leads.toLocaleString("pt-BR")} leads
-                </span>
+          {/* KPIs */}
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-1 bg-chart-1/10">
+                  <Megaphone className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Campanhas</p>
               </div>
-              <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
-                {groups.map((group) => (
-                  <div key={group.name} className="flex items-center gap-1.5 sm:gap-3">
-                    <span className="w-11 sm:w-16 text-[10px] sm:text-xs text-muted-foreground">
-                      {group.name}
-                    </span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={`h-full rounded-full transition-transform duration-1000 ease-out origin-left ${
-                          group.pct >= 100 ? "bg-primary" : "bg-chart-1"
-                        }`}
-                        style={{ transform: `scaleX(${group.pct / 100})` }}
-                      />
-                    </div>
-                    <span className="w-7 sm:w-10 text-right text-[10px] sm:text-xs text-muted-foreground tabular-nums">
-                      {group.pct}%
-                    </span>
-                  </div>
-                ))}
+              <p className="text-xl font-bold text-card-foreground tabular-nums">4</p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-2 bg-chart-2/10">
+                  <Users className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Leads</p>
+              </div>
+              <p className="text-xl font-bold text-card-foreground tabular-nums">{leads.toLocaleString("pt-BR")}</p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-3 bg-chart-3/10">
+                  <MessageCircle className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Grupos Ativos</p>
+              </div>
+              <p className="text-xl font-bold text-card-foreground tabular-nums">{groups.length}</p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg text-primary bg-primary/10">
+                  <ArrowUpRight className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Lotação</p>
+              </div>
+              <p className="text-xl font-bold text-card-foreground tabular-nums">82%</p>
+            </div>
+          </div>
+
+          {/* Chart Widget */}
+          <div className="flex-1 min-h-0 flex flex-col space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <h2 className="text-xl font-bold text-foreground tracking-tight">Desempenho Diário</h2>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground shadow-sm">
+                  <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="max-w-[140px] truncate">Lançamento VIP</span>
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                </div>
+                <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-sm">
+                  <span className="rounded-md bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                    7d
+                  </span>
+                  <span className="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
+                    30d
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-background/60 p-2.5 sm:p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs sm:text-sm font-medium text-card-foreground truncate">
-                  Webinar de Vendas
-                </p>
-                <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0">
-                  312 leads
-                </span>
-              </div>
-              <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
-                <div className="flex items-center gap-1.5 sm:gap-3">
-                  <span className="w-11 sm:w-16 text-[10px] sm:text-xs text-muted-foreground">
-                    Grupo 01
-                  </span>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-chart-1 animate-fill-bar"
-                      style={{ transform: "scaleX(0.82)", animationDelay: "900ms" }}
-                    />
-                  </div>
-                  <span className="w-7 sm:w-10 text-right text-[10px] sm:text-xs text-muted-foreground">
-                    82%
-                  </span>
-                </div>
-              </div>
+            <div className="flex-1 rounded-xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} style={{ outline: 'none' }}>
+                <AreaChart
+                  data={MOCK_CHART_DATA}
+                  margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+                  style={{ outline: 'none' }}
+                >
+                  <defs>
+                    <linearGradient id="colorLeadsMock" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorViewsMock" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#ffffff", fontSize: 11 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#ffffff", fontSize: 11 }}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="rounded-lg border border-border bg-card p-3 shadow-lg flex flex-col gap-1.5">
+                            <p className="text-sm font-semibold text-foreground mb-1">{label}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="h-2 w-2 rounded-full bg-chart-2"></span>
+                              <span className="text-xs text-muted-foreground font-medium">Leads: </span>
+                              <span className="text-xs font-bold text-foreground">{payload[0].value}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="h-2 w-2 rounded-full bg-chart-1"></span>
+                              <span className="text-xs text-muted-foreground font-medium">Views: </span>
+                              <span className="text-xs font-bold text-foreground">{payload[1].value}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="leads"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorLeadsMock)"
+                    animationDuration={2000}
+                    activeDot={false}
+                    isAnimationActive={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="views"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorViewsMock)"
+                    animationDuration={2000}
+                    activeDot={false}
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

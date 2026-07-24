@@ -19,8 +19,8 @@ export function CampaignTabs({ campaignId }: CampaignTabsProps) {
   const basePath = `/admin/campaigns/${campaignId}`;
 
   return (
-    <div className="mb-8 border-b border-border">
-      <nav className="-mb-px flex space-x-8">
+    <div className="mb-8 border-b border-border overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <nav className="-mb-px flex space-x-8 min-w-max px-1">
         {TABS.map((tab) => {
           const tabPath = `${basePath}${tab.segment}`;
           const isActive = tab.segment === ""

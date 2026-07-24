@@ -201,8 +201,7 @@ export function DashboardCharts() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* GRÁFICO 1: Visitas */}
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
           <DotGrid />
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-card-foreground">Visitas</h3>
@@ -232,8 +231,7 @@ export function DashboardCharts() {
           </div>
         </div>
 
-        {/* GRÁFICO 2: Leads */}
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
           <DotGrid />
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-card-foreground">Leads</h3>
@@ -263,8 +261,7 @@ export function DashboardCharts() {
           </div>
         </div>
 
-        {/* GRÁFICO 3: Conversão */}
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
           <DotGrid />
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-card-foreground">Conversão</h3>

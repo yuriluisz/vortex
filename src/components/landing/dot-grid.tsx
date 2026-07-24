@@ -94,12 +94,21 @@ export function DotGrid() {
           const influence = Math.max(0, 1 - dist / INFLUENCE_RADIUS);
           const eased = influence * influence; // easing quadrático
 
-          const alpha = 0.07 + wave + eased * 0.5;
-          const radius = 1.1 + eased * 1.9;
+          let drawX = x;
+          let drawY = y;
+
+          if (dist > 0 && influence > 0) {
+            const force = eased * 15; // Intensidade da repulsão
+            drawX += (dx / dist) * force;
+            drawY += (dy / dist) * force;
+          }
+
+          const alpha = 0.15 + wave + eased * 0.7;
+          const radius = 1.2 + eased * 2.0;
 
           ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(104, 134, 255, ${alpha.toFixed(3)})`;
+          ctx.arc(drawX, drawY, radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(139, 92, 246, ${alpha.toFixed(3)})`; // Violeta vibrante
           ctx.fill();
         }
       }
@@ -118,7 +127,7 @@ export function DotGrid() {
           for (let j = 0; j < rows; j++) {
             ctx.beginPath();
             ctx.arc(i * SPACING, j * SPACING, 1.1, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(104, 134, 255, 0.08)";
+            ctx.fillStyle = "rgba(139, 92, 246, 0.15)";
             ctx.fill();
           }
         }

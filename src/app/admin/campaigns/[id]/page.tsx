@@ -28,7 +28,7 @@ export default async function CampaignDetailsPage({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Coluna Principal: Detalhes */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
           <h3 className="text-lg font-medium text-card-foreground mb-4">Links Importantes</h3>
           
           <div className="space-y-4">
@@ -55,7 +55,7 @@ export default async function CampaignDetailsPage({
 
       {/* Coluna Lateral: Ações */}
       <div className="space-y-6 lg:sticky lg:top-8 self-start">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
           <h3 className="text-lg font-medium text-card-foreground mb-4">Controles</h3>
           
           <div className="space-y-4">

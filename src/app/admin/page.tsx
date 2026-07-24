@@ -7,10 +7,10 @@ import {
   Users,
   MessageCircle,
   Plus,
-  TrendingUp,
-  ArrowUpRight,
+  BarChart3,
 } from "lucide-react";
 import { DashboardCharts } from "./dashboard-charts";
+import { DotGrid } from "@/components/landing/dot-grid";
 
 export default async function AdminDashboardPage() {
   const session = await getSession();
@@ -21,7 +21,6 @@ export default async function AdminDashboardPage() {
 
   const { tenantId, email } = session;
 
-  // Buscar métricas reais do tenant
   const [totalCampaigns, totalLeads, activeGroups, allGroups, campaigns, tenant, totalMessages, totalViews] =
     await Promise.all([
       prisma.campaign.count({ where: { active: true, tenantId } }),
@@ -64,105 +63,92 @@ export default async function AdminDashboardPage() {
       }),
     ]);
 
-  // Calcular grupos lotados
-  const fullGroups = allGroups.filter(
-    (g) => g.currentCount >= g.maxCapacity
-  ).length;
-
-  // Calcular % total de ocupação dos grupos
-  const totalCapacity = allGroups.reduce((acc, g) => acc + g.maxCapacity, 0);
-  const totalCurrent = allGroups.reduce((acc, g) => acc + g.currentCount, 0);
-  const overallGroupFill =
-    totalCapacity > 0
-      ? Math.round((totalCurrent / totalCapacity) * 100)
-      : 0;
+  const totalActiveGroups = activeGroups;
+  const avgLeads = totalCampaigns > 0 ? Math.round(totalLeads / totalCampaigns) : 0;
 
   const hasNoCampaigns = totalCampaigns === 0;
 
-  // Se não tem campanhas, redireciona pro wizard
   if (hasNoCampaigns) {
     redirect("/admin/campaigns/new");
   }
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground tracking-tight">
-            Dashboard
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Bem-vindo de volta,{" "}
-            <span className="font-medium text-foreground/80">{email}</span>.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin/campaigns/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/90 hover:shadow-lg active:scale-[0.97]"
-          >
-            <Plus className="h-4 w-4" />
-            Nova campanha
-          </Link>
+      {/* Header com DotGrid */}
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-sm group">
+        <DotGrid />
+        <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
+              Dashboard
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground max-w-xl">
+              Bem-vindo de volta, <span className="font-medium text-foreground/80">{email}</span>. Acompanhe o desempenho das suas campanhas e leads em tempo real.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/campaigns/new"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:bg-primary/90 hover:scale-105 active:scale-[0.97]"
+            >
+              <Plus className="h-4 w-4" />
+              Nova campanha
+            </Link>
+          </div>
         </div>
       </div>
-
-
 
       {/* ─── 2. KPIS ─── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Campanhas */}
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-1 bg-chart-1/10">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-1 bg-chart-1/10">
               <Megaphone className="h-4 w-4" />
             </div>
-            <p className="text-xs font-medium text-muted-foreground">Campanhas</p>
+            <p className="text-sm font-medium text-muted-foreground">Campanhas</p>
           </div>
-          <p className="text-xl font-bold text-card-foreground tabular-nums">
+          <p className="text-2xl font-bold text-card-foreground tabular-nums">
             {totalCampaigns}
           </p>
         </div>
 
-
         {/* Leads */}
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-2 bg-chart-2/10">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-2 bg-chart-2/10">
               <Users className="h-4 w-4" />
             </div>
-            <p className="text-xs font-medium text-muted-foreground">Leads</p>
+            <p className="text-sm font-medium text-muted-foreground">Leads Totais</p>
           </div>
-          <p className="text-xl font-bold text-card-foreground tabular-nums">
+          <p className="text-2xl font-bold text-card-foreground tabular-nums">
             {totalLeads.toLocaleString("pt-BR")}
           </p>
         </div>
 
-
         {/* Grupos */}
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-3 bg-chart-3/10">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-3 bg-chart-3/10">
               <MessageCircle className="h-4 w-4" />
             </div>
-            <p className="text-xs font-medium text-muted-foreground">Grupos</p>
+            <p className="text-sm font-medium text-muted-foreground">Grupos Ativos</p>
           </div>
-          <p className="text-xl font-bold text-card-foreground tabular-nums">
-            {activeGroups}
+          <p className="text-2xl font-bold text-card-foreground tabular-nums">
+            {totalActiveGroups}
           </p>
         </div>
 
-        {/* Disparos WhatsApp */}
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-5 bg-chart-5/10 text-emerald-500 bg-emerald-500/10">
-              <MessageCircle className="h-4 w-4" />
+        {/* Média */}
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-4 bg-chart-4/10">
+              <BarChart3 className="h-4 w-4" />
             </div>
-            <p className="text-xs font-medium text-muted-foreground">Disparos WPP</p>
+            <p className="text-sm font-medium text-muted-foreground">Média / Campanha</p>
           </div>
-          <p className="text-xl font-bold text-card-foreground tabular-nums">
-            {totalMessages.toLocaleString("pt-BR")}
+          <p className="text-2xl font-bold text-card-foreground tabular-nums">
+            {avgLeads.toLocaleString("pt-BR")}
           </p>
         </div>
       </div>
