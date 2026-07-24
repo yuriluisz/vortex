@@ -123,17 +123,6 @@ export default function Home() {
                 style={{ animationDelay: "0ms" }}
               />
 
-              {/* Badge de prova social */}
-              <div
-                className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-medium text-primary mb-6"
-                style={{ animationDelay: "100ms" }}
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                </span>
-                Integração nativa com WhatsApp API 🚀
-              </div>
 
               <h1
                 className="animate-fade-in-up text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-6"
