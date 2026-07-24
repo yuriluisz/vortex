@@ -33,6 +33,8 @@ interface TenantInfo {
   slug: string;
   plan: string;
   role?: string;
+  subscriptionStatus?: string;
+  trialEndsAt?: string;
 }
 
 interface AdminShellProps {
@@ -252,7 +254,46 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-background p-8 animate-in fade-in duration-300">
+        {/* Banner de Assinatura */}
+        {(() => {
+          if (!tenantInfo) return null;
+          const { subscriptionStatus, trialEndsAt } = tenantInfo;
+          let isBlocked = false;
+          let message = "";
+
+          if (subscriptionStatus === "PAST_DUE") {
+            isBlocked = true;
+            message = "Sua fatura está em atraso. O acesso às campanhas foi bloqueado.";
+          } else if (subscriptionStatus === "TRIAL" && trialEndsAt) {
+            const endsAt = new Date(trialEndsAt);
+            if (new Date() > endsAt) {
+              isBlocked = true;
+              message = "Seu período de teste expirou. O acesso às campanhas foi bloqueado.";
+            }
+          }
+
+          if (isBlocked) {
+            return (
+              <div className="bg-destructive text-destructive-foreground px-4 py-3 flex items-center justify-between shadow-md relative z-50">
+                <div className="flex items-center gap-2 font-medium text-sm">
+                  <Megaphone className="h-5 w-5" />
+                  {message}
+                </div>
+                <Link
+                  href="/admin/settings" // Direciona para a página de settings/billing
+                  className="bg-background text-foreground text-xs font-bold px-3 py-1.5 rounded hover:bg-muted transition-colors"
+                >
+                  Regularizar Agora
+                </Link>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
+        <div className="flex-1 overflow-y-auto bg-background p-8 animate-in fade-in duration-300 relative">
+          {/* Se estiver bloqueado, podemos aplicar uma camada transparente para evitar cliques, ou deixar apenas o aviso. 
+              Como o usuário pediu "toast de aviso", o topo já chama bastante atenção. */}
           {children}
         </div>
 

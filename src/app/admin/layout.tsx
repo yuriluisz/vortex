@@ -28,13 +28,18 @@ export default async function AdminLayout({
   const session = await decrypt(cookie);
 
   let realPlan = "FREE";
+  let subscriptionStatus = "TRIAL";
+  let trialEndsAt: Date | null = null;
+  
   if (session?.tenantId) {
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.tenantId },
-      select: { plan: true },
+      select: { plan: true, subscriptionStatus: true, trialEndsAt: true },
     });
     if (tenant) {
       realPlan = tenant.plan;
+      subscriptionStatus = tenant.subscriptionStatus;
+      trialEndsAt = tenant.trialEndsAt;
     }
   }
 
@@ -44,6 +49,8 @@ export default async function AdminLayout({
         slug: session.tenantSlug,
         plan: realPlan,
         role: session.role || undefined,
+        subscriptionStatus,
+        trialEndsAt: trialEndsAt?.toISOString(),
       }
     : null;
 

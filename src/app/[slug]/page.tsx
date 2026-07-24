@@ -10,13 +10,39 @@ interface PageProps {
 export default async function CampaignPage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Buscar campanha pelo slug (agora slug é único por tenant, não global)
+  // Buscar campanha pelo slug incluindo dados do tenant
   const campaign = await prisma.campaign.findFirst({
     where: { slug, active: true },
+    include: { tenant: true },
   });
 
-  if (!campaign) {
+  if (!campaign || !campaign.tenant) {
     notFound();
+  }
+
+  // Validação de assinatura do Tenant
+  const { subscriptionStatus, trialEndsAt } = campaign.tenant;
+  let isBlocked = false;
+
+  if (subscriptionStatus === "PAST_DUE") {
+    isBlocked = true;
+  } else if (subscriptionStatus === "TRIAL" && trialEndsAt) {
+    if (new Date() > new Date(trialEndsAt)) {
+      isBlocked = true;
+    }
+  }
+
+  if (isBlocked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-800 p-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-3xl font-bold mb-2">Página Indisponível</h1>
+          <p className="text-gray-500">
+            A conta responsável por esta página encontra-se com restrições administrativas.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Parse do formSchema

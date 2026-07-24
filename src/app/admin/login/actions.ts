@@ -215,6 +215,7 @@ export async function registerAction(
           maxCampaigns: 1,
           maxGroups: 3,
           maxLeads: 100,
+          trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 dias a partir de agora
         },
       });
 

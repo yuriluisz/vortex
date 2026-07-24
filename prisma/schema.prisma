@@ -39,6 +39,13 @@ model Tenant {
   logo         String?
   primaryColor String?  @default("#000000")
 
+  // Asaas Pay Integration
+  asaasCustomerId    String?
+  asaasSubscriptionId String?
+  subscriptionStatus String   @default("TRIAL") // TRIAL, ACTIVE, PAST_DUE, CANCELED
+  trialEndsAt        DateTime?
+  currentPeriodEnd   DateTime?
+
   // Relações
   users              User[]
   campaigns          Campaign[]

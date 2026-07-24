@@ -54,20 +54,32 @@ export default async function CheckoutPage({
         </p>
 
         <div className="rounded-lg border border-dashed border-border bg-muted/30 px-6 py-8 mb-6">
-          <p className="text-sm text-muted-foreground">
-            Integração com pagamentos em breve.
+          <p className="text-sm text-muted-foreground font-medium">
+            Você será redirecionado para o ambiente seguro do Asaas.
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            O Asaas Pay será integrado futuramente para gerenciar assinaturas e
-            cobranças.
+            Escolha entre PIX e Cartão de Crédito na próxima página.
           </p>
         </div>
 
+        <form action={async () => {
+          "use server";
+          const { processCheckoutAction } = await import("./actions");
+          await processCheckoutAction(planId);
+        }}>
+          <button
+            type="submit"
+            className="w-full inline-flex items-center justify-center rounded-lg border border-transparent bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] mb-3"
+          >
+            Ir para Pagamento Seguro
+          </button>
+        </form>
+
         <Link
           href="/admin/settings"
-          className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-6 py-2.5 text-sm font-semibold text-card-foreground transition-all duration-150 hover:bg-accent hover:text-accent-foreground active:scale-[0.97]"
+          className="inline-flex w-full items-center justify-center rounded-lg border border-border bg-background px-6 py-2.5 text-sm font-semibold text-card-foreground transition-all duration-150 hover:bg-accent hover:text-accent-foreground active:scale-[0.97]"
         >
-          Voltar para Configurações
+          Cancelar
         </Link>
       </div>
     </div>
