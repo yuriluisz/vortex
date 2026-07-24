@@ -413,7 +413,7 @@ export async function createWhatsAppGroupAction(
     }
 
     // Buscar o invite code
-    let inviteCode = groupRes.inviteCode;
+    let inviteCode: string | null | undefined = groupRes.inviteCode;
     if (!inviteCode) {
       inviteCode = await fetchInviteCode(instance.instanceName, groupJid);
     }
