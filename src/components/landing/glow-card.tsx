@@ -17,6 +17,7 @@ export function GlowCard({ children, className = "" }: GlowCardProps) {
   const rafRef = useRef<number>(0);
   const currentRef = useRef({ x: 0.5, y: 0.5 });
   const targetRef = useRef({ x: 0.5, y: 0.5 });
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const animate = () => {
     const element = ref.current;
@@ -41,20 +42,14 @@ export function GlowCard({ children, className = "" }: GlowCardProps) {
   };
 
   const onPointerEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(animate);
   };
 
   const onPointerLeave = () => {
-    cancelAnimationFrame(rafRef.current);
-    const element = ref.current;
-    if (!element) return;
-    // Reset to center on leave
-    targetRef.current.x = element.offsetWidth / 2;
-    targetRef.current.y = element.offsetHeight / 2;
-    rafRef.current = requestAnimationFrame(animate);
-    // Stop after settling
-    setTimeout(() => cancelAnimationFrame(rafRef.current), 100);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => cancelAnimationFrame(rafRef.current), 500);
   };
 
   return (

@@ -163,9 +163,15 @@ export default function Home() {
 
               <div className="animate-fade-in-up mt-10 flex items-center gap-4 text-sm text-muted-foreground" style={{ animationDelay: "500ms" }}>
                 <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-8 w-8 rounded-full border-2 border-background bg-secondary flex items-center justify-center">
-                      <Users className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  {[
+                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=faces&q=80",
+                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=64&h=64&fit=crop&crop=faces&q=80",
+                    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop&crop=faces&q=80",
+                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=faces&q=80"
+                  ].map((src, i) => (
+                    <div key={i} className="h-8 w-8 rounded-full border-2 border-background bg-secondary flex items-center justify-center overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={`Avatar ${i+1}`} className="h-full w-full object-cover" loading="lazy" />
                     </div>
                   ))}
                 </div>
@@ -279,9 +285,15 @@ export default function Home() {
                         </div>
                         <ArrowRight className="text-muted-foreground h-6 w-6" />
                         <div className="flex -space-x-4">
-                          {[1,2,3,4].map(i => (
-                            <div key={i} className="h-12 w-12 rounded-full border-4 border-background bg-secondary flex items-center justify-center shadow-lg transform transition-transform group-hover:translate-x-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
+                          {[
+                            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&crop=faces&q=80",
+                            "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=64&h=64&fit=crop&crop=faces&q=80",
+                            "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=64&h=64&fit=crop&crop=faces&q=80",
+                            "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=64&h=64&fit=crop&crop=faces&q=80"
+                          ].map((src, i) => (
+                            <div key={i} className="h-12 w-12 rounded-full border-4 border-background bg-secondary flex items-center justify-center shadow-lg transform transition-transform group-hover:translate-x-2 overflow-hidden">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={src} alt={`Group member ${i+1}`} className="h-full w-full object-cover" loading="lazy" />
                             </div>
                           ))}
                         </div>
@@ -304,10 +316,25 @@ export default function Home() {
                     <p className="text-muted-foreground text-sm leading-relaxed mb-6 z-10 relative">
                       Crie qualquer design no Figma ou Webflow. Apenas cole o código na Vórtex e insira a tag <code>{"{{FORM_SLOT}}"}</code>. O formulário é injetado magicamente, sem precisar tocar em JavaScript.
                     </p>
-                    <div className="mt-auto p-4 rounded-lg bg-black/80 font-mono text-xs text-green-400 border border-white/10 shadow-inner z-10 relative">
-                      &lt;div id="lead-area"&gt;<br/>
-                      &nbsp;&nbsp;{'{{'}FORM_SLOT{'}}'}<br/>
-                      &lt;/div&gt;
+                    <div className="mt-auto p-4 rounded-lg bg-[#0d1117] font-mono text-[11px] leading-relaxed text-gray-300 border border-white/10 shadow-inner z-10 relative overflow-hidden">
+                      <div className="flex gap-1.5 mb-3 border-b border-white/5 pb-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                      </div>
+                      <span className="text-gray-500">&lt;!-- index.html (Exportado do Webflow) --&gt;</span><br/>
+                      &lt;<span className="text-blue-400">section</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">"hero-wrapper"</span>&gt;<br/>
+                      &nbsp;&nbsp;&lt;<span className="text-blue-400">div</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">"container"</span>&gt;<br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">h1</span>&gt;O Maior Evento do Ano&lt;/<span className="text-blue-400">h1</span>&gt;<br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">p</span>&gt;Inscreva-se abaixo para participar&lt;/<span className="text-blue-400">p</span>&gt;<br/>
+                      <br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-gray-500">&lt;!-- A mágica da Vórtex acontece aqui --&gt;</span><br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">div</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">"form-container"</span>&gt;<br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-green-400 font-bold bg-green-400/10 px-1 rounded">{'{{'}FORM_SLOT{'}}'}</span><br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span className="text-blue-400">div</span>&gt;<br/>
+                      <br/>
+                      &nbsp;&nbsp;&lt;/<span className="text-blue-400">div</span>&gt;<br/>
+                      &lt;/<span className="text-blue-400">section</span>&gt;
                     </div>
                   </GlowCard>
                 </Reveal>
@@ -345,11 +372,11 @@ export default function Home() {
                         Acompanhe cada conversão, clique e loteamento de grupos no instante em que acontecem. Gráficos limpos que te mostram o pulso do seu lançamento sem delay.
                       </p>
                     </div>
-                    <div className="w-full md:w-64 h-40 rounded-xl bg-background border border-border/50 p-4 flex flex-col justify-end gap-2 shrink-0 z-10 relative">
-                       {/* Falso grafico de barras */}
-                       <div className="flex items-end justify-between h-full gap-2 px-2">
-                         {[40, 70, 45, 90, 65, 100].map((h, i) => (
-                           <div key={i} className="w-full bg-chart-3/20 rounded-t-sm hover:bg-chart-3/50 transition-colors" style={{ height: `${h}%` }}>
+                    <div className="w-full md:w-64 h-40 rounded-xl bg-background border border-border/50 p-4 flex flex-col justify-end shrink-0 z-10 relative overflow-hidden">
+                       {/* Falso grafico de barras animado */}
+                       <div className="flex items-end h-full gap-2 w-[200%] animate-marquee">
+                         {[40, 70, 45, 90, 65, 100, 50, 80, 40, 70, 45, 90, 65, 100, 50, 80].map((h, i) => (
+                           <div key={i} className="flex-1 bg-chart-3/20 rounded-t-sm transition-colors" style={{ height: `${h}%` }}>
                              <div className="w-full bg-chart-3 rounded-t-sm" style={{ height: '4px' }} />
                            </div>
                          ))}
