@@ -183,6 +183,7 @@ export default function AdminLoginPage() {
                         name="name"
                         type="text"
                         required
+                        defaultValue={registerState?.name || ""}
                         placeholder="Ex: João Silva"
                         className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
                       />
@@ -205,6 +206,7 @@ export default function AdminLoginPage() {
                         type="email"
                         required
                         autoComplete="email"
+                        defaultValue={registerState?.email || ""}
                         placeholder="joao@minhaempresa.com"
                         className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
                       />
@@ -226,6 +228,7 @@ export default function AdminLoginPage() {
                         name="tenantName"
                         type="text"
                         required
+                        defaultValue={registerState?.tenantName || ""}
                         placeholder="Ex: Minha Empresa"
                         className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
                       />
@@ -246,6 +249,7 @@ export default function AdminLoginPage() {
                         name="subdomain"
                         type="text"
                         required
+                        defaultValue={registerState?.subdomain || ""}
                         placeholder="minhaempresa"
                         className="w-full bg-transparent px-4 py-3 text-sm text-foreground outline-none"
                       />

@@ -48,6 +48,9 @@ export type LoginState = {
   mode: "login" | "register";
   email?: string;
   error?: string;
+  name?: string;
+  tenantName?: string;
+  subdomain?: string;
 } | undefined;
 
 // ============================================================================
@@ -152,14 +155,20 @@ export async function registerAction(
     headersList.get("x-forwarded-for") ||
     headersList.get("cf-connecting-ip") ||
     "unknown";
-  const rateKey = `register:ip:${ip}`;
-  const rateResult = await rateLimit(rateKey, RATE_LIMITS.TENANT_CREATION);
+    
+  // Limite leve para evitar spam de validações
+  const formRateKey = `register:form:${ip}`;
+  const formRateResult = await rateLimit(formRateKey, RATE_LIMITS.LOGIN); // 5/min
 
-  if (!rateResult.allowed) {
+  if (!formRateResult.allowed) {
     return {
       step: "register",
       mode: "register",
-      error: "Muitas tentativas. Aguarde 1 hora antes de criar outra conta.",
+      error: "Muitas tentativas. Aguarde 1 minuto antes de tentar novamente.",
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      tenantName: formData.get("tenantName") as string,
+      subdomain: formData.get("subdomain") as string,
     };
   }
 
@@ -175,6 +184,10 @@ export async function registerAction(
       step: "register",
       mode: "register",
       error: parsed.error.issues[0]?.message || "Verifique os campos.",
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      tenantName: formData.get("tenantName") as string,
+      subdomain: formData.get("subdomain") as string,
     };
   }
 
@@ -190,6 +203,7 @@ export async function registerAction(
       step: "register",
       mode: "register",
       error: "Este e-mail já está cadastrado. Faça login em vez disso.",
+      name, email, tenantName, subdomain
     };
   }
 
@@ -202,6 +216,20 @@ export async function registerAction(
       step: "register",
       mode: "register",
       error: "Este subdomínio já está em uso. Escolha outro.",
+      name, email, tenantName, subdomain
+    };
+  }
+
+  // Limite estrito APENAS para criação de contas válidas
+  const creationRateKey = `register:ip:${ip}`;
+  const creationRateResult = await rateLimit(creationRateKey, RATE_LIMITS.TENANT_CREATION); // 1/hora
+
+  if (!creationRateResult.allowed) {
+    return {
+      step: "register",
+      mode: "register",
+      error: "Limite excedido. Aguarde 1 hora antes de criar outra conta.",
+      name, email, tenantName, subdomain
     };
   }
 
@@ -257,6 +285,10 @@ export async function registerAction(
       step: "register",
       mode: "register",
       error: "Erro interno ao criar conta. Tente novamente.",
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      tenantName: formData.get("tenantName") as string,
+      subdomain: formData.get("subdomain") as string,
     };
   }
 }
