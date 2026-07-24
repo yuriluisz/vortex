@@ -23,9 +23,10 @@ export function DashboardCharts() {
   const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>(
     []
   );
-  const [data, setData] = useState<DayPoint[]>([]);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [totalViews, setTotalViews] = useState(0);
+  const [data, setData] = useState<(DayPoint & { conversion: number })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const mountedRef = useRef(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,8 +45,13 @@ export function DashboardCharts() {
         campaignId || undefined
       );
       if (!mountedRef.current) return;
-      setData(points);
-      setTotal(points.reduce((acc, p) => acc + p.count, 0));
+      const dataWithConversion = points.map(p => ({
+        ...p,
+        conversion: p.views > 0 ? Math.round((p.count / p.views) * 100) : 0
+      }));
+      setData(dataWithConversion);
+      setTotalLeads(points.reduce((acc, p) => acc + p.count, 0));
+      setTotalViews(points.reduce((acc, p) => acc + p.views, 0));
     } catch {
       // silent
     } finally {
@@ -110,184 +116,183 @@ export function DashboardCharts() {
     : "Todas as campanhas";
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      {/* DotGrid de fundo */}
-      <DotGrid />
+    <div className="space-y-4">
+      {/* Controles: Filtro de Campanha e Range de Data */}
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+        <h2 className="text-xl font-bold text-foreground tracking-tight">Desempenho Diário</h2>
+        <div className="flex items-center gap-3">
+          {/* Filtro de campanha — dropdown customizado */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              aria-expanded={dropdownOpen}
+              aria-haspopup="listbox"
+            >
+              <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="max-w-[140px] truncate">{selectedCampaignName}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                  dropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-      {/* Conteúdo sobreposto */}
-      <div className="relative z-10 p-6">
-        {/* Header do gráfico */}
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
-          <div>
-            <h3 className="text-sm font-medium text-card-foreground">
-              Leads por dia
-            </h3>
-            <p className="text-2xl font-bold text-card-foreground tabular-nums mt-0.5">
-              {total.toLocaleString("pt-BR")}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Filtro de campanha — dropdown customizado */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                aria-expanded={dropdownOpen}
-                aria-haspopup="listbox"
+            {dropdownOpen && (
+              <ul
+                role="listbox"
+                className="absolute right-0 top-full mt-1.5 z-20 min-w-[180px] overflow-hidden rounded-lg border border-border bg-card shadow-lg animate-scale-in"
               >
-                <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                <span className="max-w-[140px] truncate">{selectedCampaignName}</span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${
-                    dropdownOpen ? "rotate-180" : ""
+                <li
+                  role="option"
+                  aria-selected={campaignId === ""}
+                  onClick={() => {
+                    setCampaignId("");
+                    setDropdownOpen(false);
+                  }}
+                  className={`flex items-center gap-2 px-3 py-2 text-xs cursor-pointer transition-colors ${
+                    campaignId === ""
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-card-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   }`}
-                />
-              </button>
-
-              {dropdownOpen && (
-                <ul
-                  role="listbox"
-                  className="absolute right-0 top-full mt-1.5 z-20 min-w-[180px] overflow-hidden rounded-lg border border-border bg-card shadow-lg animate-scale-in"
                 >
+                  Todas as campanhas
+                </li>
+                {campaigns.map((c) => (
                   <li
+                    key={c.id}
                     role="option"
-                    aria-selected={campaignId === ""}
+                    aria-selected={campaignId === c.id}
                     onClick={() => {
-                      setCampaignId("");
+                      setCampaignId(c.id);
                       setDropdownOpen(false);
                     }}
                     className={`flex items-center gap-2 px-3 py-2 text-xs cursor-pointer transition-colors ${
-                      campaignId === ""
+                      campaignId === c.id
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-card-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     }`}
                   >
-                    Todas as campanhas
+                    <span className="truncate">{c.name}</span>
                   </li>
-                  {campaigns.map((c) => (
-                    <li
-                      key={c.id}
-                      role="option"
-                      aria-selected={campaignId === c.id}
-                      onClick={() => {
-                        setCampaignId(c.id);
-                        setDropdownOpen(false);
-                      }}
-                      className={`flex items-center gap-2 px-3 py-2 text-xs cursor-pointer transition-colors ${
-                        campaignId === c.id
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-card-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      }`}
-                    >
-                      <span className="truncate">{c.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                ))}
+              </ul>
+            )}
+          </div>
 
-            {/* Toggle 7d / 30d */}
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              {([7, 30] as Range[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRange(r)}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
-                    range === r
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {r}d
-                </button>
-              ))}
+          {/* Toggle 7d / 30d */}
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            {([7, 30] as Range[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+                  range === r
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {r}d
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* GRÁFICO 1: Visitas */}
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5">
+          <DotGrid />
+          <div className="relative z-10">
+            <h3 className="text-sm font-medium text-card-foreground">Visitas</h3>
+            <p className="mt-1 text-2xl font-bold text-card-foreground tracking-tight tabular-nums">
+              {totalViews}
+            </p>
+            <div className="h-[140px] mt-4 select-none">
+              {loading ? (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Carregando...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
+                    <defs>
+                      <linearGradient id="viewGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(260, 100%, 70%)" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="hsl(260, 100%, 70%)" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 18%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 90%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: number) => [v, "Visitas"]} />
+                    <Area type="monotone" dataKey="views" stroke="hsl(260, 100%, 70%)" strokeWidth={2} fill="url(#viewGradient)" activeDot={{ r: 4, fill: "hsl(260, 100%, 70%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Gráfico */}
-        {loading ? (
-          <div className="flex items-center justify-center h-[240px] text-sm text-muted-foreground">
-            Carregando...
+        {/* GRÁFICO 2: Leads */}
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5">
+          <DotGrid />
+          <div className="relative z-10">
+            <h3 className="text-sm font-medium text-card-foreground">Leads</h3>
+            <p className="mt-1 text-2xl font-bold text-chart-1 tracking-tight tabular-nums">
+              {totalLeads}
+            </p>
+            <div className="h-[140px] mt-4 select-none">
+              {loading ? (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Carregando...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
+                    <defs>
+                      <linearGradient id="leadGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(221, 100%, 70%)" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="hsl(221, 100%, 70%)" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 18%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 90%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: number) => [v, "Leads"]} />
+                    <Area type="monotone" dataKey="count" stroke="hsl(221, 100%, 70%)" strokeWidth={2} fill="url(#leadGradient)" activeDot={{ r: 4, fill: "hsl(221, 100%, 70%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-        ) : data.length === 0 || data.every((d) => d.count === 0) ? (
-          <div className="flex items-center justify-center h-[240px] text-sm text-muted-foreground">
-            Nenhum lead capturado neste período.
+        </div>
+
+        {/* GRÁFICO 3: Conversão */}
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5">
+          <DotGrid />
+          <div className="relative z-10">
+            <h3 className="text-sm font-medium text-card-foreground">Conversão</h3>
+            <p className="mt-1 text-2xl font-bold text-primary tracking-tight tabular-nums">
+              {totalViews > 0 ? Math.round((totalLeads / totalViews) * 100) : 0}%
+            </p>
+            <div className="h-[140px] mt-4 select-none">
+              {loading ? (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Carregando...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
+                    <defs>
+                      <linearGradient id="convGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(160, 100%, 40%)" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="hsl(160, 100%, 40%)" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 18%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 90%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: number) => [`${v}%`, "Conversão"]} />
+                    <Area type="monotone" dataKey="conversion" stroke="hsl(160, 100%, 40%)" strokeWidth={2} fill="url(#convGradient)" activeDot={{ r: 4, fill: "hsl(160, 100%, 40%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="h-[240px] select-none outline-none focus:outline-none focus-visible:outline-none" tabIndex={-1}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
-                <defs>
-                  <linearGradient id="leadGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(221, 100%, 70%)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="hsl(221, 100%, 70%)" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(0, 0%, 20%)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={formatDate}
-                  tick={{ fontSize: 11, fill: "hsl(0, 0%, 55%)" }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 11, fill: "hsl(0, 0%, 55%)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(0, 0%, 8%)",
-                    border: "1px solid hsl(0, 0%, 18%)",
-                    borderRadius: 8,
-                    fontSize: 13,
-                    color: "hsl(0, 0%, 90%)",
-                  }}
-                  labelFormatter={(label) => {
-                    if (typeof label === "string") return formatTooltipDate(label);
-                    if (
-                      label &&
-                      typeof label === "object" &&
-                      "payload" in (label as unknown as Record<string, unknown>)
-                    ) {
-                      const l = label as { payload?: { date?: string } };
-                      return l.payload?.date
-                        ? formatTooltipDate(l.payload.date)
-                        : "";
-                    }
-                    return "";
-                  }}
-                  formatter={(
-                    value: unknown,
-                    _name: unknown,
-                    _item: unknown
-                  ) => {
-                    const v = value as number;
-                    return [`${v} lead${v !== 1 ? "s" : ""}`, "Capturados"];
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke="hsl(221, 100%, 70%)"
-                  strokeWidth={2}
-                  fill="url(#leadGradient)"
-                  activeDot={{ r: 4, fill: "hsl(221, 100%, 70%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

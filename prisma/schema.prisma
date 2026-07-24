@@ -40,11 +40,14 @@ model Tenant {
   primaryColor String?  @default("#000000")
 
   // Relações
-  users        User[]
-  campaigns    Campaign[]
-  groups       Group[]
-  leads        Lead[]
-  auditLogs    AuditLog[]
+  users              User[]
+  campaigns          Campaign[]
+  groups             Group[]
+  leads              Lead[]
+  pageViews          PageView[]
+  auditLogs          AuditLog[]
+  evolutionInstance  EvolutionInstance?
+  groupMessages      GroupMessage[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -103,6 +106,12 @@ enum AuditAction {
   PLAN_CHANGED
   EMAIL_CHANGED
   TENANT_UPDATED
+  WHATSAPP_CONNECTED
+  WHATSAPP_DISCONNECTED
+  GROUP_MESSAGE_SENT
+  GROUP_AUTO_CREATED
+  GROUP_BULK_CREATED
+  GROUP_SYNCED
 }
 
 model AuditLog {
@@ -136,10 +145,13 @@ model Campaign {
   formSchema Json
   pixelId    String?
   active     Boolean  @default(true)
+  views      Int      @default(0)
 
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  groups     Group[]
-  leads      Lead[]
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  groups        Group[]
+  leads         Lead[]
+  pageViews     PageView[]
+  groupMessages GroupMessage[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -147,6 +159,23 @@ model Campaign {
   @@unique([tenantId, slug])
   @@index([tenantId])
   @@index([tenantId, active])
+}
+
+// ============================================================================
+// PAGE VIEWS
+// ============================================================================
+
+model PageView {
+  id         String   @id @default(uuid())
+  campaignId String
+  tenantId   String
+  createdAt  DateTime @default(now())
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([tenantId, createdAt])
 }
 
 // ============================================================================
@@ -163,14 +192,21 @@ model Group {
   maxCapacity  Int      @default(150)
   active       Boolean  @default(true)
 
+  // Evolution API
+  groupJid     String?  // JID do grupo WhatsApp (ex: 123456789@g.us)
+  inviteCode   String?  // Código do invite extraído da URL
+  autoCreated  Boolean  @default(false) // Se foi criado automaticamente
+
   tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  leads        Lead[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([tenantId])
   @@index([campaignId])
+  @@index([groupJid])
 }
 
 // ============================================================================
@@ -199,6 +235,10 @@ model Lead {
   status     LeadStatus @default(PENDING)
   joinedAt   DateTime?
 
+  // Grupo em que efetivamente entrou
+  groupId    String?
+  group      Group?     @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
   tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
@@ -208,4 +248,44 @@ model Lead {
   @@index([campaignId])
   @@index([tenantId, status])
   @@index([whatsapp, tenantId])
+  @@index([groupId])
+}
+
+// ============================================================================
+// EVOLUTION API — WHATSAPP
+// ============================================================================
+
+model EvolutionInstance {
+  id           String   @id @default(uuid())
+  tenantId     String   @unique
+  instanceName String   // = slug do tenant
+  phoneNumber  String   // Número inserido pelo usuário
+  status       String   @default("DISCONNECTED") // DISCONNECTED | CONNECTING | CONNECTED
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([instanceName])
+}
+
+model GroupMessage {
+  id         String   @id @default(uuid())
+  tenantId   String
+  campaignId String
+  content    String   @db.Text
+  targetType String   // "ALL" | "SELECTED"
+  groupIds   String[] // IDs dos grupos alvo
+  sentBy     String   // userId que enviou
+  status     String   @default("PENDING") // PENDING | SENT | PARTIAL | FAILED
+  sentAt     DateTime @default(now())
+  results    Json?    // { groupId: "OK" | "FAILED" } por grupo
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([campaignId])
+  @@index([tenantId, sentAt])
 }

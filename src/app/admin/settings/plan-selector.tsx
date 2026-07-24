@@ -5,8 +5,15 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 import { changePlanCheckoutAction } from "./actions";
 import type { Plan } from "@prisma/client";
 
+interface UsageStats {
+  campaigns: { current: number; max: number };
+  groups: { current: number; max: number };
+  leads: { current: number; max: number };
+}
+
 interface PlanSelectorProps {
   currentPlan: Plan;
+  usage: UsageStats;
 }
 
 const PLANS = [
@@ -58,7 +65,7 @@ const PLANS = [
   },
 ];
 
-export function PlanSelector({ currentPlan }: PlanSelectorProps) {
+export function PlanSelector({ currentPlan, usage }: PlanSelectorProps) {
   const [state, formAction, pending] = useActionState(
     changePlanCheckoutAction,
     undefined
@@ -67,11 +74,50 @@ export function PlanSelector({ currentPlan }: PlanSelectorProps) {
   return (
     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-card-foreground mb-1">
-        Plano
+        Limites e Plano
       </h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Escolha o plano ideal para o seu negócio. Você pode mudar quando quiser.
+        Acompanhe o uso da sua conta e escolha o plano ideal para o seu negócio.
       </p>
+
+      {/* Uso do Plano */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8 pb-8 border-b border-border/50">
+        {[
+          { label: "Campanhas", stat: usage.campaigns },
+          { label: "Grupos", stat: usage.groups },
+          { label: "Leads", stat: usage.leads },
+        ].map(({ label, stat }) => {
+          const isUnlimited = stat.max === -1;
+          const percentage = isUnlimited
+            ? 0
+            : Math.round((stat.current / stat.max) * 100);
+          const isNearLimit = percentage >= 80;
+
+          return (
+            <div key={label}>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="font-medium text-foreground/80">
+                  {stat.current} / {isUnlimited ? "∞" : stat.max}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full rounded-full animate-fill-bar ${
+                    isNearLimit ? "bg-destructive" : "bg-primary"
+                  }`}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
+                />
+              </div>
+              {isNearLimit && !isUnlimited && currentPlan === "FREE" && (
+                <p className="mt-2 text-[10px] text-destructive">
+                  Quase no limite do plano grátis.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {PLANS.map((plan) => {

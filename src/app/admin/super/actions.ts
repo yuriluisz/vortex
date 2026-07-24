@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { logAudit } from "@/lib/audit";
-import { z } from "zod";
 import type { Plan } from "@/lib/prisma-types";
+import { PLAN_LIMITS } from "@/lib/plans";
 
 // ============================================================================
 // SEGURANÇA: Apenas SUPER_ADMIN
@@ -27,9 +27,16 @@ export async function updateTenantPlanAction(
 ) {
   const session = await requireSuperAdmin();
 
+  const limits = PLAN_LIMITS[plan];
+
   await prisma.tenant.update({
     where: { id: tenantId },
-    data: { plan },
+    data: {
+      plan,
+      maxCampaigns: limits.maxCampaigns,
+      maxGroups: limits.maxGroups,
+      maxLeads: limits.maxLeads,
+    },
   });
 
   await logAudit(
@@ -82,7 +89,7 @@ export async function updateUserRoleAction(
 
   await logAudit(
     "USER_INVITED",
-    { userId, role },
+    { userId, role, action: "role_changed" },
     session.userId,
     undefined
   );

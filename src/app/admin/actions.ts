@@ -9,6 +9,8 @@ import { canCreateResource } from "@/lib/plans";
 import { logAudit } from "@/lib/audit";
 import { requireTenantOwnership } from "@/lib/tenant-guard";
 import type { Plan } from "@/lib/prisma-types";
+import { PLAN_LIMITS } from "@/lib/plans";
+import { createEvolutionGroup, fetchInviteCode, updateGroupSetting, updateGroupPicture, updateGroupDescription } from "@/lib/evolution";
 
 // ============================================================================
 // SEGURANÇA: Validação de sessão reutilizável para todas as mutations
@@ -312,6 +314,137 @@ export async function createGroupAction(
   } catch (error) {
     console.error(error);
     return { error: "Erro interno ao criar grupo." };
+  }
+
+  revalidatePath(`/admin/campaigns/${campaignId}`);
+  return { success: true };
+}
+
+const WhatsAppGroupSchema = z.object({
+  campaignId: z.string().uuid(),
+  name: z.string().min(1, "O nome do grupo é obrigatório"),
+  maxCapacity: z.coerce.number().min(1).max(1024),
+  participantNumber: z.string().min(10, "O número auxiliar é obrigatório e deve ser válido"),
+  description: z.string().optional(),
+});
+
+export async function createWhatsAppGroupAction(
+  state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const { userId, tenantId, plan } = await requireAuth();
+
+  const parsed = WhatsAppGroupSchema.safeParse({
+    campaignId: formData.get("campaignId"),
+    name: formData.get("name"),
+    maxCapacity: formData.get("maxCapacity"),
+    participantNumber: formData.get("participantNumber"),
+    description: formData.get("description") || undefined,
+  });
+
+  if (!parsed.success) {
+    return {
+      error: "Verifique os erros no formulário.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const { campaignId, name, maxCapacity, participantNumber, description } = parsed.data;
+  const cleanNumber = participantNumber.replace(/\D/g, "");
+
+  let base64Image: string | undefined = undefined;
+  const pictureFile = formData.get("picture") as File | null;
+  if (pictureFile && pictureFile.size > 0) {
+    const arrayBuffer = await pictureFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    // Envia apenas o base64 puro (sem prefixo data:) que costuma ser mais compatível
+    base64Image = buffer.toString("base64");
+  }
+
+  // Verificar que a campanha pertence ao tenant
+  const campaignResult = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
+  if (campaignResult.error) return campaignResult.error;
+
+  // Verificar flag whatsappIntegration
+  const planLimits = PLAN_LIMITS[plan];
+  if (!planLimits?.whatsappIntegration) {
+    return { error: "Seu plano atual não permite a integração com WhatsApp." };
+  }
+
+  // Verificar limite do plano para grupos
+  if (plan) {
+    const currentCount = await prisma.group.count({
+      where: { tenantId },
+    });
+    const limitCheck = canCreateResource(plan, "groups", currentCount);
+    if (!limitCheck.allowed) {
+      return { error: limitCheck.reason };
+    }
+  }
+
+  // Buscar instância
+  const instance = await prisma.evolutionInstance.findUnique({
+    where: { tenantId },
+  });
+
+  if (!instance || instance.status !== "CONNECTED") {
+    return { error: "Nenhuma instância conectada no WhatsApp encontrada." };
+  }
+
+  try {
+    // Criar grupo no whatsapp
+    const groupRes = await createEvolutionGroup(instance.instanceName, name, [cleanNumber]);
+    if (!groupRes || !groupRes.id) {
+      return { error: "Falha ao criar o grupo no WhatsApp. A API recusou o comando." };
+    }
+
+    const groupJid = groupRes.id;
+
+    // Aplicar travas (somente admins mandam msg, e somente admins editam info)
+    await updateGroupSetting(instance.instanceName, groupJid, "announcement");
+    await updateGroupSetting(instance.instanceName, groupJid, "locked");
+
+    if (description) {
+      await updateGroupDescription(instance.instanceName, groupJid, description);
+    }
+    
+    if (base64Image) {
+      await updateGroupPicture(instance.instanceName, groupJid, base64Image);
+    }
+
+    // Buscar o invite code
+    let inviteCode = groupRes.inviteCode;
+    if (!inviteCode) {
+      inviteCode = await fetchInviteCode(instance.instanceName, groupJid);
+    }
+
+    if (!inviteCode) {
+      return { error: "Grupo criado, mas falha ao resgatar o link de convite. Adicione o link manualmente." };
+    }
+
+    const url = `https://chat.whatsapp.com/${inviteCode}`;
+
+    await prisma.group.create({
+      data: {
+        campaignId,
+        name,
+        url,
+        maxCapacity,
+        tenantId,
+        groupJid,
+        inviteCode,
+      },
+    });
+
+    await logAudit(
+      "GROUP_AUTO_CREATED",
+      { campaignId, name, url, groupJid },
+      userId,
+      tenantId
+    );
+  } catch (error) {
+    console.error(error);
+    return { error: "Erro interno ao criar grupo no WhatsApp." };
   }
 
   revalidatePath(`/admin/campaigns/${campaignId}`);

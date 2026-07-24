@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import DynamicForm from "./DynamicForm";
 import parse, { Element, HTMLReactParserOptions } from "html-react-parser";
+import { trackCampaignViewAction } from "./actions";
 
 interface FormField {
   id: string;
@@ -50,18 +52,13 @@ function extractHeadAssets(html: string): string {
   const headContent = headMatch[1];
   const assets: string[] = [];
 
-  // Extrai <link> tags (fonts, stylesheets)
-  const linkRegex = /<link[^>]*>/gi;
-  let match;
-  while ((match = linkRegex.exec(headContent)) !== null) {
-    assets.push(match[0]);
-  }
+  // Pega links de stylesheets
+  const linkMatches = headContent.match(/<link[^>]*rel=["']stylesheet["'][^>]*>/gi);
+  if (linkMatches) assets.push(...linkMatches);
 
-  // Extrai <style> blocks
-  const styleRegex = /<style[^>]*>[\s\S]*?<\/style>/gi;
-  while ((match = styleRegex.exec(headContent)) !== null) {
-    assets.push(match[0]);
-  }
+  // Pega blocos de estilo
+  const styleMatches = headContent.match(/<style[^>]*>[\s\S]*?<\/style>/gi);
+  if (styleMatches) assets.push(...styleMatches);
 
   return assets.join("\n");
 }
@@ -80,11 +77,18 @@ export default function HtmlRenderer({
   slug,
   formSchema,
 }: HtmlRendererProps) {
-  const SLOT_MARKER = "{{FORM_SLOT}}";
+  const tracked = useRef(false);
 
-  // Sanitiza o HTML: extrai apenas o conteúdo do body
+  useEffect(() => {
+    if (!tracked.current) {
+      tracked.current = true;
+      trackCampaignViewAction(campaignId);
+    }
+  }, [campaignId]);
+
   const sanitizedHtml = extractBodyContent(rawHtml);
   const headAssets = extractHeadAssets(rawHtml);
+  const SLOT_MARKER = "{{FORM_SLOT}}";
 
   // Se não há {{FORM_SLOT}}, apenas renderiza o HTML e joga o form no final
   if (!sanitizedHtml.includes(SLOT_MARKER)) {

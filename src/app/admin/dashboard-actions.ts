@@ -5,11 +5,12 @@ import { getSession } from "@/lib/session";
 
 export interface DayPoint {
   date: string;
-  count: number;
+  count: number; // leads
+  views: number;
 }
 
 /**
- * Retorna a série temporal de leads por dia para o tenant autenticado.
+ * Retorna a série temporal de leads e views por dia para o tenant autenticado.
  * @param days  7 ou 30
  * @param campaignId  opcional — filtra por campanha específica
  */
@@ -33,17 +34,31 @@ export async function getLeadsTimeSeries(
     where.campaignId = campaignId;
   }
 
-  const rows = await prisma.lead.findMany({
+  // Buscar leads
+  const leadRows = await prisma.lead.findMany({
+    where: where as never,
+    select: { createdAt: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  // Buscar views
+  const viewRows = await prisma.pageView.findMany({
     where: where as never,
     select: { createdAt: true },
     orderBy: { createdAt: "asc" },
   });
 
   // Agrupa por data (YYYY-MM-DD)
-  const map = new Map<string, number>();
-  for (const row of rows) {
+  const leadsMap = new Map<string, number>();
+  for (const row of leadRows) {
     const key = row.createdAt.toISOString().slice(0, 10);
-    map.set(key, (map.get(key) || 0) + 1);
+    leadsMap.set(key, (leadsMap.get(key) || 0) + 1);
+  }
+
+  const viewsMap = new Map<string, number>();
+  for (const row of viewRows) {
+    const key = row.createdAt.toISOString().slice(0, 10);
+    viewsMap.set(key, (viewsMap.get(key) || 0) + 1);
   }
 
   // Preenche todos os dias do intervalo
@@ -52,7 +67,11 @@ export async function getLeadsTimeSeries(
   const today = new Date();
   while (cursor <= today) {
     const key = cursor.toISOString().slice(0, 10);
-    result.push({ date: key, count: map.get(key) || 0 });
+    result.push({ 
+      date: key, 
+      count: leadsMap.get(key) || 0,
+      views: viewsMap.get(key) || 0
+    });
     cursor.setDate(cursor.getDate() + 1);
   }
 

@@ -2,9 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
 import CreateGroupForm from "./CreateGroupForm";
-import { Trash2, PowerOff, Power } from "lucide-react";
+import { Trash2, PowerOff, Power, Zap } from "lucide-react";
 import { toggleGroupStatusAction, deleteGroupAction } from "../../../actions";
 import { EditGroupUrlModal } from "./EditGroupUrlModal";
+import { SyncGroupButton, BulkCreateButton } from "./GroupActions";
 
 export default async function CampaignGroupsPage({
   params,
@@ -18,22 +19,38 @@ export default async function CampaignGroupsPage({
 
   const { id } = await params;
   
-  const campaign = await prisma.campaign.findUnique({
-    where: { id },
-    include: {
-      groups: {
-        orderBy: { createdAt: "desc" },
+  const [campaign, tenant] = await Promise.all([
+    prisma.campaign.findUnique({
+      where: { id },
+      include: {
+        groups: {
+          orderBy: { createdAt: "asc" },
+        },
       },
-    },
-  });
+    }),
+    prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { plan: true },
+    }),
+  ]);
 
   if (!campaign || campaign.tenantId !== session.tenantId) {
     notFound();
   }
 
+  const isUltra = tenant?.plan === "ULTRA";
+
   return (
     <div>
-      <CreateGroupForm campaignId={campaign.id} />
+      {/* Header com botão de Criar em Massa */}
+      <div className="flex items-center justify-between mb-6">
+        <div />
+        {isUltra && (
+          <BulkCreateButton campaignId={campaign.id} />
+        )}
+      </div>
+
+      <CreateGroupForm campaignId={campaign.id} hasWhatsapp={isUltra} />
 
       <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
         <table className="w-full text-left text-sm text-muted-foreground">
@@ -59,8 +76,22 @@ export default async function CampaignGroupsPage({
                 return (
                   <tr key={group.id} className="transition-colors hover:bg-muted/50">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-card-foreground">{group.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-card-foreground">{group.name}</p>
+                        {group.autoCreated && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-chart-3/10 text-chart-3 px-1.5 py-0.5 text-[10px] font-medium">
+                            <Zap className="h-2.5 w-2.5" />
+                            Auto
+                          </span>
+                        )}
+                      </div>
                       <EditGroupUrlModal groupId={group.id} campaignId={campaign.id} initialUrl={group.url} />
+                      {/* JID Badge */}
+                      {group.groupJid && (
+                        <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5 truncate max-w-[200px]">
+                          JID: {group.groupJid}
+                        </p>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -84,7 +115,12 @@ export default async function CampaignGroupsPage({
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Botão Sync (ULTRA only) */}
+                        {isUltra && (
+                          <SyncGroupButton groupId={group.id} />
+                        )}
+
                         <form action={async () => {
                           "use server";
                           await toggleGroupStatusAction(group.id, campaign.id, !group.active);
@@ -123,3 +159,4 @@ export default async function CampaignGroupsPage({
     </div>
   );
 }
+

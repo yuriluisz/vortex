@@ -148,3 +148,34 @@ export async function submitLeadAction(
   // Redirecionar para a página de redirect (rotacionador)
   redirect(`/${slug}/redirect`);
 }
+
+/**
+ * Server Action: Incrementa o número de views de uma campanha de forma silenciosa e registra na tabela PageView.
+ */
+export async function trackCampaignViewAction(campaignId: string) {
+  try {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { tenantId: true },
+    });
+
+    if (!campaign) return;
+
+    // Registrar o evento de visita
+    await prisma.pageView.create({
+      data: {
+        campaignId,
+        tenantId: campaign.tenantId,
+      },
+    });
+
+    // Atualizar o contador geral por conveniência
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: { views: { increment: 1 } },
+    });
+  } catch (error) {
+    // Falha silenciosa para não quebrar a página
+    console.error("Error tracking view:", error);
+  }
+}

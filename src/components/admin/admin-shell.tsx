@@ -12,9 +12,11 @@ import {
   Settings,
   Menu,
   X,
+  MessageSquareMore,
 } from "lucide-react";
 import { logoutAction } from "@/app/admin/logout-action";
 import { Shield } from "lucide-react";
+import { WhatsAppStatusToast } from "@/components/admin/whatsapp-status-toast";
 
 const PRIMARY_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -180,6 +182,21 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
             );
           })}
 
+          {/* WhatsApp — só para plano ULTRA */}
+          {tenantInfo?.plan === "ULTRA" && (
+            <Link
+              href="/admin/whatsapp"
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                pathname?.startsWith("/admin/whatsapp")
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              }`}
+            >
+              <MessageSquareMore className="h-5 w-5" />
+              WhatsApp
+            </Link>
+          )}
+
           {/* Divider */}
           <div className="my-3 border-t border-sidebar-border" />
 
@@ -238,6 +255,11 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
         <div className="flex-1 overflow-y-auto bg-background p-8 animate-in fade-in duration-300">
           {children}
         </div>
+
+        {/* Toast global de WhatsApp desconectado */}
+        {tenantInfo && (
+          <WhatsAppStatusToast plan={tenantInfo.plan} />
+        )}
       </main>
     </div>
   );

@@ -10,15 +10,18 @@ export default async function SettingsPage() {
     redirect("/admin/login");
   }
 
-  const [tenant, user] = await Promise.all([
+  const [tenant, user, totalCampaigns, activeGroups, totalLeads] = await Promise.all([
     prisma.tenant.findUnique({
       where: { id: session.tenantId },
-      select: { name: true, slug: true, plan: true },
+      select: { name: true, slug: true, plan: true, maxCampaigns: true, maxGroups: true, maxLeads: true },
     }),
     prisma.user.findUnique({
       where: { id: session.userId },
       select: { name: true, email: true },
     }),
+    prisma.campaign.count({ where: { active: true, tenantId: session.tenantId } }),
+    prisma.group.count({ where: { active: true, tenantId: session.tenantId } }),
+    prisma.lead.count({ where: { tenantId: session.tenantId } }),
   ]);
 
   if (!tenant || !user) {
@@ -43,6 +46,11 @@ export default async function SettingsPage() {
           slug={tenant.slug}
           email={user.email}
           currentPlan={tenant.plan}
+          usage={{
+            campaigns: { current: totalCampaigns, max: tenant.maxCampaigns },
+            groups: { current: activeGroups, max: tenant.maxGroups },
+            leads: { current: totalLeads, max: tenant.maxLeads },
+          }}
         />
       </Suspense>
     </div>

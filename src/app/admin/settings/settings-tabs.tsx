@@ -7,12 +7,19 @@ import { EmailChangeForm } from "./email-change-form";
 import { PlanSelector } from "./plan-selector";
 import type { Plan } from "@prisma/client";
 
+interface UsageStats {
+  campaigns: { current: number; max: number };
+  groups: { current: number; max: number };
+  leads: { current: number; max: number };
+}
+
 interface SettingsTabsProps {
   companyName: string;
   userName: string;
   slug: string;
   email: string;
   currentPlan: Plan;
+  usage: UsageStats;
 }
 
 type Tab = "profile" | "account";
@@ -23,6 +30,7 @@ export function SettingsTabs({
   slug,
   email,
   currentPlan,
+  usage,
 }: SettingsTabsProps) {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") === "account" ? "account" : "profile";
@@ -66,7 +74,7 @@ export function SettingsTabs({
       {activeTab === "account" && (
         <div className="space-y-10">
           <EmailChangeForm currentEmail={email} />
-          <PlanSelector currentPlan={currentPlan} />
+          <PlanSelector currentPlan={currentPlan} usage={usage} />
         </div>
       )}
     </div>

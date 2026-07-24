@@ -14,6 +14,7 @@ export const PLAN_LIMITS: Record<
     customDomain: boolean;
     removeBranding: boolean;
     prioritySupport: boolean;
+    whatsappIntegration: boolean;
   }
 > = {
   FREE: {
@@ -23,6 +24,7 @@ export const PLAN_LIMITS: Record<
     customDomain: false,
     removeBranding: false,
     prioritySupport: false,
+    whatsappIntegration: false,
   },
   PRO: {
     maxCampaigns: 10,
@@ -31,6 +33,7 @@ export const PLAN_LIMITS: Record<
     customDomain: true,
     removeBranding: true,
     prioritySupport: false,
+    whatsappIntegration: false,
   },
   ULTRA: {
     maxCampaigns: -1, // ilimitado
@@ -39,10 +42,12 @@ export const PLAN_LIMITS: Record<
     customDomain: true,
     removeBranding: true,
     prioritySupport: true,
+    whatsappIntegration: true,
   },
 };
 
 export type ResourceType = "campaigns" | "groups" | "leads";
+export type FeatureFlag = "customDomain" | "removeBranding" | "prioritySupport" | "whatsappIntegration";
 
 /**
  * Retorna o limite numérico de um recurso para um plano.
@@ -98,4 +103,11 @@ export function canCreateResource(
   }
 
   return { allowed: true };
+}
+
+/**
+ * Verifica se um plano tem acesso a uma feature específica.
+ */
+export function hasFeature(plan: Plan, feature: FeatureFlag): boolean {
+  return PLAN_LIMITS[plan][feature];
 }

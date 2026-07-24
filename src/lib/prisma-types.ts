@@ -25,7 +25,13 @@ export type AuditAction =
   | "USER_INVITED"
   | "USER_REMOVED"
   | "PLAN_CHANGED"
-  | "EMAIL_CHANGED";
+  | "EMAIL_CHANGED"
+  | "WHATSAPP_CONNECTED"
+  | "WHATSAPP_DISCONNECTED"
+  | "GROUP_MESSAGE_SENT"
+  | "GROUP_AUTO_CREATED"
+  | "GROUP_BULK_CREATED"
+  | "GROUP_SYNCED";
 
 /**
  * Tipo simplificado para InputJsonValue do Prisma.

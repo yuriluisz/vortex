@@ -22,7 +22,7 @@ export default async function AdminDashboardPage() {
   const { tenantId, email } = session;
 
   // Buscar métricas reais do tenant
-  const [totalCampaigns, totalLeads, activeGroups, allGroups, campaigns, tenant] =
+  const [totalCampaigns, totalLeads, activeGroups, allGroups, campaigns, tenant, totalMessages, totalViews] =
     await Promise.all([
       prisma.campaign.count({ where: { active: true, tenantId } }),
       prisma.lead.count({ where: { tenantId } }),
@@ -37,6 +37,7 @@ export default async function AdminDashboardPage() {
           id: true,
           name: true,
           slug: true,
+          views: true,
           _count: { select: { leads: true } },
           groups: {
             where: { active: true },
@@ -55,6 +56,11 @@ export default async function AdminDashboardPage() {
           maxGroups: true,
           maxLeads: true,
         },
+      }),
+      prisma.groupMessage.count({ where: { tenantId } }),
+      prisma.campaign.aggregate({
+        where: { active: true, tenantId },
+        _sum: { views: true },
       }),
     ]);
 
@@ -102,137 +108,62 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* ─── 1. LIMITES DO PLANO ─── */}
-      {tenant && (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-card-foreground">
-              Limites do Plano
-            </h3>
-            {tenant.plan === "FREE" && (
-              <Link
-              href="/admin/settings?tab=account"
-              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors duration-200"
-            >
-              Fazer upgrade
-              <ArrowUpRight className="h-3 w-3" />
-            </Link>
-            )}
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[
-              {
-                label: "Campanhas",
-                current: totalCampaigns,
-                max: tenant.maxCampaigns,
-              },
-              {
-                label: "Grupos",
-                current: activeGroups,
-                max: tenant.maxGroups,
-              },
-              {
-                label: "Leads",
-                current: totalLeads,
-                max: tenant.maxLeads,
-              },
-            ].map((item) => {
-              const isUnlimited = item.max === -1;
-              const percentage = isUnlimited
-                ? 0
-                : Math.round((item.current / item.max) * 100);
-              const isNearLimit = percentage >= 80;
 
-              return (
-                <div key={item.label}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className="font-medium text-foreground/80">
-                      {item.current} / {isUnlimited ? "∞" : item.max}
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={`h-full rounded-full animate-fill-bar ${
-                        isNearLimit ? "bg-destructive" : "bg-primary"
-                      }`}
-                      style={{ width: `${Math.min(percentage, 100)}%` }}
-                    />
-                  </div>
-                  {isNearLimit && !isUnlimited && tenant.plan === "FREE" && (
-                    <p className="mt-1 text-[10px] text-destructive">
-                      Quase no limite.{" "}
-                      <Link
-                        href="/admin/settings?tab=account"
-                        className="underline hover:text-destructive/80"
-                      >
-                        Faça upgrade
-                      </Link>
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* ─── 2. KPIS ─── */}
-      {/* KPIs antigos — 3 cards pequenos */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg text-chart-1 bg-chart-1/10">
-                <Megaphone className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Campanhas Ativas
-                </p>
-                <p className="text-xl font-bold text-card-foreground tabular-nums">
-                  {totalCampaigns}
-                </p>
-              </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Campanhas */}
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-1 bg-chart-1/10">
+              <Megaphone className="h-4 w-4" />
             </div>
+            <p className="text-xs font-medium text-muted-foreground">Campanhas</p>
           </div>
+          <p className="text-xl font-bold text-card-foreground tabular-nums">
+            {totalCampaigns}
+          </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg text-chart-2 bg-chart-2/10">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Leads Capturados
-                </p>
-                <p className="text-xl font-bold text-card-foreground tabular-nums">
-                  {totalLeads.toLocaleString("pt-BR")}
-                </p>
-              </div>
+
+        {/* Leads */}
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-2 bg-chart-2/10">
+              <Users className="h-4 w-4" />
             </div>
-            <TrendingUp className="h-4 w-4 text-chart-2" />
+            <p className="text-xs font-medium text-muted-foreground">Leads</p>
           </div>
+          <p className="text-xl font-bold text-card-foreground tabular-nums">
+            {totalLeads.toLocaleString("pt-BR")}
+          </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg text-chart-3 bg-chart-3/10">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Grupos Ativos
-                </p>
-                <p className="text-xl font-bold text-card-foreground tabular-nums">
-                  {activeGroups}
-                </p>
-              </div>
+
+        {/* Grupos */}
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-3 bg-chart-3/10">
+              <MessageCircle className="h-4 w-4" />
             </div>
+            <p className="text-xs font-medium text-muted-foreground">Grupos</p>
           </div>
+          <p className="text-xl font-bold text-card-foreground tabular-nums">
+            {activeGroups}
+          </p>
+        </div>
+
+        {/* Disparos WhatsApp */}
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-chart-5 bg-chart-5/10 text-emerald-500 bg-emerald-500/10">
+              <MessageCircle className="h-4 w-4" />
+            </div>
+            <p className="text-xs font-medium text-muted-foreground">Disparos WPP</p>
+          </div>
+          <p className="text-xl font-bold text-card-foreground tabular-nums">
+            {totalMessages.toLocaleString("pt-BR")}
+          </p>
         </div>
       </div>
 

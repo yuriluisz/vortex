@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
 
 export const metadata: Metadata = {
@@ -26,11 +27,22 @@ export default async function AdminLayout({
   const cookie = cookieStore.get(COOKIE_NAME)?.value;
   const session = await decrypt(cookie);
 
+  let realPlan = "FREE";
+  if (session?.tenantId) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { plan: true },
+    });
+    if (tenant) {
+      realPlan = tenant.plan;
+    }
+  }
+
   const tenantInfo = session?.tenantSlug
     ? {
         name: session.tenantSlug,
         slug: session.tenantSlug,
-        plan: (session.plan as string) || "FREE",
+        plan: realPlan,
         role: session.role || undefined,
       }
     : null;
