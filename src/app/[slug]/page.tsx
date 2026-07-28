@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import Script from "next/script";
 import HtmlRenderer from "./HtmlRenderer";
+import MetaPixel from "@/components/MetaPixel";
+import BlockedPage from "@/components/BlockedPage";
+import { enforceSubscription } from "@/lib/subscription-guard";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -20,30 +22,21 @@ export default async function CampaignPage({ params }: PageProps) {
     notFound();
   }
 
-  // Validação de assinatura do Tenant
-  const { subscriptionStatus, trialEndsAt } = campaign.tenant;
-  let isBlocked = false;
-
-  if (subscriptionStatus === "PAST_DUE") {
-    isBlocked = true;
-  } else if (subscriptionStatus === "TRIAL" && trialEndsAt) {
-    if (new Date() > new Date(trialEndsAt)) {
-      isBlocked = true;
-    }
+  // Se a campanha está protegida, retornar 404 — o slug não existe mais
+  if (campaign.protected && campaign.accessCode) {
+    notFound();
   }
 
-  if (isBlocked) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-800 p-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-3xl font-bold mb-2">Página Indisponível</h1>
-          <p className="text-gray-500">
-            A conta responsável por esta página encontra-se com restrições administrativas.
-          </p>
-        </div>
-      </div>
-    );
+  // Validação de assinatura do Tenant via subscription-guard (unificada)
+  const subCheck = await enforceSubscription(campaign.tenant.id);
+
+  // Se não estiver permitido (grace period expirado), mostrar tela de bloqueio
+  if (!subCheck.allowed) {
+    return <BlockedPage slug={slug} />;
   }
+
+  // Footer Vórtex aparece apenas no plano FREE
+  const showVortexFooter = subCheck.planEffective === "FREE";
 
   // Parse do formSchema
   const formSchema = campaign.formSchema as Array<{
@@ -58,26 +51,7 @@ export default async function CampaignPage({ params }: PageProps) {
   return (
     <>
       {/* Meta Pixel — injeção dinâmica */}
-      {campaign.pixelId && (
-        <Script
-          id="meta-pixel"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '${campaign.pixelId}');
-              fbq('track', 'PageView');
-            `,
-          }}
-        />
-      )}
+      <MetaPixel pixelId={campaign.pixelId} />
 
       {/* Renderizar HTML customizado com slot do formulário */}
       <HtmlRenderer
@@ -85,6 +59,9 @@ export default async function CampaignPage({ params }: PageProps) {
         campaignId={campaign.id}
         slug={campaign.slug}
         formSchema={formSchema}
+        campaignName={campaign.name}
+        tenantSlug={campaign.tenant.slug}
+        showVortexFooter={showVortexFooter}
       />
     </>
   );

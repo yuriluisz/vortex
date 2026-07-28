@@ -6,6 +6,7 @@ import type { ActionState } from "../../actions";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { HtmlTemplateManager } from "@/components/admin/html-template-manager";
 import { CampaignFormBuilder } from "@/components/admin/campaign-form-builder";
+import { FieldTooltip } from "@/components/admin/field-tooltip";
 
 interface Campaign {
   id: string;
@@ -46,8 +47,9 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium text-foreground/80">
+            <label htmlFor="name" className="block text-sm font-medium text-foreground/80 flex items-center">
               Nome da Campanha *
+              <FieldTooltip tooltip="Identifique sua campanha de forma clara. Este nome é exibido apenas no painel admin." docsAnchor="campo-nome" />
             </label>
             <input
               id="name"
@@ -64,12 +66,13 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="slug" className="block text-sm font-medium text-foreground/80">
+            <label htmlFor="slug" className="block text-sm font-medium text-foreground/80 flex items-center">
               Slug (URL) *
+              <FieldTooltip tooltip="O slug é o endereço público da sua página de captura (vortexpages.online/seu-slug)." docsAnchor="campo-slug" />
             </label>
             <div className="flex rounded-lg border border-input bg-secondary overflow-hidden focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 transition-all">
               <span className="flex items-center px-4 border-r border-input text-sm text-muted-foreground bg-muted">
-                vortex.com/
+                vortexpages.online/
               </span>
               <input
                 id="slug"
@@ -88,8 +91,9 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="pixelId" className="block text-sm font-medium text-foreground/80">
+          <label htmlFor="pixelId" className="block text-sm font-medium text-foreground/80 flex items-center">
             Meta Pixel ID (Opcional)
+            <FieldTooltip tooltip="ID do pixel do Meta para rastreamento de conversões em anúncios do Facebook/Instagram." docsAnchor="campo-pixel" />
           </label>
           <input
             id="pixelId"

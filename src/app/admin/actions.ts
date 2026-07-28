@@ -131,6 +131,7 @@ export async function createCampaignAction(
         rawHtml,
         formSchema: JSON.parse(formSchema),
         tenantId,
+        accessCode: crypto.randomUUID(),
       },
     });
 
@@ -503,4 +504,53 @@ export async function updateGroupUrlAction(
   });
 
   revalidatePath(`/admin/campaigns/${campaignId}`);
+}
+
+// ---------------------------------------------------------------------------
+// PROTEÇÃO DE CAMPANHA
+// ---------------------------------------------------------------------------
+
+export async function toggleCampaignProtectionAction(
+  campaignId: string,
+  protected_: boolean
+) {
+  const { userId, tenantId } = await requireAuth();
+
+  const result = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
+  if (result.error) throw new Error(result.error.error);
+
+  // Buscar slug e accessCode antes de atualizar
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: campaignId },
+    select: { slug: true, accessCode: true },
+  });
+
+  // Ao ativar proteção, garantir que accessCode exista
+  const data: { protected: boolean; accessCode?: string } = { protected: protected_ };
+  if (protected_ && !campaign?.accessCode) {
+    data.accessCode = crypto.randomUUID();
+  }
+
+  await prisma.campaign.update({
+    where: { id: campaignId },
+    data,
+  });
+
+  await logAudit(
+    "CAMPAIGN_UPDATED",
+    { campaignId, protected: protected_ },
+    userId,
+    tenantId
+  );
+
+  // Revalidar TODAS as rotas afetadas pela proteção
+  revalidatePath(`/admin/campaigns/${campaignId}`);
+  if (campaign?.slug) {
+    revalidatePath(`/${campaign.slug}`);
+    revalidatePath(`/${campaign.slug}/redirect`);
+  }
+  if (campaign?.accessCode) {
+    revalidatePath(`/c/${campaign.accessCode}`);
+    revalidatePath(`/c/${campaign.accessCode}/redirect`);
+  }
 }

@@ -17,6 +17,7 @@ import {
 import { logoutAction } from "@/app/admin/logout-action";
 import { Shield } from "lucide-react";
 import { WhatsAppStatusToast } from "@/components/admin/whatsapp-status-toast";
+import { HelpFAB } from "@/components/admin/help-fab";
 
 const PRIMARY_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -138,9 +139,6 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
                 <h1 className="text-sm font-bold truncate">
                   {tenantInfo.name}
                 </h1>
-                <p className="text-[10px] text-muted-foreground">
-                  {tenantInfo.slug}.vortex.app
-                </p>
               </div>
             </div>
           </div>
@@ -301,6 +299,9 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
         {tenantInfo && (
           <WhatsAppStatusToast plan={tenantInfo.plan} />
         )}
+
+        {/* FAQ flutuante global */}
+        <HelpFAB />
       </main>
     </div>
   );

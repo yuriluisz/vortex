@@ -29,8 +29,20 @@ export default function DynamicForm({
     undefined
   );
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    // Disparar evento Lead no Pixel da Meta antes de enviar o formulário
+    try {
+      const fbq = (window as any).fbq;
+      if (fbq) {
+        fbq("track", "Lead");
+      }
+    } catch {
+      // Silencioso — não quebrar o fluxo se o pixel não estiver carregado
+    }
+  }
+
   return (
-    <form action={formAction} className="vortex-form space-y-4">
+    <form action={formAction} onSubmit={handleSubmit} className="vortex-form space-y-4">
       {/* Hidden fields */}
       <input type="hidden" name="campaignId" value={campaignId} />
       <input type="hidden" name="slug" value={slug} />

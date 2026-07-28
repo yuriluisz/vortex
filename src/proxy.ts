@@ -30,7 +30,21 @@ export async function proxy(request: NextRequest) {
   }
 
   // ==========================================================================
-  // PASSO 2: /admin/* — proteção de autenticação
+  // PASSO 2: /admin/super/* — proteção extra (apenas SUPER_ADMIN)
+  // ==========================================================================
+  if (pathname.startsWith("/admin/super")) {
+    const cookie = request.cookies.get(COOKIE_NAME)?.value;
+    const session = await decrypt(cookie);
+
+    if (!session?.email || session.role !== "SUPER_ADMIN") {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+
+    return NextResponse.next();
+  }
+
+  // ==========================================================================
+  // PASSO 3: /admin/* — proteção de autenticação
   // ==========================================================================
   if (pathname.startsWith("/admin")) {
     const cookie = request.cookies.get(COOKIE_NAME)?.value;

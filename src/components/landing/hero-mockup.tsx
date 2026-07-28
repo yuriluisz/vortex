@@ -91,7 +91,7 @@ export function HeroMockup() {
         <span className="h-3 w-3 rounded-full bg-amber-500/80" />
         <span className="h-3 w-3 rounded-full bg-chart-2/80" />
         <div className="ml-4 flex items-center gap-2 rounded-md bg-background/80 px-3 py-1.5 text-[11px] text-muted-foreground border border-border/30 w-64 shadow-sm">
-          <span className="truncate">app.vortex.com/admin</span>
+          <span className="truncate">app.vortexpages.online/admin</span>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export function HeroMockup() {
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Bem-vindo de volta,{" "}
-                <span className="font-medium text-foreground/80">admin@vortex.app</span>.
+                <span className="font-medium text-foreground/80">admin@vortexpages.online</span>.
               </p>
             </div>
             <div className="flex items-center gap-3">

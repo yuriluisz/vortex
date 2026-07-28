@@ -1,86 +1,235 @@
-import Link from "next/link";
-import { ArrowLeft, CreditCard } from "lucide-react";
-import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
+"use client";
 
-interface CheckoutPageProps {
-  searchParams: Promise<{ plan?: string }>;
-}
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { CheckCircle2, Loader2, ArrowRight, XCircle, RefreshCw } from "lucide-react";
+import { verifyPaymentAction } from "../actions";
 
-const PLAN_LABELS: Record<string, { name: string; price: string }> = {
-  FREE: { name: "Free", price: "Grátis" },
-  PRO: { name: "Pro", price: "R$ 97/mês" },
-  ULTRA: { name: "Ultra", price: "R$ 157/mês" },
-};
+export default function CheckoutPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+  const [countdown, setCountdown] = useState(6);
+  const [pollStatus, setPollStatus] = useState<"polling" | "success" | "error" | "idle">("idle");
+  const [pollMessage, setPollMessage] = useState<string | null>(null);
+  const pollingRef = useRef(false);
+  const pollCountRef = useRef(0);
 
-export default async function CheckoutPage({
-  searchParams,
-}: CheckoutPageProps) {
-  const session = await getSession();
-  if (!session?.email || !session.tenantId) {
-    redirect("/admin/login");
+  // Redirect se não tem status
+  useEffect(() => {
+    if (!status) {
+      router.push("/admin/settings?tab=subscription");
+    }
+  }, [status, router]);
+
+  // Polling automático: verifica pagamento a cada 5s
+  useEffect(() => {
+    if (status !== "success") return;
+
+    const doPolling = async () => {
+      if (pollingRef.current) return;
+      pollingRef.current = true;
+
+      try {
+        const result = await verifyPaymentAction();
+        if (result?.success) {
+          setPollStatus("success");
+          setPollMessage("Pagamento confirmado! Plano ativado.");
+          return; // Para o polling
+        }
+        if (result?.error) {
+          pollCountRef.current += 1;
+          // Só mostra erro depois de 3 tentativas (15s)
+          if (pollCountRef.current > 3) {
+            setPollStatus("error");
+            setPollMessage(result.error);
+          }
+        }
+      } catch {
+        pollCountRef.current += 1;
+        if (pollCountRef.current > 3) {
+          setPollStatus("error");
+          setPollMessage("Não foi possível verificar o pagamento.");
+        }
+      } finally {
+        pollingRef.current = false;
+      }
+    };
+
+    // Primeira verificação imediata
+    doPolling();
+
+    // Polling a cada 5s
+    const interval = setInterval(doPolling, 5000);
+
+    return () => clearInterval(interval);
+  }, [status]);
+
+  // Countdown + redirect após sucesso
+  useEffect(() => {
+    if (pollStatus !== "success") return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          router.push("/admin/settings?tab=subscription");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pollStatus, router]);
+
+  const handleCheckNow = async () => {
+    setPollStatus("idle");
+    setPollMessage(null);
+    pollCountRef.current = 0;
+
+    const result = await verifyPaymentAction();
+    if (result?.success) {
+      setPollStatus("success");
+      setPollMessage("Pagamento confirmado! Plano ativado.");
+    } else if (result?.error) {
+      setPollStatus("error");
+      setPollMessage(result.error);
+    } else {
+      setPollMessage("Pagamento ainda não confirmado. O sistema continuará verificando automaticamente.");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <div className="mx-auto max-w-md mt-20 text-center">
+        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+          <div className="flex justify-center mb-4">
+            <div className="rounded-full bg-emerald-500/10 p-4">
+              <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+            </div>
+          </div>
+
+          <h1 className="text-2xl font-bold text-card-foreground mb-2">
+            Pagamento processado! 🎉
+          </h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Seu pagamento está sendo confirmado. O plano será ativado assim que a confirmação for recebida.
+          </p>
+
+          {/* Status do polling */}
+          {pollStatus === "success" && (
+            <div className="mb-6 text-sm text-emerald-600 font-medium">
+              {pollMessage}
+            </div>
+          )}
+
+          {/* Progresso de redirect */}
+          {pollStatus === "success" && (
+            <>
+              <div className="mb-6">
+                <div className="flex justify-center gap-1 mb-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 w-8 rounded-full transition-all duration-300 ${
+                        i < 6 - countdown ? "bg-primary" : "bg-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Redirecionando em {countdown} segundo{countdown !== 1 ? "s" : ""}...
+                </p>
+              </div>
+
+              <button
+                onClick={() => router.push("/admin/settings?tab=subscription")}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                Ir para assinatura
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </>
+          )}
+
+          {/* Ainda verificando */}
+          {pollStatus === "idle" && (
+            <div className="mb-6">
+              <div className="flex justify-center mb-3">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Verificando pagamento automaticamente...
+              </p>
+            </div>
+          )}
+
+          {/* Mensagem de erro no polling */}
+          {pollStatus === "error" && (
+            <div className="mb-6">
+              <p className="text-xs text-muted-foreground mb-3">{pollMessage}</p>
+              <button
+                onClick={handleCheckNow}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-blue-500"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Verificar novamente
+              </button>
+              <div className="mt-3">
+                <button
+                  onClick={() => router.push("/admin/settings?tab=subscription")}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Ir para assinatura
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
-  const params = await searchParams;
-  const planId = params.plan || "PRO";
-  const plan = PLAN_LABELS[planId] || PLAN_LABELS.PRO;
+  if (status === "cancel") {
+    return (
+      <div className="mx-auto max-w-md mt-20 text-center">
+        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+          <div className="flex justify-center mb-4">
+            <div className="rounded-full bg-yellow-500/10 p-4">
+              <XCircle className="h-10 w-10 text-yellow-500" />
+            </div>
+          </div>
+
+          <h1 className="text-2xl font-bold text-card-foreground mb-2">
+            Pagamento não concluído
+          </h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            O pagamento foi cancelado ou não foi concluído. Seu plano permanece o mesmo.
+            Você pode tentar novamente a qualquer momento.
+          </p>
+
+          <button
+            onClick={() => router.push("/admin/settings?tab=subscription")}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+          >
+            Voltar para assinatura
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-8">
-        <Link
-          href="/admin/settings"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar para Configurações
-        </Link>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card p-8 shadow-sm text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-6">
-          <CreditCard className="h-8 w-8 text-primary" />
+    <div className="mx-auto max-w-md mt-20 text-center">
+      <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="flex justify-center mb-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
-
-        <h1 className="text-2xl font-bold tracking-tight text-card-foreground mb-2">
-          {plan.name}
-        </h1>
-        <p className="text-4xl font-bold text-card-foreground mb-2">
-          {plan.price}
+        <p className="text-sm text-muted-foreground">
+          Processando pagamento...
         </p>
-        <p className="text-sm text-muted-foreground mb-8">
-          Você selecionou o plano <strong>{plan.name}</strong>. Complete o
-          checkout para ativar.
-        </p>
-
-        <div className="rounded-lg border border-dashed border-border bg-muted/30 px-6 py-8 mb-6">
-          <p className="text-sm text-muted-foreground font-medium">
-            Você será redirecionado para o ambiente seguro do Asaas.
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Escolha entre PIX e Cartão de Crédito na próxima página.
-          </p>
-        </div>
-
-        <form action={async () => {
-          "use server";
-          const { processCheckoutAction } = await import("./actions");
-          await processCheckoutAction(planId);
-        }}>
-          <button
-            type="submit"
-            className="w-full inline-flex items-center justify-center rounded-lg border border-transparent bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] mb-3"
-          >
-            Ir para Pagamento Seguro
-          </button>
-        </form>
-
-        <Link
-          href="/admin/settings"
-          className="inline-flex w-full items-center justify-center rounded-lg border border-border bg-background px-6 py-2.5 text-sm font-semibold text-card-foreground transition-all duration-150 hover:bg-accent hover:text-accent-foreground active:scale-[0.97]"
-        >
-          Cancelar
-        </Link>
       </div>
     </div>
   );

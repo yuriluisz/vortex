@@ -43,6 +43,13 @@ export default function AdminLoginPage() {
     ? otpState?.error
     : activeState?.error;
 
+  // Trocar automaticamente para registro se o login retornar step=register
+  useEffect(() => {
+    if (loginState?.step === "register" && loginState?.mode === "register") {
+      setMode("register");
+    }
+  }, [loginState]);
+
   useEffect(() => {
     if (isOTPStep && otpInputRef.current) {
       otpInputRef.current.focus();
@@ -233,33 +240,6 @@ export default function AdminLoginPage() {
                         className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
                       />
                     </div>
-                  </div>
-
-                  {/* Subdomínio */}
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="reg-subdomain"
-                      className="block text-sm font-medium text-foreground/80"
-                    >
-                      Seu subdomínio
-                    </label>
-                    <div className="flex rounded-lg border border-input bg-secondary overflow-hidden focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 transition-all">
-                      <input
-                        id="reg-subdomain"
-                        name="subdomain"
-                        type="text"
-                        required
-                        defaultValue={registerState?.subdomain || ""}
-                        placeholder="minhaempresa"
-                        className="w-full bg-transparent px-4 py-3 text-sm text-foreground outline-none"
-                      />
-                      <span className="flex items-center px-3 border-l border-input text-xs text-muted-foreground bg-muted whitespace-nowrap">
-                        .vortex.app
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Apenas letras minúsculas, números e hífens (mín. 3 caracteres).
-                    </p>
                   </div>
 
                   {currentError && (

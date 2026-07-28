@@ -4,6 +4,7 @@ import { useState, useActionState } from "react";
 import { Send, Loader2, CheckCircle2, XCircle, Clock, ChevronDown } from "lucide-react";
 import { sendBroadcastAction } from "../actions";
 import type { BroadcastState } from "../actions";
+import { FieldTooltip } from "@/components/admin/field-tooltip";
 
 // ============================================================================
 // TYPES
@@ -122,8 +123,9 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
         <div className="space-y-6">
           {/* 1. Selecionar campanha */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground/80">
+            <label className="block text-sm font-medium text-foreground/80 flex items-center">
               Campanha
+              <FieldTooltip tooltip="Selecione a campanha. Os disparos são enviados apenas para os grupos ativos da campanha selecionada." docsAnchor="broadcast-enviar" />
             </label>
             <div className="relative">
               <select
@@ -148,8 +150,9 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
           {/* 2. Seleção de grupos */}
           {selectedCampaign && (
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-foreground/80">
+              <label className="block text-sm font-medium text-foreground/80 flex items-center">
                 Grupos de destino
+                <FieldTooltip tooltip="Escolha se deseja enviar para todos os grupos com JID sincronizado ou selecionar manualmente alguns." docsAnchor="broadcast-enviar" />
               </label>
 
               {/* Toggle ALL / SELECTED */}
@@ -230,8 +233,9 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
 
           {/* 3. Mensagem */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground/80">
+            <label className="block text-sm font-medium text-foreground/80 flex items-center">
               Mensagem
+              <FieldTooltip tooltip="O texto que será enviado. Limite de 4096 caracteres." docsAnchor="broadcast-mensagem" />
             </label>
             <textarea
               value={message}

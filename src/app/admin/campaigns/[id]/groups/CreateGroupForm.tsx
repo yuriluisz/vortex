@@ -4,6 +4,7 @@ import { useActionState, useState, useRef, useEffect } from "react";
 import { createGroupAction, createWhatsAppGroupAction } from "../../../actions";
 import type { ActionState } from "../../../actions";
 import { Loader2, Plus, Zap, Link as LinkIcon } from "lucide-react";
+import { FieldTooltip } from "@/components/admin/field-tooltip";
 
 export default function CreateGroupForm({ 
   campaignId, 
@@ -89,8 +90,9 @@ export default function CreateGroupForm({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className={`space-y-2 ${isAuto ? "md:col-span-2" : ""}`}>
-            <label htmlFor="name" className="block text-sm font-medium text-foreground/80">
+            <label htmlFor="name" className="block text-sm font-medium text-foreground/80 flex items-center">
               Nome do Grupo
+              <FieldTooltip tooltip="O nome que identifica este grupo na lista de grupos da campanha." docsAnchor="grupo-criar" />
             </label>
             <input
               id="name"
@@ -104,8 +106,9 @@ export default function CreateGroupForm({
 
           {!isAuto && (
             <div className="space-y-2 md:col-span-2">
-              <label htmlFor="url" className="block text-sm font-medium text-foreground/80">
+              <label htmlFor="url" className="block text-sm font-medium text-foreground/80 flex items-center">
                 Link de Convite
+                <FieldTooltip tooltip="Cole o link de convite do grupo do WhatsApp (https://chat.whatsapp.com/...)." docsAnchor="grupo-criar" />
               </label>
               <input
                 id="url"
@@ -168,8 +171,9 @@ export default function CreateGroupForm({
           )}
 
           <div className="space-y-2">
-            <label htmlFor="maxCapacity" className="block text-sm font-medium text-foreground/80">
+            <label htmlFor="maxCapacity" className="block text-sm font-medium text-foreground/80 flex items-center">
               Lotação Máxima
+              <FieldTooltip tooltip="Ao atingir esse número, os próximos leads serão redirecionados para o grupo seguinte da fila." docsAnchor="campo-lotacao" />
             </label>
             <input
               id="maxCapacity"

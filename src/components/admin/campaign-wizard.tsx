@@ -6,6 +6,7 @@ import type { ActionState } from "@/app/admin/actions";
 import { ArrowLeft, ArrowRight, Check, Loader2, Plus, X } from "lucide-react";
 import { HtmlTemplateManager } from "./html-template-manager";
 import { CampaignFormBuilder } from "./campaign-form-builder";
+import { FieldTooltip } from "./field-tooltip";
 import Link from "next/link";
 
 type Step = 1 | 2 | 3;
@@ -124,8 +125,9 @@ export function CampaignWizard() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-foreground/80">
+                  <label htmlFor="name" className="block text-sm font-medium text-foreground/80 flex items-center">
                     Nome da Campanha *
+                    <FieldTooltip tooltip="Identifique sua campanha de forma clara. Este nome é exibido apenas no painel admin e não aparece para o público." docsAnchor="campo-nome" />
                   </label>
                   <input
                     id="name"
@@ -143,12 +145,13 @@ export function CampaignWizard() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="slug" className="block text-sm font-medium text-foreground/80">
+                  <label htmlFor="slug" className="block text-sm font-medium text-foreground/80 flex items-center">
                     Slug (URL) *
+                    <FieldTooltip tooltip="O slug é o endereço público da sua página de captura. Aparece como vortexpages.online/seu-slug. Use apenas letras minúsculas, números e hífens." docsAnchor="campo-slug" />
                   </label>
                   <div className="flex rounded-lg border border-input bg-secondary overflow-hidden focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 transition-all">
                     <span className="flex items-center px-4 border-r border-input text-sm text-muted-foreground bg-muted">
-                      vortex.com/
+                      vortexpages.online/
                     </span>
                     <input
                       id="slug"
@@ -168,8 +171,9 @@ export function CampaignWizard() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="pixelId" className="block text-sm font-medium text-foreground/80">
+                <label htmlFor="pixelId" className="block text-sm font-medium text-foreground/80 flex items-center">
                   Meta Pixel ID (Opcional)
+                  <FieldTooltip tooltip="Insira o ID do pixel do Meta (Facebook/Instagram). Quando um lead se cadastrar, eventos de conversão serão disparados automaticamente." docsAnchor="campo-pixel" />
                 </label>
                 <input
                   id="pixelId"
@@ -225,8 +229,9 @@ export function CampaignWizard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label htmlFor="groupName" className="block text-sm font-medium text-foreground/80">
+                    <label htmlFor="groupName" className="block text-sm font-medium text-foreground/80 flex items-center">
                       Nome do Grupo
+                      <FieldTooltip tooltip="O nome que identifica este grupo na lista. Não precisa ser o mesmo nome que aparece no WhatsApp." docsAnchor="wizard-etapa-grupo" />
                     </label>
                     <input
                       id="groupName"
@@ -238,8 +243,9 @@ export function CampaignWizard() {
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="groupUrl" className="block text-sm font-medium text-foreground/80">
+                    <label htmlFor="groupUrl" className="block text-sm font-medium text-foreground/80 flex items-center">
                       Link do Grupo
+                      <FieldTooltip tooltip="Insira o link de convite do grupo do WhatsApp. Comece com https://chat.whatsapp.com/ seguido do código." docsAnchor="grupo-criar" />
                     </label>
                     <input
                       id="groupUrl"
@@ -252,8 +258,9 @@ export function CampaignWizard() {
                 </div>
 
                 <div className="mt-4 space-y-2">
-                  <label htmlFor="maxCapacity" className="block text-sm font-medium text-foreground/80">
+                  <label htmlFor="maxCapacity" className="block text-sm font-medium text-foreground/80 flex items-center">
                     Capacidade Máxima
+                    <FieldTooltip tooltip="Quando o grupo atingir essa quantidade de leads, os novos serão redirecionados automaticamente para o próximo grupo da fila." docsAnchor="campo-lotacao" />
                   </label>
                   <input
                     id="maxCapacity"

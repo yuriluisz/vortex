@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import DynamicForm from "./DynamicForm";
 import parse, { Element, HTMLReactParserOptions } from "html-react-parser";
 import { trackCampaignViewAction } from "./actions";
+import VortexFooter from "@/components/VortexFooter";
 
 interface FormField {
   id: string;
@@ -19,6 +20,9 @@ interface HtmlRendererProps {
   campaignId: string;
   slug: string;
   formSchema: FormField[];
+  campaignName?: string;
+  tenantSlug?: string;
+  showVortexFooter?: boolean;
 }
 
 /**
@@ -76,6 +80,9 @@ export default function HtmlRenderer({
   campaignId,
   slug,
   formSchema,
+  campaignName,
+  tenantSlug,
+  showVortexFooter = false,
 }: HtmlRendererProps) {
   const tracked = useRef(false);
 
@@ -134,6 +141,12 @@ export default function HtmlRenderer({
     <>
       {headAssets && parse(headAssets)}
       {parse(htmlWithAnchor, options)}
+      <VortexFooter
+        campaignSlug={slug}
+        campaignName={campaignName || slug}
+        tenantSlug={tenantSlug || "unknown"}
+        hidden={!showVortexFooter}
+      />
     </>
   );
 }

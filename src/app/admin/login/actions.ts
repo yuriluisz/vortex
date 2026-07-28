@@ -27,17 +27,19 @@ const OTPSchema = z.object({
   otp: z.string().length(6, "O código deve ter 6 dígitos."),
 });
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60) || "app";
+}
+
 const RegisterSchema = z.object({
   name: z.string().min(1, "Seu nome é obrigatório."),
   email: z.string().email("E-mail inválido."),
   tenantName: z.string().min(1, "O nome da empresa é obrigatório."),
-  subdomain: z
-    .string()
-    .min(3, "O subdomínio deve ter no mínimo 3 caracteres.")
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Apenas letras minúsculas, números e hífens."
-    ),
 });
 
 // ============================================================================
@@ -93,21 +95,25 @@ export async function loginAction(
 
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
-    select: { id: true, email: true },
+    select: { id: true, email: true, blocked: true },
   });
 
-  // 🔒 S2: Anti-enumeration — sempre responder a mesma mensagem
-  // Se o email não existir, ainda geramos OTP (mas não enviamos)
-  // para não vazar se o email existe ou não.
+  // Se o email não existir, avisar o usuário e sugerir criar conta
   if (!user) {
-    // Gera OTP mesmo para email inexistente para evitar timing attack
-    const fakeOtp = generateOTP();
-    await storeOTP(normalizedEmail, fakeOtp);
-
     return {
-      step: "otp",
-      mode: "login",
+      step: "register",
+      mode: "register",
       email: normalizedEmail,
+      error: "Nenhuma conta encontrada com este e-mail. Que tal criar uma?",
+    };
+  }
+
+  // Se o usuário foi bloqueado pelo super admin, negar acesso
+  if (user.blocked) {
+    return {
+      step: "email",
+      mode: "login",
+      error: "Esta conta foi bloqueada. Entre em contato com o suporte: yulusica@gmail.com",
     };
   }
 
@@ -168,7 +174,6 @@ export async function registerAction(
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       tenantName: formData.get("tenantName") as string,
-      subdomain: formData.get("subdomain") as string,
     };
   }
 
@@ -176,7 +181,6 @@ export async function registerAction(
     name: formData.get("name"),
     email: formData.get("email"),
     tenantName: formData.get("tenantName"),
-    subdomain: formData.get("subdomain"),
   });
 
   if (!parsed.success) {
@@ -187,11 +191,11 @@ export async function registerAction(
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       tenantName: formData.get("tenantName") as string,
-      subdomain: formData.get("subdomain") as string,
     };
   }
 
-  const { name, email, tenantName, subdomain } = parsed.data;
+  const { name, email, tenantName } = parsed.data;
+  const subdomain = slugify(tenantName);
   const normalizedEmail = email.toLowerCase();
 
   // Verificar email único
@@ -288,7 +292,6 @@ export async function registerAction(
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       tenantName: formData.get("tenantName") as string,
-      subdomain: formData.get("subdomain") as string,
     };
   }
 }

@@ -181,9 +181,6 @@ export default async function AdminDashboardPage() {
                       <h4 className="text-sm font-semibold text-card-foreground truncate">
                         {campaign.name}
                       </h4>
-                      <p className="text-[10px] text-muted-foreground">
-                        {campaign.slug}.vortex.app
-                      </p>
                     </div>
                   </div>
                   <span className="text-lg font-bold text-card-foreground tabular-nums flex-shrink-0">
