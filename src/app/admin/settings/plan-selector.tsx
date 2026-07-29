@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ArrowRight,
@@ -141,6 +141,9 @@ export function PlanSelector({
   subscriptionInfo,
 }: PlanSelectorProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const checkoutPlanParam = searchParams.get("checkout_plan");
+  
   const [state, formAction, pending] = useActionState(changePlanCheckoutAction, undefined);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
@@ -160,6 +163,25 @@ export function PlanSelector({
       window.location.href = state.invoiceUrl;
     }
   }, [state?.invoiceUrl]);
+
+  // Automação do checkout vindo do Login
+  useEffect(() => {
+    if (checkoutPlanParam && !pending && !state?.needsBilling && !state?.invoiceUrl) {
+      // Evita loops
+      if (redirectingRef.current) return;
+      
+      const formData = new FormData();
+      formData.append("plan", checkoutPlanParam);
+      
+      // Remove the parameter from URL without refreshing so we don't re-trigger it
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("checkout_plan");
+      window.history.replaceState({}, "", newUrl.toString());
+
+      // Trigger action
+      formAction(formData);
+    }
+  }, [checkoutPlanParam, pending, state, formAction]);
 
   // Detectar needsBilling e abrir modal
   useEffect(() => {

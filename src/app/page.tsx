@@ -61,7 +61,7 @@ export default function Home() {
         "Marca Vórtex+",
       ],
       cta: "Começar grátis",
-      href: "/signup",
+      href: "/admin/login?mode=register",
     },
     {
       name: "Pro",
@@ -78,7 +78,7 @@ export default function Home() {
         "Suporte prioritário (chat)",
       ],
       cta: "Assinar Pro",
-      href: "/signup",
+      href: "/admin/login?mode=register&plan=PRO",
     },
     {
       name: "Ultra",
@@ -96,7 +96,7 @@ export default function Home() {
         "Suporte dedicado 24h",
       ],
       cta: "Assinar Ultra",
-      href: "/signup",
+      href: "/admin/login?mode=register&plan=ULTRA",
     },
   ];
 

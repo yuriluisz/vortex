@@ -307,6 +307,7 @@ export async function verifyOTPAction(
     email: formData.get("email"),
     otp: formData.get("otp"),
   });
+  const checkoutPlan = formData.get("plan") as string | null;
 
   if (!parsed.success) {
     return {
@@ -381,5 +382,9 @@ export async function verifyOTPAction(
     tenant.tenantId
   );
 
-  redirect("/admin");
+  if (checkoutPlan) {
+    redirect(`/admin/settings?tab=subscription&checkout_plan=${checkoutPlan}`);
+  } else {
+    redirect("/admin");
+  }
 }

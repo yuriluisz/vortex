@@ -10,10 +10,12 @@ import { Loader2, Mail, ArrowRight, Building2, User } from "lucide-react";
 export default function AdminLoginPage() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
+  const planParam = searchParams.get("plan");
+  const modeParam = searchParams.get("mode");
 
   // Toggle entre login e registro
   const [mode, setMode] = useState<"login" | "register">(
-    tabParam === "register" ? "register" : "login"
+    tabParam === "register" || modeParam === "register" ? "register" : "login"
   );
 
   // Login form
@@ -175,6 +177,9 @@ export default function AdminLoginPage() {
                     </p>
                   </div>
 
+                  {/* Intent for checkout */}
+                  {planParam && <input type="hidden" name="plan" value={planParam} />}
+
                   {/* Nome */}
                   <div className="space-y-2">
                     <label
@@ -280,8 +285,9 @@ export default function AdminLoginPage() {
                 </p>
               </div>
 
-              {/* Email hidden */}
+              {/* Email and Plan hidden */}
               <input type="hidden" name="email" value={activeState?.email || ""} />
+              {planParam && <input type="hidden" name="plan" value={planParam} />}
 
               {/* OTP Input */}
               <div className="space-y-2">

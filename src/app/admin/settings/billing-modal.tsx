@@ -25,6 +25,9 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
     saveBillingInfoAction,
     undefined
   );
+  
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   if (!open) return null;
 
@@ -233,6 +236,33 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
             </div>
           )}
 
+          {/* Terms Checkbox */}
+          <div className="pt-2 flex items-start gap-3">
+            <div className="flex h-5 items-center">
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                required
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary/20 cursor-pointer"
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <label htmlFor="terms" className="font-medium text-foreground cursor-pointer">
+                Li e concordo com os termos de uso.
+              </label>{" "}
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(true)}
+                className="text-primary hover:underline"
+              >
+                Ler termos resumidos
+              </button>
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -244,7 +274,7 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
             </button>
             <button
               type="submit"
-              disabled={pending}
+              disabled={pending || !termsAccepted}
               className="flex-1 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {pending ? (
@@ -259,6 +289,48 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
           </div>
         </form>
       </div>
+
+      {/* Terms Sub-Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTermsModal(false)} />
+          <div className="relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <button
+              onClick={() => setShowTermsModal(false)}
+              className="absolute top-4 right-4 rounded-lg p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <h3 className="text-lg font-bold text-foreground mb-4">Termos de Uso (Resumo)</h3>
+            <div className="space-y-4 text-sm text-muted-foreground max-h-[60vh] overflow-y-auto pr-2">
+              <p>
+                <strong>1. Benefícios do Sistema:</strong> Ao assinar, você desbloqueia as possibilidades e capacidades referentes ao seu plano (campanhas, leads e automações).
+              </p>
+              <p>
+                <strong>2. Escassez e Limites:</strong> Respeite os limites do seu plano. O excedente pode ser pausado caso os recursos não comportem o tráfego sem um upgrade.
+              </p>
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive mt-4">
+                <p className="font-bold mb-1">Tolerância Zero - Política de Bloqueio</p>
+                <p>
+                  O uso do sistema é ESTRITAMENTE PROIBIDO para: campanhas ilícitas, drogas, conteúdo adulto/pornografia, esquemas de pirâmide e fraudes.
+                  A violação destas regras resultará em <strong>bloqueio imediato da conta</strong>, sem aviso prévio e sem direito a reembolso.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 pt-4 border-t border-border">
+              <button
+                onClick={() => {
+                  setTermsAccepted(true);
+                  setShowTermsModal(false);
+                }}
+                className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                Concordar e Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
