@@ -18,11 +18,11 @@ export default async function proxy(request: NextRequest) {
   // ROTEAMENTO DE DOMÍNIOS CUSTOMIZADOS
   // ==========================================================================
   // Cabeçalho secreto enviado pelo Cloudflare Worker com o domínio real do cliente
-  const vortexHost = request.headers.get("x-vortex-host");
+  const vortexHost = request.headers.get("x-vortex-host") || request.headers.get("x-forwarded-host");
   
   if (vortexHost) {
     // Worker enviou o domínio original do cliente — reescreve para a rota interna
-    const cleanHost = vortexHost.split(':')[0];
+    const cleanHost = vortexHost.split(':')[0].trim().toLowerCase();
     const url = new URL(`/_domain/${cleanHost}${pathname}`, request.url);
     return NextResponse.rewrite(url);
   }
