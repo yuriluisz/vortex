@@ -1,6 +1,6 @@
 const CLOUDFLARE_API_URL = "https://api.cloudflare.com/client/v4";
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = process.env.CLOUDFLARE_API_TOKEN;
   const key = process.env.CLOUDFLARE_API_KEY;
   const email = process.env.CLOUDFLARE_EMAIL;

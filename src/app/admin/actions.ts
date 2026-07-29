@@ -191,15 +191,7 @@ export async function toggleCampaignStatusAction(
     data: { active },
   });
 
-  
-    if (oldCampaign?.customDomain && oldCampaign.customDomain !== finalCustomDomain) {
-      await removeCustomHostname(oldCampaign.customDomain);
-    }
-    if (finalCustomDomain && oldCampaign?.customDomain !== finalCustomDomain) {
-      await addCustomHostname(finalCustomDomain);
-    }
-
-    await logAudit(
+  await logAudit(
     "CAMPAIGN_UPDATED",
     { campaignId: id, active },
     userId,
