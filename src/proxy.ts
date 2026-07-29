@@ -31,7 +31,7 @@ export default async function proxy(request: NextRequest) {
   if (vortexHost && !vortexHost.includes(mainDomain)) {
     // Worker enviou o domínio original do cliente — reescreve para a rota interna
     const cleanHost = vortexHost.split(':')[0].trim().toLowerCase();
-    const url = new URL(`/_domain/${cleanHost}${pathname}`, request.url);
+    const url = new URL(`/custom-domain/${cleanHost}${pathname}`, request.url);
     return NextResponse.rewrite(url);
   }
 
@@ -47,8 +47,9 @@ export default async function proxy(request: NextRequest) {
     !hostname.includes("trycloudflare.com") &&
     !hostname.includes("vercel.app")
   ) {
-    // Fallback: domínio customizado acessado sem Worker (ex: dev local com host override)
-    const url = new URL(`/_domain/${hostname}${pathname}`, request.url);
+    // Fallback: se não veio X-Vortex-Host mas o Hostname é diferente, tenta reescrever
+    // Nota: Isso é um fallback caso o Worker falhe em mandar o header, ou acesso direto.
+    const url = new URL(`/custom-domain/${hostname}${pathname}`, request.url);
     return NextResponse.rewrite(url);
   }
 

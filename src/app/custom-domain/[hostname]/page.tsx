@@ -17,7 +17,6 @@ export default async function DomainCampaignPage({ params }: PageProps) {
     .replace(/^https?:\/\//, "")
     .replace(/\/.*$/, "");
 
-  // Buscar campanha pelo domínio customizado (com tolerância a protocolo/caixa)
   const campaign = await prisma.campaign.findFirst({
     where: {
       OR: [
