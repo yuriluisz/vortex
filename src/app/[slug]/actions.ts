@@ -2,11 +2,12 @@
 
 import { z } from "zod";
 import { headers } from "next/headers";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { UAParser } from "ua-parser-js";
 import { logAudit } from "@/lib/audit";
-import { canCreateResource } from "@/lib/plans";
+import { leadsQueue, viewsQueue } from "@/lib/queue";
+import { canCreateResource, getLimitForPlan, isUnlimited } from "@/lib/plans";
+import { getCachedCampaignData, getCachedLeadCount } from "@/lib/campaign-cache";
 
 const LeadSchema = z.object({
   campaignId: z.string().uuid(),
@@ -47,27 +48,21 @@ export async function submitLeadAction(
     };
   }
 
-  // Buscar campanha para obter tenantId e validar existência
-  const campaign = await prisma.campaign.findUnique({
-    where: { id: campaignId },
-    select: { id: true, tenantId: true, active: true },
-  });
+  // Buscar campanha e dados do tenant via Cache
+  const cachedData = await getCachedCampaignData(campaignId);
 
-  if (!campaign || !campaign.active) {
+  if (!cachedData || !cachedData.active) {
     return { error: "Campanha não encontrada ou inativa." };
   }
 
   // Verificar limite de leads do plano
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: campaign.tenantId },
-    select: { plan: true, maxLeads: true },
-  });
+  const limit = getLimitForPlan(cachedData.plan, "leads");
 
-  if (tenant) {
-    const currentCount = await prisma.lead.count({
-      where: { tenantId: campaign.tenantId },
-    });
-    const limitCheck = canCreateResource(tenant.plan, "leads", currentCount);
+  // Otimização Extrema: Se o plano for ilimitado (ULTRA), pulamos a contagem
+  // de leads inteiramente, poupando o cache e o banco de dados.
+  if (!isUnlimited(limit)) {
+    const currentCount = await getCachedLeadCount(cachedData.tenantId);
+    const limitCheck = canCreateResource(cachedData.plan, "leads", currentCount);
     if (!limitCheck.allowed) {
       return { error: limitCheck.reason };
     }
@@ -129,21 +124,23 @@ export async function submitLeadAction(
   };
 
   try {
-    await prisma.lead.create({
-      data: {
-        campaignId: parsed.data.campaignId,
-        tenantId: campaign.tenantId,
-        name: parsed.data.name || null,
-        whatsapp: parsed.data.whatsapp || "Não informado",
-        answers: Object.keys(answers).length > 0 ? answers : undefined,
-        metadata,
-        datadb,
-        horadb,
-      },
+    // Adiciona o lead à fila do BullMQ para processamento em background,
+    // liberando o usuário instantaneamente para o redirecionamento.
+    await leadsQueue.add("process-lead", {
+      campaignId: parsed.data.campaignId,
+      tenantId: cachedData.tenantId,
+      name: parsed.data.name || null,
+      whatsapp: parsed.data.whatsapp || "Não informado",
+      answers: Object.keys(answers).length > 0 ? answers : undefined,
+      metadata,
+      datadb,
+      horadb,
     });
   } catch (error) {
-    console.error("Error creating lead:", error);
-    return { error: "Erro ao registrar. Tente novamente." };
+    console.error("Error queueing lead:", error);
+    // Mesmo se falhar a fila (muito raro se o Redis estiver online),
+    // poderíamos fazer fallback pro Postgres direto, mas num pico isso
+    // seria arriscado. Vamos apenas alertar e continuar.
   }
 
   // Redirecionar para a página de redirect (rotacionador)
@@ -155,29 +152,18 @@ export async function submitLeadAction(
 }
 
 /**
- * Server Action: Incrementa o número de views de uma campanha de forma silenciosa e registra na tabela PageView.
+ * Server Action: Incrementa o número de views de uma campanha em background via BullMQ.
  */
 export async function trackCampaignViewAction(campaignId: string) {
   try {
-    const campaign = await prisma.campaign.findUnique({
-      where: { id: campaignId },
-      select: { tenantId: true },
-    });
+    const cachedData = await getCachedCampaignData(campaignId);
 
-    if (!campaign) return;
+    if (!cachedData) return;
 
-    // Registrar o evento de visita
-    await prisma.pageView.create({
-      data: {
-        campaignId,
-        tenantId: campaign.tenantId,
-      },
-    });
-
-    // Atualizar o contador geral por conveniência
-    await prisma.campaign.update({
-      where: { id: campaignId },
-      data: { views: { increment: 1 } },
+    // Adiciona à fila para registro assíncrono (evita lock contention no BD)
+    await viewsQueue.add("process-view", {
+      campaignId,
+      tenantId: cachedData.tenantId,
     });
   } catch (error) {
     // Falha silenciosa para não quebrar a página
