@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { decrypt } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Vórtex+ — Painel Admin",
@@ -34,9 +35,14 @@ export default async function AdminLayout({
   if (session?.tenantId) {
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.tenantId },
-      select: { plan: true, subscriptionStatus: true, trialEndsAt: true },
+      select: { plan: true, subscriptionStatus: true, trialEndsAt: true, active: true },
     });
+    
     if (tenant) {
+      if (!tenant.active) {
+        // Se desativou a conta, derrubar do painel admin.
+        redirect("/admin/login");
+      }
       realPlan = tenant.plan;
       subscriptionStatus = tenant.subscriptionStatus;
       trialEndsAt = tenant.trialEndsAt;

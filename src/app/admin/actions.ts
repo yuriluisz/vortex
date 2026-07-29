@@ -25,10 +25,10 @@ async function requireAuth() {
   // Validar que o tenant ainda existe (pode ter sido resetado)
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.tenantId },
-    select: { id: true, plan: true },
+    select: { id: true, plan: true, active: true },
   });
 
-  if (!tenant) {
+  if (!tenant || !tenant.active) {
     throw new Error("Sessão inválida. Faça login novamente.");
   }
 

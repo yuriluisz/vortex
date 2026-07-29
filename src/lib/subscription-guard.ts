@@ -127,6 +127,7 @@ export async function enforceSubscription(tenantId: string): Promise<Subscriptio
       maxCampaigns: true,
       maxGroups: true,
       maxLeads: true,
+      active: true,
     },
   });
 
@@ -136,6 +137,16 @@ export async function enforceSubscription(tenantId: string): Promise<Subscriptio
       planEffective: "FREE",
       status: "CANCELED",
       warning: "Tenant não encontrado.",
+      enforcementApplied: false,
+    };
+  }
+
+  if (!tenant.active) {
+    return {
+      allowed: false,
+      planEffective: "FREE",
+      status: "CANCELED",
+      warning: "Conta desativada pelo administrador.",
       enforcementApplied: false,
     };
   }
