@@ -1,6 +1,5 @@
 import { Worker, Job } from "bullmq";
 import Redis from "ioredis";
-import http from "http";
 import { prisma } from "../lib/prisma";
 
 // Tipos esperados nos payloads dos jobs
@@ -99,19 +98,3 @@ viewsWorker.on("failed", (job, err) => {
 
 console.log("✅ Workers escutando filas 'leads-queue' e 'views-queue'...");
 
-// ============================================================================
-// DUMMY HTTP SERVER PARA O EASYPANEL
-// O Easypanel (e a maioria das plataformas como Heroku/Render) espera que 
-// todo container abra uma porta web (HTTP) para marcar o deploy como "Concluído".
-// Como este é apenas um Worker de background, nós abrimos uma porta fake
-// que apenas responde "OK", fazendo o deploy finalizar com sucesso!
-// ============================================================================
-const PORT = process.env.PORT || 3000;
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("Worker is healthy and running!\n");
-});
-
-server.listen(Number(PORT), "0.0.0.0", () => {
-  console.log(`✅ Health-check Server rodando na porta ${PORT} (0.0.0.0)`);
-});
