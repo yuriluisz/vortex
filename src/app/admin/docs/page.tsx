@@ -498,11 +498,27 @@ export default function AdminDocsPage() {
                       vortexpages.online/seu-slug
                     </code>
                   </li>
-                  <li id="campo-dominio">
+                  <li id="campo-dominio" className="space-y-3">
                     <strong className="text-foreground flex items-center gap-2">
                       <PlanBadge plan='ULTRA' /> Domínio Customizado
-                    </strong>{" "}
-                    Permite utilizar seu próprio domínio (ex: <code className="font-mono text-xs">campanha.meudominio.com.br</code>) em vez do slug da Vórtex. Requer configuração de apontamento CNAME no seu DNS apontando para <code className="font-mono text-xs">vortexpages.online</code>. Ao ativá-lo, o slug original é bloqueado para garantir exclusividade e evitar vazamentos.
+                    </strong>
+                    <p>
+                      Permite utilizar seu próprio domínio (ex: <code className="font-mono text-xs">campanha.meudominio.com.br</code>) em vez do slug da Vórtex.
+                    </p>
+                    <div className="bg-muted/50 p-4 rounded-lg space-y-3 border border-border">
+                      <p className="font-medium text-foreground">Como configurar e fazer funcionar:</p>
+                      <ol className="list-decimal pl-5 space-y-2 text-sm">
+                        <li>Acesse o painel do seu provedor de domínio (Cloudflare, HostGator, Registro.br, etc).</li>
+                        <li>Crie um novo registro de DNS do tipo <strong>CNAME</strong>.</li>
+                        <li>No campo "Nome" ou "Host", coloque o subdomínio (ex: <code>campanha</code>).</li>
+                        <li>No campo "Destino" ou "Alvo", aponte para <code>vortexpages.online</code>.</li>
+                        <li>Volte ao Vórtex+ e digite o domínio completo (ex: <code>campanha.meudominio.com.br</code>) no campo de Domínio Customizado.</li>
+                      </ol>
+                    </div>
+                    <Warning>
+                      <strong>Importante:</strong> Sempre que o domínio customizado for ativado, o <strong>domínio padrão e o domínio protegido (seguro) são desativados automaticamente</strong>. 
+                      Isso torna a sua página muito <strong>mais segura</strong>, pois garante exclusividade total ao seu funil, evitando qualquer vazamento dos links originais da plataforma. Seus leads só poderão acessar a página usando a sua própria marca, passando muito mais profissionalismo.
+                    </Warning>
                   </li>
                   <li id="campo-pixel">
                     <strong className="text-foreground">
@@ -656,7 +672,7 @@ export default function AdminDocsPage() {
                     <strong className="text-foreground flex items-center gap-2 mb-1">
                       <PlanBadge plan='ULTRA' /> Domínio Customizado
                     </strong>{" "}
-                    — Aparece se você configurou o seu domínio próprio na campanha. Ele desativa os acessos genéricos (slug) e isola seu funil 100% no seu domínio.
+                    — Aparece se você configurou o seu domínio próprio na campanha. Quando o domínio customizado é ativado, ele <strong>desativa o domínio seguro e o domínio padrão</strong>. Isso torna o seu funil muito mais seguro, pois isola o acesso 100% na sua marca, bloqueando curiosos que tentarem descobrir a URL original da Vórtex.
                   </li>
                 </ul>
                 <p className="text-sm">

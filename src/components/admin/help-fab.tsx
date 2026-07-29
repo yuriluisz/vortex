@@ -90,6 +90,12 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         docsAnchor: "campo-pixel",
       },
       {
+        question: "Como funciona o Domínio Customizado?",
+        answer:
+          "Permite usar seu domínio (ex: campanha.site.com) apontando um CNAME para vortexpages.online. Ao ativar, ele desativa o domínio padrão e o protegido, garantindo que o funil seja acessado apenas pela sua marca, aumentando a segurança contra curiosos.",
+        docsAnchor: "campo-dominio",
+      },
+      {
         question: "Como usar a tag {{FORM_SLOT}}?",
         answer:
           "Insira {{FORM_SLOT}} no HTML da sua página exatamente onde o formulário de captura deve aparecer. O Vórtex+ substituirá essa tag pelo formulário dinâmico.",
@@ -112,6 +118,12 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         answer:
           "Ao proteger, a URL pública é substituída por um código UUID único. Isso dificulta que pessoas copiem ou façam scraping do seu funil.",
         docsAnchor: "campanha-proteger",
+      },
+      {
+        question: "Como funciona o Domínio Customizado?",
+        answer:
+          "Ao configurar e ativar seu domínio próprio via CNAME, os acessos pelos domínios padrão e protegido são totalmente desativados. Isso isola o seu funil na sua marca, bloqueando vazamentos e garantindo exclusividade.",
+        docsAnchor: "campanha-links",
       },
       {
         question: "Qual a diferença entre as duas URLs?",
