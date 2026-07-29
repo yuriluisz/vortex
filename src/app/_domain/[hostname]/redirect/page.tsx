@@ -11,11 +11,24 @@ interface PageProps {
 }
 
 export default async function DomainRedirectPage({ params }: PageProps) {
-  const { hostname } = await params;
+  const rawHost = await params;
+  const cleanHost = decodeURIComponent(rawHost.hostname)
+    .toLowerCase()
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
 
   // Buscar campanha pelo domínio customizado
   const campaign = await prisma.campaign.findFirst({
-    where: { customDomain: hostname, active: true },
+    where: {
+      OR: [
+        { customDomain: cleanHost },
+        { customDomain: `https://${cleanHost}` },
+        { customDomain: `http://${cleanHost}` },
+        { customDomain: { equals: cleanHost, mode: "insensitive" } },
+      ],
+      active: true,
+    },
     select: { id: true, pixelId: true, tenantId: true, protected: true, accessCode: true, slug: true },
   });
 
