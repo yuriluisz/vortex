@@ -23,6 +23,7 @@ interface HtmlRendererProps {
   campaignName?: string;
   tenantSlug?: string;
   showVortexFooter?: boolean;
+  isCustomDomain?: boolean;
 }
 
 /**
@@ -83,6 +84,7 @@ export default function HtmlRenderer({
   campaignName,
   tenantSlug,
   showVortexFooter = false,
+  isCustomDomain = false,
 }: HtmlRendererProps) {
   const tracked = useRef(false);
 
@@ -107,6 +109,7 @@ export default function HtmlRenderer({
           campaignId={campaignId}
           slug={slug}
           formSchema={formSchema}
+          isCustomDomain={isCustomDomain}
         />
       </>
     );
@@ -131,6 +134,7 @@ export default function HtmlRenderer({
             campaignId={campaignId}
             slug={slug}
             formSchema={formSchema}
+            isCustomDomain={isCustomDomain}
           />
         );
       }

@@ -171,8 +171,11 @@ model Campaign {
   views      Int      @default(0)
 
   // Proteção de campanha
-  protected  Boolean  @default(false)
-  accessCode String?  @unique
+  protected    Boolean  @default(false)
+  accessCode   String?  @unique
+
+  // Domínio customizado exclusivo (ULTRA)
+  customDomain String?  @unique
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   groups        Group[]
@@ -187,6 +190,7 @@ model Campaign {
   @@index([tenantId])
   @@index([tenantId, active])
   @@index([accessCode])
+  @@index([customDomain])
 }
 
 // ============================================================================

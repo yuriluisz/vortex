@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
+import { getUserTenant } from "@/lib/auth";
 import { EditCampaignForm } from "./EditCampaignForm";
 import { CampaignControls } from "./CampaignControls";
 
@@ -23,6 +24,14 @@ export default async function CampaignDetailsPage({
     notFound();
   }
 
+  let plan = "FREE";
+  if (session.userId) {
+    const tenantInfo = await getUserTenant(session.userId);
+    if (tenantInfo) {
+      plan = tenantInfo.plan;
+    }
+  }
+
   return (
     <div className="space-y-8">
       <CampaignControls
@@ -31,9 +40,10 @@ export default async function CampaignDetailsPage({
         initialProtected={campaign.protected}
         slug={campaign.slug}
         accessCode={campaign.accessCode}
+        customDomain={campaign.customDomain}
       />
 
-      <EditCampaignForm campaign={campaign} />
+      <EditCampaignForm campaign={campaign} plan={plan} />
     </div>
   );
 }

@@ -24,7 +24,7 @@ export default async function RedirectPage({ params }: PageProps) {
   // Buscar campanha (slug agora é único por tenant, não global)
   const campaign = await prisma.campaign.findFirst({
     where: { slug, active: true },
-    select: { id: true, pixelId: true, tenantId: true, protected: true, accessCode: true },
+    select: { id: true, pixelId: true, tenantId: true, protected: true, accessCode: true, customDomain: true },
   });
 
   if (!campaign) {
@@ -33,6 +33,11 @@ export default async function RedirectPage({ params }: PageProps) {
 
   // Se a campanha está protegida, retornar 404 — o slug não existe mais
   if (campaign.protected && campaign.accessCode) {
+    notFound();
+  }
+
+  // Se a campanha possui um domínio customizado, o slug padrão também é desativado
+  if (campaign.customDomain) {
     notFound();
   }
 

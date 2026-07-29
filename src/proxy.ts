@@ -12,8 +12,32 @@ const COOKIE_NAME = "vortex_admin_session";
  * 2. /admin/* → verifica sessão JWT
  * 3. Demais rotas → NextResponse.next()
  */
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const hostname = request.headers.get("host") || "";
+
+  // ==========================================================================
+  // ROTEAMENTO DE DOMÍNIOS CUSTOMIZADOS
+  // ==========================================================================
+  // O domínio principal do sistema
+  const mainDomain = process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).host : "vortexpages.online";
+  
+  // Se for um hostname diferente do principal e não for ambiente de dev local/tunnel
+  if (
+    hostname &&
+    !hostname.includes(mainDomain) &&
+    !hostname.includes("localhost") &&
+    !hostname.includes("loca.lt") &&
+    !hostname.includes("ngrok") &&
+    !hostname.includes("trycloudflare.com") &&
+    !hostname.includes("vercel.app") // Vercel defaults
+  ) {
+    // Reescreve a requisição para a rota interna responsável pelo domínio
+    // Mantemos o pathname caso o usuário acesse algo específico, 
+    // mas a raiz '/' renderizará a campanha do domínio
+    const url = new URL(`/_domain/${hostname}${pathname}`, request.url);
+    return NextResponse.rewrite(url);
+  }
 
   // ==========================================================================
   // PASSO 1: /admin/login — rota pública

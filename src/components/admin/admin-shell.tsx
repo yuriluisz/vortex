@@ -18,6 +18,7 @@ import { logoutAction } from "@/app/admin/logout-action";
 import { Shield } from "lucide-react";
 import { WhatsAppStatusToast } from "@/components/admin/whatsapp-status-toast";
 import { HelpFAB } from "@/components/admin/help-fab";
+import { PlanBadge } from "@/components/admin/plan-badge";
 
 const PRIMARY_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -88,14 +89,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
     return <>{children}</>;
   }
 
-  const planLabel =
-    tenantInfo?.plan === "FREE"
-      ? "Grátis"
-      : tenantInfo?.plan === "PRO"
-      ? "Pro"
-      : tenantInfo?.plan === "ULTRA"
-      ? "Ultra"
-      : null;
+  const planType = tenantInfo?.plan as "FREE" | "PRO" | "ULTRA" | undefined;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground antialiased">
@@ -121,10 +115,8 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
         <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert" />
-          {planLabel && (
-            <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-              {planLabel}
-            </span>
+          {planType && (
+            <PlanBadge plan={planType} className="ml-2" />
           )}
         </div>
 

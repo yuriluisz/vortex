@@ -31,6 +31,7 @@ export async function submitLeadAction(
 ): Promise<LeadFormState> {
   const campaignId = formData.get("campaignId") as string;
   const slug = formData.get("slug") as string;
+  const isCustomDomain = formData.get("isCustomDomain") === "true";
 
   // Validação base
   const parsed = LeadSchema.safeParse({
@@ -146,7 +147,11 @@ export async function submitLeadAction(
   }
 
   // Redirecionar para a página de redirect (rotacionador)
-  redirect(`/${slug}/redirect`);
+  if (isCustomDomain) {
+    redirect(`/redirect`);
+  } else {
+    redirect(`/${slug}/redirect`);
+  }
 }
 
 /**

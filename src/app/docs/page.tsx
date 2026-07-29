@@ -1,4 +1,4 @@
-import { BookOpen, Code2, Users, LayoutTemplate, Settings } from "lucide-react";
+import { BookOpen, Code2, Users, LayoutTemplate, Settings, Globe } from "lucide-react";
 
 export default function DocsPage() {
   return (
@@ -128,11 +128,45 @@ export default function DocsPage() {
         </section>
 
 
-        {/* Seção 4: Configurações Gerais */}
+        {/* Seção 4: Domínios Customizados */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 pb-2 border-b border-border">
+            <Globe className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-semibold">4. Domínios Customizados (Plano ULTRA)</h2>
+          </div>
+
+          <div className="space-y-4 text-muted-foreground leading-relaxed">
+            <p>
+              Usuários do plano ULTRA possuem a capacidade de utilizar seus próprios domínios (ex: <code className="font-mono text-xs text-foreground">campanha.meudominio.com.br</code>) para exibir suas campanhas, mascarando a URL padrão do sistema.
+            </p>
+
+            <div className="bg-card border border-border p-6 rounded-xl mt-4">
+              <h3 className="text-foreground font-medium mb-2">Como configurar o DNS</h3>
+              <p className="text-sm mb-4">
+                Para que o domínio customizado funcione perfeitamente, o cliente precisa acessar o painel onde registrou o domínio (Hostinger, Registro.br, GoDaddy, etc.) e criar um apontamento DNS para o servidor do Vórtex+.
+              </p>
+
+              <div className="bg-muted p-4 rounded-lg text-sm overflow-x-auto text-foreground/80 border border-border">
+                <strong>Tipo de Registro:</strong> CNAME<br/>
+                <strong>Nome/Host:</strong> <code className="font-mono text-xs text-primary">campanha</code> (ou o subdomínio desejado)<br/>
+                <strong>Destino/Aponta para:</strong> <code className="font-mono text-xs text-primary">vortexpages.online</code>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border p-6 rounded-xl">
+              <h3 className="text-foreground font-medium mb-2">Atenção ao Certificado SSL (HTTPS)</h3>
+              <p className="text-sm">
+                O Vórtex+ possui um sistema inteligente de roteamento (Middleware) que detecta quando um domínio customizado o acessa e exibe a campanha correta automaticamente. No entanto, para que o site não exiba "Não Seguro" (falta de SSL/HTTPS), a infraestrutura onde o Vórtex+ está hospedado (ex: Vercel, Cloudflare for SaaS) também deve estar configurada para gerar o certificado automaticamente para domínios de terceiros.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Seção 5: Configurações Gerais */}
         <section className="space-y-6">
           <div className="flex items-center gap-3 pb-2 border-b border-border">
             <Settings className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-semibold">4. Configurações e Segurança</h2>
+            <h2 className="text-xl font-semibold">5. Configurações e Segurança</h2>
           </div>
 
           <div className="space-y-4 text-muted-foreground leading-relaxed">

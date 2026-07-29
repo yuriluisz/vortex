@@ -55,6 +55,7 @@ const CampaignSchema = z.object({
       "O slug deve conter apenas letras minúsculas, números e hífens"
     ),
   pixelId: z.string().optional(),
+  customDomain: z.string().optional(),
   rawHtml: z
     .string()
     .min(
@@ -90,6 +91,7 @@ export async function createCampaignAction(
     name: formData.get("name"),
     slug: formData.get("slug"),
     pixelId: formData.get("pixelId") || undefined,
+    customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
   });
@@ -101,7 +103,9 @@ export async function createCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, rawHtml, formSchema } = parsed.data;
+  const { name, slug, pixelId, customDomain, rawHtml, formSchema } = parsed.data;
+
+  const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
 
   // Verificar limite do plano
   if (plan) {
@@ -128,6 +132,7 @@ export async function createCampaignAction(
         name,
         slug,
         pixelId,
+        customDomain: finalCustomDomain,
         rawHtml,
         formSchema: JSON.parse(formSchema),
         tenantId,
@@ -189,7 +194,7 @@ export async function updateCampaignAction(
   state: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { userId, tenantId } = await requireAuth();
+  const { userId, tenantId, plan } = await requireAuth();
 
   const result = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
   if (result.error) return result.error;
@@ -198,6 +203,7 @@ export async function updateCampaignAction(
     name: formData.get("name"),
     slug: formData.get("slug"),
     pixelId: formData.get("pixelId") || undefined,
+    customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
   });
@@ -209,7 +215,7 @@ export async function updateCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, rawHtml, formSchema } = parsed.data;
+  const { name, slug, pixelId, customDomain, rawHtml, formSchema } = parsed.data;
 
   // Check unique slug if it changed
   const existing = await prisma.campaign.findUnique({
@@ -220,12 +226,25 @@ export async function updateCampaignAction(
   }
 
   try {
+    const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
+
+    // Check unique customDomain se foi preenchido
+    if (finalCustomDomain) {
+      const existingDomain = await prisma.campaign.findUnique({
+        where: { customDomain: finalCustomDomain }
+      });
+      if (existingDomain && existingDomain.id !== campaignId) {
+        return { error: "Este domínio customizado já está sendo usado por outra campanha." };
+      }
+    }
+
     await prisma.campaign.update({
       where: { id: campaignId },
       data: {
         name,
         slug,
         pixelId,
+        customDomain: finalCustomDomain,
         rawHtml,
         formSchema: JSON.parse(formSchema),
       },

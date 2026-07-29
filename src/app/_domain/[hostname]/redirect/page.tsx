@@ -1,0 +1,55 @@
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getActiveGroupForCampaign } from "@/lib/rotator";
+import MetaPixel from "@/components/MetaPixel";
+import RedirectClient from "../../../[slug]/redirect/RedirectClient";
+import BlockedPage from "@/components/BlockedPage";
+import { enforceSubscription } from "@/lib/subscription-guard";
+
+interface PageProps {
+  params: Promise<{ hostname: string }>;
+}
+
+export default async function DomainRedirectPage({ params }: PageProps) {
+  const { hostname } = await params;
+
+  // Buscar campanha pelo domínio customizado
+  const campaign = await prisma.campaign.findFirst({
+    where: { customDomain: hostname, active: true },
+    select: { id: true, pixelId: true, tenantId: true, protected: true, accessCode: true, slug: true },
+  });
+
+  if (!campaign) {
+    notFound();
+  }
+
+  // Se a campanha está protegida, retornar 404 — o domínio customizado não expõe acesso direto
+  if (campaign.protected && campaign.accessCode) {
+    notFound();
+  }
+
+  // Validação de assinatura do Tenant
+  const subCheck = await enforceSubscription(campaign.tenantId);
+
+  // Se não estiver permitido OU se o plano for diferente de ULTRA
+  if (!subCheck.allowed || subCheck.planEffective !== "ULTRA") {
+    return <BlockedPage slug={campaign.slug} />;
+  }
+
+  // Obter grupo ativo via rotacionador
+  const group = await getActiveGroupForCampaign(campaign.id);
+
+  return (
+    <>
+      {/* Meta Pixel — injeção + evento CompleteRegistration */}
+      <MetaPixel
+        pixelId={campaign.pixelId}
+        trackEvent="CompleteRegistration"
+        redirectUrl={group?.url}
+      />
+
+      {/* Componente client que executa o redirect */}
+      <RedirectClient groupUrl={group?.url ?? null} slug="/" />
+    </>
+  );
+}

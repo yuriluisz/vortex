@@ -86,7 +86,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "O que é o Meta Pixel ID?",
         answer:
-          "É o identificador do pixel do Meta (Facebook/Instagram). Se informado, o Vórtex+ dispara eventos de conversão automaticamente quando um lead se cadastra.",
+          "É o identificador do pixel do Meta para Facebook ou Instagram. Se informado, o Vórtex+ dispara eventos de conversão automaticamente quando um lead se cadastra.",
         docsAnchor: "campo-pixel",
       },
       {
@@ -98,7 +98,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Posso pular a etapa de grupo?",
         answer:
-          "Sim! A etapa 3 (Grupo WhatsApp) é opcional. Você pode criar a campanha sem grupo e adicionar grupos depois na aba de Grupos.",
+          "Sim! A etapa 3 de Grupo WhatsApp é opcional. Você pode criar a campanha sem grupo e adicionar grupos depois na aba de Grupos.",
         docsAnchor: "wizard-etapa-grupo",
       },
     ],
@@ -116,7 +116,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Qual a diferença entre as duas URLs?",
         answer:
-          "A URL de Captura é onde o lead preenche o formulário. A URL de Redirecionamento é para onde o lead vai após se cadastrar (geralmente para entrar no grupo).",
+          "A URL de Captura é onde o lead preenche o formulário. A URL de Redirecionamento é para onde o lead vai após se cadastrar geralmente para entrar no grupo.",
         docsAnchor: "campanha-links",
       },
       {
@@ -152,7 +152,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Diferença entre criar automático e manual?",
         answer:
-          "No modo Manual, você cola o link de convite de um grupo existente. No Automático (plano Ultra), o Vórtex+ cria o grupo diretamente no WhatsApp conectado.",
+          "No modo Manual, você cola o link de convite de um grupo existente. No Automático, exclusivo do plano Ultra, o Vórtex+ cria o grupo diretamente no WhatsApp conectado.",
         docsAnchor: "grupo-criar",
       },
     ],
@@ -164,7 +164,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "O que significam os status dos leads?",
         answer:
-          "Aguardando: cadastrado mas não entrou no grupo. No grupo: entrou com sucesso. Não entrou: não conseguiu entrar (link inválido ou grupo cheio).",
+          "Aguardando: cadastrado mas não entrou no grupo. No grupo: entrou com sucesso. Não entrou: não conseguiu entrar devido a link inválido ou grupo cheio.",
         docsAnchor: "leads-status",
       },
       {
@@ -187,7 +187,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Qual número devo usar?",
         answer:
-          "Use o número do WhatsApp que ficará responsável por gerenciar os grupos e enviar disparos. Formato: código do país + DDD + número (ex: 5511999999999).",
+          "Use o número do WhatsApp que ficará responsável por gerenciar os grupos e enviar disparos. Formato: código do país + DDD + número como por exemplo 5511999999999.",
         docsAnchor: "whatsapp-numero",
       },
       {
@@ -274,7 +274,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "O que são dados de cobrança?",
         answer:
-          "São seus dados fiscais (CPF/CNPJ, endereço) usados para emissão de faturas. Obrigatório para assinar os planos Pro e Ultra.",
+          "São seus dados fiscais como CPF, CNPJ e endereço usados para emissão de faturas. Obrigatório para assinar os planos Pro e Ultra.",
         docsAnchor: "cobranca-dados",
       },
     ],

@@ -1,5 +1,6 @@
 "use client";
 
+import { PlanBadge } from '@/components/admin/plan-badge';
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -43,7 +44,7 @@ interface Chapter {
 const PARTS = [
   { id: "parte-1", label: "Primeiros Passos" },
   { id: "parte-2", label: "Campanhas" },
-  { id: "parte-3", label: "WhatsApp (Ultra)" },
+  { id: "parte-3", label: "WhatsApp" },
   { id: "parte-4", label: "Configurações" },
 ];
 
@@ -331,7 +332,7 @@ export default function AdminDocsPage() {
             <div className="flex items-center gap-3 pb-2 border-b border-border">
               <LayoutDashboard className="w-5 h-5 text-primary" />
               <h2 className="text-xl font-semibold">
-                2. Conhecendo o Painel (Dashboard)
+                2. Conhecendo o Dashboard
               </h2>
             </div>
 
@@ -343,7 +344,7 @@ export default function AdminDocsPage() {
 
               <div id="dashboard-kpis" className="bg-card border border-border p-5 rounded-xl space-y-3">
                 <h3 className="text-foreground font-medium">
-                  KPIs (Indicadores)
+                  Indicadores Chave
                 </h3>
                 <p className="text-sm">
                   No topo do Dashboard, quatro cards mostram métricas
@@ -447,7 +448,7 @@ export default function AdminDocsPage() {
                 </li>
                 <li>
                   <strong className="text-foreground">Status</strong> — badge
-                  verde (Ativa) ou cinza (Inativa)
+                  verde para Ativa ou cinza para Inativa
                 </li>
                 <li>
                   <strong className="text-foreground">Leads e Grupos</strong> —
@@ -497,16 +498,25 @@ export default function AdminDocsPage() {
                       vortexpages.online/seu-slug
                     </code>
                   </li>
+                  <li id="campo-dominio">
+                    <strong className="text-foreground flex items-center gap-2">
+                      <PlanBadge plan='ULTRA' /> Domínio Customizado
+                    </strong>{" "}
+                    Permite utilizar seu próprio domínio (ex: <code className="font-mono text-xs">campanha.meudominio.com.br</code>) em vez do slug da Vórtex. Requer configuração de apontamento CNAME no seu DNS apontando para <code className="font-mono text-xs">vortexpages.online</code>. Ao ativá-lo, o slug original é bloqueado para garantir exclusividade e evitar vazamentos.
+                  </li>
                   <li id="campo-pixel">
                     <strong className="text-foreground">
                       Meta Pixel ID
                     </strong>{" "}
-                    (Opcional) — Se você utiliza anúncios no Facebook ou
+                    Opcional — Se você utiliza anúncios no Facebook ou
                     Instagram, insira o ID do seu pixel. O Vórtex+ disparará
                     eventos de conversão automaticamente quando um lead se
                     cadastrar.
                   </li>
                 </ul>
+                <Tip>
+                  Dica: Fique atento aos <strong>ícones de ajuda (?)</strong> ao lado de cada campo! Eles abrem dicas rápidas (Tooltips) para explicar cada configuração, além de links diretos para esta documentação.
+                </Tip>
               </div>
 
               <div className="bg-card border border-border p-5 rounded-xl space-y-3">
@@ -553,7 +563,7 @@ export default function AdminDocsPage() {
 
                 <div id="campo-formulario" className="space-y-2">
                   <h4 className="text-foreground text-sm font-medium">
-                    Construtor de Formulário (Form Schema)
+                    Construtor de Formulário
                   </h4>
                   <p className="text-sm">
                     Monte as perguntas que os leads responderão ao se cadastrar:
@@ -561,7 +571,7 @@ export default function AdminDocsPage() {
                   <ul className="list-disc pl-5 space-y-1 text-sm">
                     <li>
                       Tipos de campo: texto, email, número, select
-                      (dropdown), checkbox e textarea
+                      como dropdown, checkbox e textarea
                     </li>
                     <li>
                       Defina se cada campo é{" "}
@@ -569,7 +579,7 @@ export default function AdminDocsPage() {
                     </li>
                     <li>
                       Use os <strong>botões rápidos</strong> para adicionar
-                      campos comuns (Email, WhatsApp, Nome) com um clique
+                      campos comuns como Email, WhatsApp e Nome com um clique
                     </li>
                     <li>Visualize o formulário em tempo real no preview</li>
                   </ul>
@@ -578,7 +588,7 @@ export default function AdminDocsPage() {
 
               <div id="wizard-etapa-grupo" className="bg-card border border-border p-5 rounded-xl space-y-3">
                 <h3 className="text-foreground font-medium">
-                  Etapa 3 — Grupo WhatsApp (Opcional)
+                  Etapa 3 — Grupo WhatsApp
                 </h3>
                 <p className="text-sm">
                   Nesta etapa você pode criar um grupo inicial para a campanha:
@@ -590,7 +600,7 @@ export default function AdminDocsPage() {
                   </li>
                   <li>
                     <strong>Link do Grupo</strong> — link de convite do
-                    WhatsApp (chat.whatsapp.com/...)
+                    WhatsApp no formato chat.whatsapp.com
                   </li>
                   <li id="campo-lotacao">
                     <strong>Capacidade Máxima</strong> — quando o grupo atingir
@@ -626,27 +636,31 @@ export default function AdminDocsPage() {
               <div id="campanha-links" className="bg-card border border-border p-5 rounded-xl space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <LinkIcon className="h-4 w-4" />
-                  Links Importantes
+                  Links de Acesso
                 </h3>
+                <p className="text-sm">O painel centraliza todos os acessos em três blocos, dependendo de quais configurações você ativou:</p>
                 <ul className="list-disc pl-5 space-y-2 text-sm">
                   <li>
                     <strong className="text-foreground">
-                      URL da Página de Captura
+                      Domínio Padrão
                     </strong>{" "}
-                    — é o link que você divulga para os leads se cadastrarem.
-                    Envie em anúncios, redes sociais, emails, etc.
+                    — O link clássico usando o seu slug como vortexpages.online/slug. Sempre visível, mas fica bloqueado se você configurar um domínio customizado.
                   </li>
                   <li>
                     <strong className="text-foreground">
-                      URL de Redirecionamento
+                      Domínio Protegido
                     </strong>{" "}
-                    — após o cadastro, o lead é enviado para este endereço, que
-                    redireciona automaticamente para o grupo correto
+                    — Aparece ao ativar a proteção da campanha. Substitui seu slug por um código único UUID para esconder sua página de concorrentes e curiosos.
+                  </li>
+                  <li>
+                    <strong className="text-foreground flex items-center gap-2 mb-1">
+                      <PlanBadge plan='ULTRA' /> Domínio Customizado
+                    </strong>{" "}
+                    — Aparece se você configurou o seu domínio próprio na campanha. Ele desativa os acessos genéricos (slug) e isola seu funil 100% no seu domínio.
                   </li>
                 </ul>
                 <p className="text-sm">
-                  Use o botão de copiar ao lado de cada link para copiá-lo
-                  rapidamente para a área de transferência.
+                  Cada bloco possui o link de <strong>Captura</strong> para divulgar nos anúncios e o de <strong>Redirecionamento</strong> para onde o lead vai após cadastrar para ativar o Meta Pixel. Use o botão de copiar para pegar a URL exata!
                 </p>
               </div>
 
@@ -693,11 +707,11 @@ export default function AdminDocsPage() {
                 </p>
                 <ul className="list-disc pl-5 space-y-1 text-sm">
                   <li>Nome da campanha</li>
-                  <li>Slug (URL pública)</li>
+                  <li>Slug da URL pública</li>
                   <li>Meta Pixel ID</li>
                   <li>HTML da página de captura</li>
                   <li>
-                    Campos do formulário (Form Schema)
+                    Campos do formulário
                   </li>
                 </ul>
                 <p className="text-sm">
@@ -745,7 +759,7 @@ export default function AdminDocsPage() {
                 <div className="space-y-3 text-sm">
                   <div className="pl-4 border-l-2 border-border space-y-1">
                     <h4 className="text-foreground font-medium">
-                      Modo Manual (Inserir Link)
+                      Modo Manual inserindo link
                     </h4>
                     <p>
                       Crie o grupo no WhatsApp, copie o link de convite e cole
@@ -757,7 +771,7 @@ export default function AdminDocsPage() {
                   <div className="pl-4 border-l-2 border-primary/30 space-y-1">
                     <h4 className="text-foreground font-medium flex items-center gap-1">
                       <Zap className="h-3 w-3 text-primary" />
-                      Modo Automático (Plano Ultra)
+                      <PlanBadge plan='ULTRA' /> Modo Automático
                     </h4>
                     <p>
                       Com o WhatsApp conectado, o Vórtex+ cria o grupo
@@ -774,11 +788,11 @@ export default function AdminDocsPage() {
                         grupo
                       </li>
                       <li>
-                        <strong>Descrição</strong> (opcional) — texto de
+                        <strong>Descrição</strong> opcional — texto de
                         boas-vindas do grupo
                       </li>
                       <li>
-                        <strong>Foto</strong> (opcional) — imagem de perfil do
+                        <strong>Foto</strong> opcional — imagem de perfil do
                         grupo
                       </li>
                     </ul>
@@ -788,7 +802,7 @@ export default function AdminDocsPage() {
 
               <div className="bg-card border border-border p-5 rounded-xl space-y-3">
                 <h3 className="text-foreground font-medium">
-                  Criação em Massa (Plano Ultra)
+                  Criação em Massa <PlanBadge plan='ULTRA' className='ml-2' />
                 </h3>
                 <p className="text-sm">
                   No plano Ultra, o botão &quot;Criar em Massa&quot; permite
@@ -811,7 +825,7 @@ export default function AdminDocsPage() {
                     recebem novos leads
                   </li>
                   <li>
-                    <strong>Sincronizar</strong> (Ultra) — atualiza a contagem
+                    <strong className="inline-flex items-center gap-2"><PlanBadge plan='ULTRA' /> Sincronizar</strong> — atualiza a contagem
                     real de membros do grupo no WhatsApp
                   </li>
                   <li>
@@ -822,9 +836,9 @@ export default function AdminDocsPage() {
 
               <Tip>
                 A barra de progresso de cada grupo mostra visualmente o
-                preenchimento. Cores: <strong>verde</strong> (normal),{" "}
-                <strong>laranja</strong> (acima de 80%),{" "}
-                <strong>vermelho</strong> (cheio ou acima de 100%).
+                preenchimento. Cores: <strong>verde</strong> para normal,{" "}
+                <strong>laranja</strong> acima de 80%,{" "}
+                <strong>vermelho</strong> quando cheio ou acima de 100%.
               </Tip>
             </div>
           </section>
@@ -875,11 +889,11 @@ export default function AdminDocsPage() {
                 </h3>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>Nome e WhatsApp do lead</li>
-                  <li>Respostas do formulário (perguntas extras)</li>
+                  <li>Respostas do formulário e perguntas extras</li>
                   <li>Nome do grupo para o qual foi direcionado</li>
                   <li>Data e hora do cadastro</li>
                   <li>
-                    Metadados de rastreamento (IP, dispositivo, localização)
+                    Metadados de rastreamento como IP, dispositivo e localização
                   </li>
                 </ul>
               </div>
@@ -887,7 +901,7 @@ export default function AdminDocsPage() {
               <div id="leads-sincronizar" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
-                  Sincronizar Leads (Plano Ultra)
+                  <PlanBadge plan='ULTRA' /> Sincronizar Leads
                 </h3>
                 <p>
                   Disponível apenas no plano Ultra. Ao clicar em
@@ -913,7 +927,7 @@ export default function AdminDocsPage() {
           <SectionDivider />
 
           {/* ================================================================ */}
-          {/* PARTE III — WHATSAPP (ULTRA) */}
+          {/* PARTE III — WHATSAPP ULTRA */}
           {/* ================================================================ */}
 
           <div className="mb-4">
@@ -921,7 +935,7 @@ export default function AdminDocsPage() {
               Parte III
             </span>
             <h2 className="text-lg font-bold text-foreground">
-              WhatsApp (Plano Ultra)
+              <PlanBadge plan='ULTRA' /> WhatsApp
             </h2>
           </div>
 
@@ -1011,7 +1025,7 @@ export default function AdminDocsPage() {
             <div className="flex items-center gap-3 pb-2 border-b border-border">
               <Send className="w-5 h-5 text-primary" />
               <h2 className="text-xl font-semibold">
-                9. Disparos em Massa (Broadcast)
+                9. Disparos em Massa
               </h2>
             </div>
 
@@ -1206,8 +1220,8 @@ export default function AdminDocsPage() {
                 </h3>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>Tipo de Pessoa</strong> — Pessoa Física (CPF) ou
-                    Jurídica (CNPJ)
+                    <strong>Tipo de Pessoa</strong> — Pessoa Física usando CPF ou
+                    Jurídica usando CNPJ
                   </li>
                   <li>
                     <strong>CPF ou CNPJ</strong> — documento fiscal do
@@ -1379,7 +1393,7 @@ export default function AdminDocsPage() {
                 </h3>
                 <p>
                   As barras de progresso mostram quanto dos seus recursos
-                  (campanhas, grupos e leads) já foram utilizados. Quando as
+                  como campanhas, grupos e leads já foram utilizados. Quando as
                   barras ficam <strong className="text-destructive">vermelhas</strong>, você está
                   próximo do limite.
                 </p>

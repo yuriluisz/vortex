@@ -148,6 +148,7 @@ export function HtmlTemplateManager({ defaultValue, error, onChange }: HtmlTempl
 
   return (
     <div className="space-y-2">
+      <input type="hidden" name="rawHtml" value={htmlCode} />
       <div className="flex items-center justify-between mb-2">
         <div>
           <label htmlFor="rawHtml" className="block text-sm font-medium text-foreground/80">

@@ -17,12 +17,14 @@ interface DynamicFormProps {
   campaignId: string;
   slug: string;
   formSchema: FormField[];
+  isCustomDomain?: boolean;
 }
 
 export default function DynamicForm({
   campaignId,
   slug,
   formSchema,
+  isCustomDomain = false,
 }: DynamicFormProps) {
   const [state, formAction, pending] = useActionState<LeadFormState, FormData>(
     submitLeadAction,
@@ -46,6 +48,7 @@ export default function DynamicForm({
       {/* Hidden fields */}
       <input type="hidden" name="campaignId" value={campaignId} />
       <input type="hidden" name="slug" value={slug} />
+      {isCustomDomain && <input type="hidden" name="isCustomDomain" value="true" />}
 
       {/* Campos dinâmicos do formSchema */}
       {formSchema.map((field) => (

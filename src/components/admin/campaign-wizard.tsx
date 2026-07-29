@@ -11,7 +11,11 @@ import Link from "next/link";
 
 type Step = 1 | 2 | 3;
 
-export function CampaignWizard() {
+interface CampaignWizardProps {
+  plan?: string;
+}
+
+export function CampaignWizard({ plan = "FREE" }: CampaignWizardProps) {
   const [step, setStep] = useState<Step>(1);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     createCampaignAction,
@@ -22,6 +26,7 @@ export function CampaignWizard() {
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
+    customDomain: "",
     pixelId: "",
     rawHtml: "",
     formSchema: "",
@@ -171,6 +176,35 @@ export function CampaignWizard() {
               </div>
 
               <div className="space-y-2">
+                <label htmlFor="customDomain" className="block text-sm font-medium text-foreground/80 flex items-center">
+                  Domínio Customizado (Exclusivo ULTRA)
+                  <FieldTooltip tooltip="Use um domínio próprio (ex: campanha.meudominio.com.br). Requer apontamento DNS (CNAME para vortexpages.online)." docsAnchor="campo-dominio" />
+                </label>
+                <div className="relative">
+                  <input
+                    id="customDomain"
+                    name="customDomain"
+                    type="text"
+                    value={formData.customDomain}
+                    onChange={(e) => updateField("customDomain", e.target.value.toLowerCase().replace(/\s+/g, ""))}
+                    placeholder={plan === "ULTRA" ? "Ex: campanha.meudominio.com.br" : "Disponível apenas no plano ULTRA"}
+                    disabled={plan !== "ULTRA"}
+                    className={`w-full rounded-lg border border-input bg-secondary px-4 py-3 text-sm text-foreground outline-none transition-all focus:border-ring focus:ring-2 focus:ring-ring/20 ${plan !== "ULTRA" ? "opacity-50 cursor-not-allowed" : ""}`}
+                  />
+                  {plan !== "ULTRA" && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-2 py-1 rounded-full">
+                        Ultra
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {state?.fieldErrors?.customDomain && (
+                  <p className="text-xs text-destructive">{state.fieldErrors.customDomain[0]}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
                 <label htmlFor="pixelId" className="block text-sm font-medium text-foreground/80 flex items-center">
                   Meta Pixel ID (Opcional)
                   <FieldTooltip tooltip="Insira o ID do pixel do Meta (Facebook/Instagram). Quando um lead se cadastrar, eventos de conversão serão disparados automaticamente." docsAnchor="campo-pixel" />
@@ -285,6 +319,7 @@ export function CampaignWizard() {
           {/* Hidden fields to pass accumulated data */}
           <input type="hidden" name="name" value={formData.name} />
           <input type="hidden" name="slug" value={formData.slug} />
+          <input type="hidden" name="customDomain" value={formData.customDomain} />
           <input type="hidden" name="pixelId" value={formData.pixelId} />
           <input type="hidden" name="rawHtml" value={formData.rawHtml} />
           <input type="hidden" name="formSchema" value={formData.formSchema} />

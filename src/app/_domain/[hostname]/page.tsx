@@ -1,20 +1,20 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import HtmlRenderer from "./HtmlRenderer";
+import HtmlRenderer from "../../[slug]/HtmlRenderer";
 import MetaPixel from "@/components/MetaPixel";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ hostname: string }>;
 }
 
-export default async function CampaignPage({ params }: PageProps) {
-  const { slug } = await params;
+export default async function DomainCampaignPage({ params }: PageProps) {
+  const { hostname } = await params;
 
-  // Buscar campanha pelo slug incluindo dados do tenant
+  // Buscar campanha pelo domínio customizado
   const campaign = await prisma.campaign.findFirst({
-    where: { slug, active: true },
+    where: { customDomain: hostname, active: true },
     include: { tenant: true },
   });
 
@@ -22,26 +22,20 @@ export default async function CampaignPage({ params }: PageProps) {
     notFound();
   }
 
-  // Se a campanha está protegida, retornar 404 — o slug não existe mais
+  // Se a campanha está protegida, retornar 404
   if (campaign.protected && campaign.accessCode) {
     notFound();
   }
 
-  // Se a campanha possui um domínio customizado, ela não deve ser acessada via slug padrão
-  if (campaign.customDomain) {
-    notFound();
-  }
-
-  // Validação de assinatura do Tenant via subscription-guard (unificada)
+  // Validação de assinatura do Tenant
   const subCheck = await enforceSubscription(campaign.tenant.id);
 
-  // Se não estiver permitido (grace period expirado), mostrar tela de bloqueio
-  if (!subCheck.allowed) {
-    return <BlockedPage slug={slug} />;
+  // Bloqueio se não estiver permitido (inadimplente/cancelado) 
+  // OU se o plano for diferente de ULTRA
+  if (!subCheck.allowed || subCheck.planEffective !== "ULTRA") {
+    // Reutilizando o BlockedPage. Poderia ser um DomainBlockedPage no futuro.
+    return <BlockedPage slug={campaign.slug} />;
   }
-
-  // Footer Vórtex aparece apenas no plano FREE
-  const showVortexFooter = subCheck.planEffective === "FREE";
 
   // Parse do formSchema
   const formSchema = campaign.formSchema as Array<{
@@ -55,10 +49,7 @@ export default async function CampaignPage({ params }: PageProps) {
 
   return (
     <>
-      {/* Meta Pixel — injeção dinâmica */}
       <MetaPixel pixelId={campaign.pixelId} />
-
-      {/* Renderizar HTML customizado com slot do formulário */}
       <HtmlRenderer
         rawHtml={campaign.rawHtml}
         campaignId={campaign.id}
@@ -66,7 +57,8 @@ export default async function CampaignPage({ params }: PageProps) {
         formSchema={formSchema}
         campaignName={campaign.name}
         tenantSlug={campaign.tenant.slug}
-        showVortexFooter={showVortexFooter}
+        showVortexFooter={false} // Planos ULTRA não exibem a marca do Vórtex
+        isCustomDomain={true}
       />
     </>
   );

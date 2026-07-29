@@ -12,6 +12,7 @@ import {
   Copy,
   Check,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 import {
   toggleCampaignStatusAction,
@@ -26,6 +27,7 @@ interface CampaignControlsProps {
   initialProtected: boolean;
   slug: string;
   accessCode: string | null;
+  customDomain?: string | null;
 }
 
 export function CampaignControls({
@@ -34,6 +36,7 @@ export function CampaignControls({
   initialProtected,
   slug,
   accessCode,
+  customDomain,
 }: CampaignControlsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -45,15 +48,14 @@ export function CampaignControls({
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
 
-  const captureUrl =
-    protected_ && currentAccessCode
-      ? `${baseUrl}/c/${currentAccessCode}`
-      : `${baseUrl}/${slug}`;
+  const defaultCaptureUrl = `${baseUrl}/${slug}`;
+  const defaultRedirectUrl = `${baseUrl}/${slug}/redirect`;
 
-  const redirectUrl =
-    protected_ && currentAccessCode
-      ? `${baseUrl}/c/${currentAccessCode}/redirect`
-      : `${baseUrl}/${slug}/redirect`;
+  const protectedCaptureUrl = currentAccessCode ? `${baseUrl}/c/${currentAccessCode}` : null;
+  const protectedRedirectUrl = currentAccessCode ? `${baseUrl}/c/${currentAccessCode}/redirect` : null;
+
+  const customCaptureUrl = customDomain ? `https://${customDomain}` : null;
+  const customRedirectUrl = customDomain ? `https://${customDomain}/redirect` : null;
 
   const handleToggleActive = () => {
     const newActive = !active;
@@ -109,63 +111,196 @@ export function CampaignControls({
       {/* Coluna Principal: Links */}
       <div className="lg:col-span-2 space-y-6">
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
-          <h3 className="text-lg font-medium text-card-foreground mb-4">Links Importantes</h3>
+          <h3 className="text-lg font-medium text-card-foreground mb-4">Links de Acesso</h3>
 
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm text-muted-foreground">URL da Página de Captura</p>
-                <FieldTooltip tooltip="Envie este link para seus leads se cadastrarem. Divulgue em anúncios, redes sociais, emails, etc." docsAnchor="campanha-links" />
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
-                <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
-                  {captureUrl}
-                </code>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(captureUrl, setCopiedCapture)}
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
-                  title="Copiar link"
-                >
-                  {copiedCapture ? (
-                    <Check className="h-4 w-4 text-chart-1" />
-                  ) : (
+          <div className="space-y-8">
+            
+            {/* 1. DOMÍNIO PADRÃO */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2">Domínio Padrão</h4>
+              
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Página de Captura</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                  <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+                    {defaultCaptureUrl}
+                  </code>
+                  <a
+                    href={defaultCaptureUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(defaultCaptureUrl, setCopiedCapture)}
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Copiar link"
+                  >
                     <Copy className="h-4 w-4" />
-                  )}
-                </button>
+                  </button>
+                </div>
               </div>
-              {protected_ && (
-                <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
-                  🔒 Protegida — acessível apenas pelo código único
-                </p>
-              )}
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Redirecionamento (Grupos)</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                  <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+                    {defaultRedirectUrl}
+                  </code>
+                  <a
+                    href={defaultRedirectUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(defaultRedirectUrl, setCopiedRedirect)}
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Copiar link"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm text-muted-foreground">URL de Redirecionamento (Grupos)</p>
-                <FieldTooltip tooltip="Após o cadastro, o lead é levado a este endereço para entrar no grupo do WhatsApp correspondente." docsAnchor="campanha-links" />
+            {/* 2. DOMÍNIO PROTEGIDO */}
+            {protectedCaptureUrl && protectedRedirectUrl && (
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 border-b border-border pb-2 flex items-center gap-2">
+                  <Shield className="w-4 h-4" /> Domínio Protegido
+                  {!protected_ && <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-normal">Inativo</span>}
+                </h4>
+                
+                <div className={!protected_ ? "opacity-50" : ""}>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Página de Captura Oculta</p>
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                      <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+                        {protectedCaptureUrl}
+                      </code>
+                  <a
+                    href={protectedCaptureUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(protectedCaptureUrl, setCopiedCapture)}
+                        className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                        title="Copiar link"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-xs text-muted-foreground mb-1">Redirecionamento Protegido</p>
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                      <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+                        {protectedRedirectUrl}
+                      </code>
+                  <a
+                    href={protectedRedirectUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(protectedRedirectUrl, setCopiedRedirect)}
+                        className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                        title="Copiar link"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
-                <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
-                  {redirectUrl}
-                </code>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(redirectUrl, setCopiedRedirect)}
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
-                  title="Copiar link"
-                >
-                  {copiedRedirect ? (
-                    <Check className="h-4 w-4 text-chart-1" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </button>
+            )}
+
+            {/* 3. DOMÍNIO CUSTOMIZADO */}
+            {customCaptureUrl && customRedirectUrl && (
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-purple-600 dark:text-purple-400 border-b border-border pb-2">Domínio Customizado (ULTRA)</h4>
+                
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Sua Página de Captura</p>
+                  <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                    <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+                      {customCaptureUrl}
+                    </code>
+                  <a
+                    href={customCaptureUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(customCaptureUrl, setCopiedCapture)}
+                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                      title="Copiar link"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Seu Redirecionamento</p>
+                  <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                    <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+                      {customRedirectUrl}
+                    </code>
+                  <a
+                    href={customRedirectUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(customRedirectUrl, setCopiedRedirect)}
+                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                      title="Copiar link"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
           </div>
         </div>
       </div>
