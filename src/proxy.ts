@@ -20,10 +20,7 @@ export default async function proxy(request: NextRequest) {
   // O domínio principal do sistema
   const mainDomain = process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).host : "vortexpages.online";
 
-  // Bypass temporário: deixar rotas de debug passarem sem rewrite
-  if (pathname.startsWith("/api/debug")) {
-    return NextResponse.next();
-  }
+
 
   // Cabeçalho secreto enviado EXCLUSIVAMENTE pelo Cloudflare Worker para domínios customizados
   const vortexHost = request.headers.get("x-vortex-host");
