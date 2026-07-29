@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { redis } from "../lib/redis";
+import Redis from "ioredis";
 import { prisma } from "../lib/prisma";
 
 // Tipos esperados nos payloads dos jobs
@@ -50,7 +50,7 @@ const leadsWorker = new Worker<LeadJobData>(
     }
   },
   {
-    connection: redis,
+    connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
     concurrency: 20, // Processa até 20 leads simultaneamente
   }
 );
@@ -83,7 +83,7 @@ const viewsWorker = new Worker<ViewJobData>(
     }
   },
   {
-    connection: redis,
+    connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
     concurrency: 50, // Permite maior concorrência já que os inserts de pageview são simples
   }
 );

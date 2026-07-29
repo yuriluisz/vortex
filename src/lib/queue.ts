@@ -1,8 +1,10 @@
 import { Queue } from "bullmq";
-import { redis } from "./redis";
+import Redis from "ioredis";
 
-// Usamos a conexão do ioredis já existente
-const connection = redis;
+// Cada fila/worker no BullMQ precisa de conexões independentes
+const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
+  maxRetriesPerRequest: null,
+});
 
 // Fila para gravação de Leads em background
 export const leadsQueue = new Queue("leads-queue", {
