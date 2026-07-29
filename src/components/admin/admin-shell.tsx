@@ -178,13 +178,13 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           {tenantInfo?.plan === "ULTRA" && (
             <Link
               href="/admin/whatsapp"
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+              className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                 pathname?.startsWith("/admin/whatsapp")
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               }`}
             >
-              <MessageSquareMore className="h-5 w-5" />
+              <MessageSquareMore className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
               WhatsApp
             </Link>
           )}
