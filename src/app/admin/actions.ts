@@ -10,6 +10,7 @@ import { logAudit } from "@/lib/audit";
 import { requireTenantOwnership } from "@/lib/tenant-guard";
 import type { Plan } from "@/lib/prisma-types";
 import { PLAN_LIMITS } from "@/lib/plans";
+import { addCustomHostname, removeCustomHostname, getCustomHostnameStatus } from "@/services/cloudflare.service";
 import { createEvolutionGroup, fetchInviteCode, updateGroupSetting, updateGroupPicture, updateGroupDescription } from "@/lib/evolution";
 
 // ============================================================================
@@ -140,6 +141,11 @@ export async function createCampaignAction(
       },
     });
 
+    
+    if (finalCustomDomain) {
+      await addCustomHostname(finalCustomDomain);
+    }
+
     await logAudit("CAMPAIGN_CREATED", { slug, name }, userId, tenantId);
   } catch (error) {
     console.error(error);
@@ -156,7 +162,14 @@ export async function deleteCampaignAction(id: string) {
   const result = await requireTenantOwnership(prisma.campaign, id, tenantId, "Campanha");
   if (result.error) throw new Error(result.error.error);
 
+  
+  const campaignToDelete = await prisma.campaign.findUnique({ where: { id }, select: { customDomain: true } });
   await prisma.campaign.delete({ where: { id } });
+
+  
+  if (campaignToDelete?.customDomain) {
+    await removeCustomHostname(campaignToDelete.customDomain);
+  }
 
   await logAudit("CAMPAIGN_DELETED", { campaignId: id }, userId, tenantId);
 
@@ -178,7 +191,15 @@ export async function toggleCampaignStatusAction(
     data: { active },
   });
 
-  await logAudit(
+  
+    if (oldCampaign?.customDomain && oldCampaign.customDomain !== finalCustomDomain) {
+      await removeCustomHostname(oldCampaign.customDomain);
+    }
+    if (finalCustomDomain && oldCampaign?.customDomain !== finalCustomDomain) {
+      await addCustomHostname(finalCustomDomain);
+    }
+
+    await logAudit(
     "CAMPAIGN_UPDATED",
     { campaignId: id, active },
     userId,
@@ -228,6 +249,9 @@ export async function updateCampaignAction(
   try {
     const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
 
+    const oldCampaign = await prisma.campaign.findUnique({ where: { id: campaignId }, select: { customDomain: true } });
+
+
     // Check unique customDomain se foi preenchido
     if (finalCustomDomain) {
       const existingDomain = await prisma.campaign.findUnique({
@@ -249,6 +273,13 @@ export async function updateCampaignAction(
         formSchema: JSON.parse(formSchema),
       },
     });
+
+    if (oldCampaign?.customDomain && oldCampaign.customDomain !== finalCustomDomain) {
+      await removeCustomHostname(oldCampaign.customDomain);
+    }
+    if (finalCustomDomain && oldCampaign?.customDomain !== finalCustomDomain) {
+      await addCustomHostname(finalCustomDomain);
+    }
 
     await logAudit(
       "CAMPAIGN_UPDATED",
@@ -573,3 +604,10 @@ export async function toggleCampaignProtectionAction(
     revalidatePath(`/c/${campaign.accessCode}/redirect`);
   }
 }
+
+export async function checkCustomHostnameStatusAction(hostname: string) {
+  const { plan } = await requireAuth();
+  if (plan !== "ULTRA") return null;
+  return await getCustomHostnameStatus(hostname);
+}
+

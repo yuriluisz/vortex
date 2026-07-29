@@ -13,11 +13,13 @@ import {
   Check,
   Loader2,
   ExternalLink,
+  RefreshCcw,
 } from "lucide-react";
 import {
   toggleCampaignStatusAction,
   toggleCampaignProtectionAction,
   deleteCampaignAction,
+  checkCustomHostnameStatusAction,
 } from "../../actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
 
@@ -45,6 +47,23 @@ export function CampaignControls({
   const [active, setActive] = useState(initialActive);
   const [protected_, setProtected_] = useState(initialProtected);
   const [currentAccessCode, setCurrentAccessCode] = useState(accessCode);
+
+  const [domainStatus, setDomainStatus] = useState<string | null>(null);
+  const [isCheckingDomain, setIsCheckingDomain] = useState(false);
+
+  const checkDomainStatus = async () => {
+    if (!customDomain) return;
+    setIsCheckingDomain(true);
+    try {
+      const status = await checkCustomHostnameStatusAction(customDomain);
+      setDomainStatus(status);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsCheckingDomain(false);
+    }
+  };
+
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
 
@@ -243,7 +262,32 @@ export function CampaignControls({
             {/* 3. DOMÍNIO CUSTOMIZADO */}
             {customCaptureUrl && customRedirectUrl && (
               <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-purple-600 dark:text-purple-400 border-b border-border pb-2">Domínio Customizado (ULTRA)</h4>
+                
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <h4 className="text-sm font-semibold text-purple-600 dark:text-purple-400">Domínio Customizado (ULTRA)</h4>
+                  <div className="flex items-center gap-2">
+                    {domainStatus && (
+                      <span className={`text-[10px] px-2 py-0.5 uppercase tracking-wider font-bold rounded-full ${
+                        domainStatus === "active" ? "bg-green-500/10 text-green-500" :
+                        domainStatus === "pending" || domainStatus === "initializing" ? "bg-yellow-500/10 text-yellow-500" :
+                        "bg-red-500/10 text-red-500"
+                      }`}>
+                        {domainStatus === "active" ? "Ativo" :
+                         domainStatus === "pending" || domainStatus === "initializing" ? "Validando" : "Erro"}
+                      </span>
+                    )}
+                    <button
+                      onClick={checkDomainStatus}
+                      disabled={isCheckingDomain}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                      title="Checar status na Cloudflare"
+                    >
+                      <RefreshCcw className={`w-3 h-3 ${isCheckingDomain ? "animate-spin" : ""}`} />
+                      Atualizar
+                    </button>
+                  </div>
+                </div>
+
                 
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Sua Página de Captura</p>
