@@ -112,6 +112,6 @@ const server = http.createServer((req, res) => {
   res.end("Worker is healthy and running!\n");
 });
 
-server.listen(PORT, () => {
-  console.log(`✅ Health-check Server rodando na porta ${PORT}`);
+server.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`✅ Health-check Server rodando na porta ${PORT} (0.0.0.0)`);
 });
