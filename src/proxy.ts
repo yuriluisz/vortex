@@ -14,12 +14,21 @@ const COOKIE_NAME = "vortex_admin_session";
  */
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  let hostname = request.headers.get("x-vortex-host") || request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
-  hostname = hostname.split(':')[0]; // Remove port if present
-
   // ==========================================================================
   // ROTEAMENTO DE DOMÍNIOS CUSTOMIZADOS
   // ==========================================================================
+  // Cabeçalho secreto enviado pelo Cloudflare Worker com o domínio real do cliente
+  const vortexHost = request.headers.get("x-vortex-host");
+  
+  if (vortexHost) {
+    // Worker enviou o domínio original do cliente — reescreve para a rota interna
+    const cleanHost = vortexHost.split(':')[0];
+    const url = new URL(`/_domain/${cleanHost}${pathname}`, request.url);
+    return NextResponse.rewrite(url);
+  }
+
+  const hostname = (request.headers.get("host") || "").split(':')[0];
+
   // O domínio principal do sistema
   const mainDomain = process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).host : "vortexpages.online";
   
@@ -31,11 +40,9 @@ export default async function proxy(request: NextRequest) {
     !hostname.includes("loca.lt") &&
     !hostname.includes("ngrok") &&
     !hostname.includes("trycloudflare.com") &&
-    !hostname.includes("vercel.app") // Vercel defaults
+    !hostname.includes("vercel.app")
   ) {
-    // Reescreve a requisição para a rota interna responsável pelo domínio
-    // Mantemos o pathname caso o usuário acesse algo específico, 
-    // mas a raiz '/' renderizará a campanha do domínio
+    // Fallback: domínio customizado acessado sem Worker (ex: dev local com host override)
     const url = new URL(`/_domain/${hostname}${pathname}`, request.url);
     return NextResponse.rewrite(url);
   }
