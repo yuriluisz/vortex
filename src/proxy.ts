@@ -17,10 +17,13 @@ export default async function proxy(request: NextRequest) {
   // ==========================================================================
   // ROTEAMENTO DE DOMÍNIOS CUSTOMIZADOS
   // ==========================================================================
-  // Cabeçalho secreto enviado pelo Cloudflare Worker com o domínio real do cliente
-  const vortexHost = request.headers.get("x-vortex-host") || request.headers.get("x-forwarded-host");
+  // O domínio principal do sistema
+  const mainDomain = process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).host : "vortexpages.online";
+
+  // Cabeçalho secreto enviado EXCLUSIVAMENTE pelo Cloudflare Worker para domínios customizados
+  const vortexHost = request.headers.get("x-vortex-host");
   
-  if (vortexHost) {
+  if (vortexHost && !vortexHost.includes(mainDomain)) {
     // Worker enviou o domínio original do cliente — reescreve para a rota interna
     const cleanHost = vortexHost.split(':')[0].trim().toLowerCase();
     const url = new URL(`/_domain/${cleanHost}${pathname}`, request.url);
@@ -28,9 +31,6 @@ export default async function proxy(request: NextRequest) {
   }
 
   const hostname = (request.headers.get("host") || "").split(':')[0];
-
-  // O domínio principal do sistema
-  const mainDomain = process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).host : "vortexpages.online";
   
   // Se for um hostname diferente do principal e não for ambiente de dev local/tunnel
   if (
