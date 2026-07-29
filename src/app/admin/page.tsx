@@ -19,9 +19,9 @@ export default async function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
-  const { tenantId, email } = session;
+  const { tenantId, email, userId } = session;
 
-  const [totalCampaigns, totalLeads, activeGroups, allGroups, campaigns, tenant, totalMessages, totalViews] =
+  const [totalCampaigns, totalLeads, activeGroups, allGroups, campaigns, tenant, totalMessages, totalViews, user] =
     await Promise.all([
       prisma.campaign.count({ where: { active: true, tenantId } }),
       prisma.lead.count({ where: { tenantId } }),
@@ -61,6 +61,10 @@ export default async function AdminDashboardPage() {
         where: { active: true, tenantId },
         _sum: { views: true },
       }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      }),
     ]);
 
   const totalActiveGroups = activeGroups;
@@ -83,7 +87,7 @@ export default async function AdminDashboardPage() {
               Dashboard
             </h2>
             <p className="mt-2 text-sm text-muted-foreground max-w-xl">
-              Bem-vindo de volta, <span className="font-medium text-foreground/80">{email}</span>. Acompanhe o desempenho das suas campanhas e leads em tempo real.
+              Bem-vindo de volta, <span className="font-medium text-foreground/80">{user?.name || email}</span>. Acompanhe o desempenho das suas campanhas e leads em tempo real.
             </p>
           </div>
           <div className="flex items-center gap-3">
