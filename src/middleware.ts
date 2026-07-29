@@ -14,7 +14,7 @@ const COOKIE_NAME = "vortex_admin_session";
  */
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  let hostname = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
+  let hostname = request.headers.get("x-vortex-host") || request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
   hostname = hostname.split(':')[0]; // Remove port if present
 
   // ==========================================================================
