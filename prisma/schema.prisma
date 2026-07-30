@@ -177,6 +177,12 @@ model Campaign {
   // Domínio customizado exclusivo (ULTRA)
   customDomain String?  @unique
 
+  // Configurações Padrão para Auto-Criação de Grupos
+  groupMaxCapacity   Int      @default(1000)
+  groupSupportPhones String[] // Array de telefones (ex: ["5511999999999"])
+  groupDescription   String?  @db.Text
+  groupImageUrl      String?
+
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   groups        Group[]
   leads         Lead[]

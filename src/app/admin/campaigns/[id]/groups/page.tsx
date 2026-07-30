@@ -6,6 +6,7 @@ import { Trash2, PowerOff, Power, Zap } from "lucide-react";
 import { toggleGroupStatusAction, deleteGroupAction } from "../../../actions";
 import { EditGroupUrlModal } from "./EditGroupUrlModal";
 import { SyncGroupButton, BulkCreateButton } from "./GroupActions";
+import { GroupSettingsForm } from "./GroupSettingsForm";
 
 export default async function CampaignGroupsPage({
   params,
@@ -51,6 +52,10 @@ export default async function CampaignGroupsPage({
       </div>
 
       <CreateGroupForm campaignId={campaign.id} hasWhatsapp={isUltra} />
+
+      {isUltra && (
+        <GroupSettingsForm campaign={campaign} isUltra={isUltra} />
+      )}
 
       <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
         <table className="w-full text-left text-sm text-muted-foreground">

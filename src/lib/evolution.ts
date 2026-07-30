@@ -356,6 +356,34 @@ export async function updateGroupDescription(
   }
 }
 
+/**
+ * Promove ou rebaixa participantes de um grupo.
+ * action pode ser "add", "remove", "promote", "demote"
+ */
+export async function updateGroupParticipant(
+  instanceName: string,
+  groupJid: string,
+  action: "add" | "remove" | "promote" | "demote",
+  participants: string[]
+): Promise<boolean> {
+  if (!participants.length) return false;
+  
+  try {
+    await evolutionFetch(`/group/updateParticipant/${instanceName}`, {
+      method: "POST",
+      body: JSON.stringify({
+        groupJid,
+        action,
+        participants,
+      }),
+    });
+    return true;
+  } catch (error) {
+    console.error(`Error updating group participants (${action}):`, error);
+    return false;
+  }
+}
+
 // ============================================================================
 // MESSAGING
 // ============================================================================

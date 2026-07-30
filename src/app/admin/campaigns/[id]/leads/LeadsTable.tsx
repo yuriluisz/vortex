@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, User, Phone, MapPin, Smartphone, Calendar, FileJson } from "lucide-react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { X, User, Phone, MapPin, Smartphone, Calendar, FileJson, ChevronLeft, ChevronRight } from "lucide-react";
 
 export type LeadData = {
   id: string;
@@ -18,6 +19,9 @@ export type LeadData = {
 
 interface LeadsTableProps {
   leads: LeadData[];
+  currentPage: number;
+  totalPages: number;
+  totalLeads: number;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -27,13 +31,44 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   EXPIRED: { label: "Expirado", className: "bg-muted text-muted-foreground" },
 };
 
-export function LeadsTable({ leads }: LeadsTableProps) {
+export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: LeadsTableProps) {
   const [selectedLead, setSelectedLead] = useState<LeadData | null>(null);
+  
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // Lógica para gerar os números das páginas a serem exibidos
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      let start = Math.max(1, currentPage - 2);
+      let end = Math.min(totalPages, start + maxVisiblePages - 1);
+      
+      if (end - start < maxVisiblePages - 1) {
+        start = Math.max(1, end - maxVisiblePages + 1);
+      }
+      
+      for (let i = start; i <= end; i++) pages.push(i);
+    }
+    return pages;
+  };
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm flex flex-col min-h-[400px]">
+        <div className="overflow-x-auto flex-1">
           <table className="w-full text-left text-sm text-muted-foreground">
             <thead className="bg-muted text-xs uppercase text-muted-foreground border-b border-border">
               <tr>
@@ -49,7 +84,7 @@ export function LeadsTable({ leads }: LeadsTableProps) {
               {leads.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    Nenhum lead capturado nesta campanha ainda.
+                    {totalLeads > 0 ? "Nenhum lead nesta página." : "Nenhum lead capturado nesta campanha ainda."}
                   </td>
                 </tr>
               ) : (
@@ -111,6 +146,46 @@ export function LeadsTable({ leads }: LeadsTableProps) {
             </tbody>
           </table>
         </div>
+        
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
+            <div className="text-sm text-muted-foreground">
+              Página <span className="font-medium text-foreground">{currentPage}</span> de <span className="font-medium text-foreground">{totalPages}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              
+              {getPageNumbers().map(pageNum => (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`inline-flex items-center justify-center min-w-[32px] h-8 rounded-md text-sm transition-colors ${
+                    pageNum === currentPage 
+                      ? "bg-primary text-primary-foreground font-medium" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal de Detalhes do Lead */}

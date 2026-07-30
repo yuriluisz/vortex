@@ -103,7 +103,19 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
     const { tenantId, campaignId, currentGroupName } = job.data;
     console.log(`[Worker - Groups] Auto-criando próximo grupo após: ${currentGroupName}...`);
     
-    // Lógica de auto-criação extraída
+    // Buscar configurações da campanha
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { 
+        groupMaxCapacity: true, 
+        groupSupportPhones: true, 
+        groupDescription: true, 
+        groupImageUrl: true 
+      }
+    });
+
+    if (!campaign) return;
+
     const match = currentGroupName.match(/^(.+?)\s*(\d+)$/);
     const baseName = match ? match[1].trim() : currentGroupName;
     const currentNumber = match ? parseInt(match[2], 10) : 1;
@@ -119,11 +131,6 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
       return;
     }
 
-    const previousGroup = await prisma.group.findFirst({
-      where: { tenantId, campaignId, name: currentGroupName },
-      select: { maxCapacity: true },
-    });
-
     const evolutionInstance = await prisma.evolutionInstance.findUnique({
       where: { tenantId },
       select: { instanceName: true, status: true },
@@ -134,18 +141,56 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
 
     if (evolutionInstance?.status === "CONNECTED") {
       try {
-        const { createEvolutionGroup, fetchInviteCode } = await import("../lib/evolution");
-        const result = await createEvolutionGroup(evolutionInstance.instanceName, nextName);
+        const { 
+          createEvolutionGroup, 
+          fetchInviteCode, 
+          updateGroupParticipant, 
+          updateGroupDescription, 
+          updateGroupPicture 
+        } = await import("../lib/evolution");
+        
+        // Preparar array de participantes (Suporte) -> ex: 5511999999999@s.whatsapp.net
+        const supportJids = campaign.groupSupportPhones.map(phone => `${phone}@s.whatsapp.net`);
+
+        // 1. Cria o grupo já inserindo os membros de apoio
+        const result = await createEvolutionGroup(evolutionInstance.instanceName, nextName, supportJids);
 
         if (result) {
           groupJid = result.id;
+          
+          // 2. Busca o link de convite
           const code = await fetchInviteCode(evolutionInstance.instanceName, result.id);
           if (code) {
             inviteUrl = `https://chat.whatsapp.com/${code}`;
           }
+
+          // 3. Promove os membros de apoio a Administradores
+          if (supportJids.length > 0) {
+            await updateGroupParticipant(evolutionInstance.instanceName, result.id, "promote", supportJids);
+          }
+
+          // 4. Atualiza a Descrição
+          if (campaign.groupDescription) {
+            await updateGroupDescription(evolutionInstance.instanceName, result.id, campaign.groupDescription);
+          }
+
+          // 5. Atualiza a Imagem do Grupo (Baixa da URL e converte para Base64)
+          if (campaign.groupImageUrl) {
+            try {
+              const imgRes = await fetch(campaign.groupImageUrl);
+              const arrayBuffer = await imgRes.arrayBuffer();
+              const base64Image = Buffer.from(arrayBuffer).toString('base64');
+              // O WhatsApp espera algo como: "data:image/jpeg;base64,..." ou apenas base64? 
+              // Evolution API geralmente aceita apenas o base64 puro ou com o mimetype. 
+              // Se falhar, você ajusta o prefixo no painel da evolution ou aqui.
+              await updateGroupPicture(evolutionInstance.instanceName, result.id, `data:${imgRes.headers.get("content-type") || "image/jpeg"};base64,${base64Image}`);
+            } catch (err) {
+              console.error(`[Worker - Groups] Erro ao baixar/setar imagem do grupo:`, err);
+            }
+          }
         }
       } catch (error) {
-        console.error("[Worker - Groups] Erro criando via Evolution API:", error);
+        console.error("[Worker - Groups] Erro configurando grupo via Evolution API:", error);
       }
     }
 
@@ -155,16 +200,15 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
         campaignId,
         name: nextName,
         url: inviteUrl || "https://chat.whatsapp.com/PENDING",
-        maxCapacity: previousGroup?.maxCapacity || 250,
+        maxCapacity: campaign.groupMaxCapacity,
         autoCreated: true,
         groupJid,
         inviteCode: inviteUrl ? inviteUrl.split("/").pop() || null : null,
       },
     });
 
-    console.log(`[Worker - Groups] ✅ Grupo ${nextName} criado no banco com sucesso.`);
+    console.log(`[Worker - Groups] ✅ Grupo ${nextName} criado e configurado com sucesso.`);
     
-    // Import dinâmico por segurança
     const { logAudit } = await import("../lib/audit");
     await logAudit("GROUP_AUTO_CREATED", { campaignId, groupName: nextName, groupJid }, undefined, tenantId);
   },

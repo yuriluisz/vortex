@@ -74,6 +74,10 @@ const CampaignSchema = z.object({
     },
     "Formato JSON inválido para o Schema do formulário"
   ),
+  groupMaxCapacity: z.coerce.number().min(1).max(1024).default(1000),
+  groupSupportPhones: z.string().optional().transform((val) => val ? val.split(",").map((s) => s.trim().replace(/\D/g, "")).filter(Boolean) : []),
+  groupDescription: z.string().optional(),
+  groupImageUrl: z.string().url("A imagem precisa ser uma URL válida").optional().or(z.literal("")),
 });
 
 export type ActionState = {
@@ -95,6 +99,10 @@ export async function createCampaignAction(
     customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
+    groupMaxCapacity: formData.get("groupMaxCapacity"),
+    groupSupportPhones: formData.get("groupSupportPhones"),
+    groupDescription: formData.get("groupDescription") || undefined,
+    groupImageUrl: formData.get("groupImageUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -104,7 +112,7 @@ export async function createCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, customDomain, rawHtml, formSchema } = parsed.data;
+  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl } = parsed.data;
 
   const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
 
@@ -136,6 +144,10 @@ export async function createCampaignAction(
         customDomain: finalCustomDomain,
         rawHtml,
         formSchema: JSON.parse(formSchema),
+        groupMaxCapacity,
+        groupSupportPhones,
+        groupDescription,
+        groupImageUrl,
         tenantId,
         accessCode: crypto.randomUUID(),
       },
@@ -219,6 +231,10 @@ export async function updateCampaignAction(
     customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
+    groupMaxCapacity: formData.get("groupMaxCapacity"),
+    groupSupportPhones: formData.get("groupSupportPhones"),
+    groupDescription: formData.get("groupDescription") || undefined,
+    groupImageUrl: formData.get("groupImageUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -228,7 +244,7 @@ export async function updateCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, customDomain, rawHtml, formSchema } = parsed.data;
+  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl } = parsed.data;
 
   // Check unique slug if it changed
   const existing = await prisma.campaign.findUnique({
@@ -263,6 +279,10 @@ export async function updateCampaignAction(
         customDomain: finalCustomDomain,
         rawHtml,
         formSchema: JSON.parse(formSchema),
+        groupMaxCapacity,
+        groupSupportPhones,
+        groupDescription,
+        groupImageUrl,
       },
     });
 
@@ -286,6 +306,74 @@ export async function updateCampaignAction(
 
   revalidatePath("/admin/campaigns");
   revalidatePath(`/admin/campaigns/${campaignId}`);
+  return { success: true };
+}
+
+const CampaignGroupSettingsSchema = z.object({
+  groupMaxCapacity: z.coerce.number().min(1).max(1024).default(1000),
+  groupSupportPhones: z.string().optional().transform((val) => val ? val.split(",").map((s) => s.trim().replace(/\D/g, "")).filter(Boolean) : []),
+  groupDescription: z.string().optional(),
+  groupImageUrl: z.string().url("A imagem precisa ser uma URL válida").optional().or(z.literal("")),
+});
+
+export async function updateCampaignGroupSettingsAction(
+  campaignId: string,
+  state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const { userId, tenantId } = await requireAuth();
+
+  const result = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
+  if (result.error) return result.error;
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { plan: true }
+  });
+
+  if (tenant?.plan !== "ULTRA") {
+    return { error: "As configurações de auto-criação de grupos são exclusivas para o plano ULTRA." };
+  }
+
+  const parsed = CampaignGroupSettingsSchema.safeParse({
+    groupMaxCapacity: formData.get("groupMaxCapacity"),
+    groupSupportPhones: formData.get("groupSupportPhones"),
+    groupDescription: formData.get("groupDescription") || undefined,
+    groupImageUrl: formData.get("groupImageUrl") || undefined,
+  });
+
+  if (!parsed.success) {
+    return {
+      error: "Verifique os erros no formulário.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const { groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl } = parsed.data;
+
+  try {
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: {
+        groupMaxCapacity,
+        groupSupportPhones,
+        groupDescription,
+        groupImageUrl,
+      },
+    });
+
+    await logAudit(
+      "CAMPAIGN_UPDATED",
+      { campaignId, groupSettingsUpdated: true },
+      userId,
+      tenantId
+    );
+  } catch (error) {
+    console.error(error);
+    return { error: "Erro interno ao atualizar configurações de grupo." };
+  }
+
+  revalidatePath(`/admin/campaigns/${campaignId}/groups`);
   return { success: true };
 }
 

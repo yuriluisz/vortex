@@ -9,8 +9,10 @@ import { SyncLeadsButton } from "./SyncLeadsButton";
 
 export default async function CampaignLeadsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await getSession();
   if (!session?.email || !session.tenantId) {
@@ -18,23 +20,34 @@ export default async function CampaignLeadsPage({
   }
 
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   
-  const [campaign, tenant] = await Promise.all([
+  const page = Number(resolvedSearchParams.page) || 1;
+  const pageSize = 25;
+  const skip = (page - 1) * pageSize;
+  
+  const [campaign, tenant, totalLeads, pendingCount, joinedCount, notJoinedCount, pagedLeads] = await Promise.all([
     prisma.campaign.findUnique({
       where: { id },
-      include: {
-        leads: {
-          orderBy: { createdAt: "desc" },
-          include: {
-            group: { select: { name: true } },
-          },
-        },
-      },
+      select: { id: true, tenantId: true }
     }),
     prisma.tenant.findUnique({
       where: { id: session.tenantId },
       select: { plan: true },
     }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId, status: "PENDING" } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId, status: "JOINED" } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId, status: "NOT_JOINED" } }),
+    prisma.lead.findMany({
+      where: { campaignId: id, tenantId: session.tenantId },
+      orderBy: { createdAt: "desc" },
+      take: pageSize,
+      skip,
+      include: {
+        group: { select: { name: true } },
+      },
+    })
   ]);
 
   if (!campaign || campaign.tenantId !== session.tenantId) {
@@ -43,14 +56,9 @@ export default async function CampaignLeadsPage({
 
   const isUltra = tenant?.plan === "ULTRA";
 
-  // Contadores por status
-  const statusCounts = {
-    PENDING: campaign.leads.filter((l) => l.status === "PENDING").length,
-    JOINED: campaign.leads.filter((l) => l.status === "JOINED").length,
-    NOT_JOINED: campaign.leads.filter((l) => l.status === "NOT_JOINED").length,
-  };
+  const totalPages = Math.ceil(totalLeads / pageSize);
 
-  const formattedLeads: LeadData[] = campaign.leads.map(lead => ({
+  const formattedLeads: LeadData[] = pagedLeads.map(lead => ({
     id: lead.id,
     name: lead.name,
     whatsapp: lead.whatsapp,
@@ -68,7 +76,7 @@ export default async function CampaignLeadsPage({
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium text-card-foreground">Base de Leads</h3>
-          <p className="text-sm text-muted-foreground">Total de {campaign.leads.length} leads capturados</p>
+          <p className="text-sm text-muted-foreground">Total de {totalLeads} leads capturados</p>
         </div>
         <div className="flex gap-2">
           {isUltra && <SyncLeadsButton campaignId={id} tenantId={session.tenantId} />}
@@ -85,24 +93,24 @@ export default async function CampaignLeadsPage({
       </div>
 
       {/* Status Summary */}
-      {campaign.leads.length > 0 && (
+      {totalLeads > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="rounded-lg border border-chart-2/20 bg-chart-2/5 px-4 py-3 text-center">
-            <p className="text-xl font-bold text-chart-2 tabular-nums">{statusCounts.PENDING}</p>
+            <p className="text-xl font-bold text-chart-2 tabular-nums">{pendingCount}</p>
             <p className="text-xs text-chart-2/70">Aguardando</p>
           </div>
           <div className="rounded-lg border border-chart-1/20 bg-chart-1/5 px-4 py-3 text-center">
-            <p className="text-xl font-bold text-chart-1 tabular-nums">{statusCounts.JOINED}</p>
+            <p className="text-xl font-bold text-chart-1 tabular-nums">{joinedCount}</p>
             <p className="text-xs text-chart-1/70">No grupo</p>
           </div>
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-center">
-            <p className="text-xl font-bold text-destructive tabular-nums">{statusCounts.NOT_JOINED}</p>
+            <p className="text-xl font-bold text-destructive tabular-nums">{notJoinedCount}</p>
             <p className="text-xs text-destructive/70">Não entrou</p>
           </div>
         </div>
       )}
 
-      <LeadsTable leads={formattedLeads} />
+      <LeadsTable leads={formattedLeads} currentPage={page} totalPages={totalPages} totalLeads={totalLeads} />
     </div>
   );
 }
