@@ -30,3 +30,25 @@ export const viewsQueue = new Queue("views-queue", {
     removeOnFail: false,
   },
 });
+
+// Fila para criação proativa de grupos
+export const groupsQueue = new Queue("groups-queue", {
+  connection,
+  defaultJobOptions: {
+    attempts: 5, // A API do WhatsApp pode demorar, vamos dar mais tentativas
+    backoff: { type: "exponential", delay: 5000 },
+    removeOnComplete: true,
+    removeOnFail: false,
+  },
+});
+
+// Fila para processamento de Webhooks (Evolution API)
+export const webhooksQueue = new Queue("webhooks-queue", {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 2000 },
+    removeOnComplete: true,
+    removeOnFail: false,
+  },
+});
