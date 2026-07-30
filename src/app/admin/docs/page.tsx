@@ -816,6 +816,29 @@ export default function AdminDocsPage() {
                 </div>
               </div>
 
+              <div id="padrao-grupos" className="bg-card border border-border p-5 rounded-xl space-y-3">
+                <h3 className="text-foreground font-medium flex items-center">
+                  Padrão para Auto-Criação de Grupos <PlanBadge plan='ULTRA' className='ml-2' />
+                </h3>
+                <p className="text-sm">
+                  Se você utilizar o modo Automático, pode definir regras que os grupos gerados herdarão:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                  <li id="campo-capacidade">
+                    <strong>Capacidade Máxima do Grupo</strong> — define qual será o limite do WhatsApp (recomendado 1000) para acionar o redirecionamento do rotacionador.
+                  </li>
+                  <li id="campo-suporte">
+                    <strong>Números de Suporte (Administradores)</strong> — adicione os números (separados por vírgula) que a sua equipe usa. Eles serão inseridos e promovidos a admins instantaneamente logo que o grupo nascer.
+                  </li>
+                  <li id="campo-imagem">
+                    <strong>Foto Padrão do Grupo</strong> — URL pública da imagem que será definida na foto de perfil do grupo no WhatsApp.
+                  </li>
+                  <li id="campo-desc">
+                    <strong>Descrição Padrão do Grupo</strong> — o texto que vai na descrição do grupo, ótimo para definir regras e as boas-vindas.
+                  </li>
+                </ul>
+              </div>
+
               <div className="bg-card border border-border p-5 rounded-xl space-y-3">
                 <h3 className="text-foreground font-medium">
                   Criação em Massa <PlanBadge plan='ULTRA' className='ml-2' />
