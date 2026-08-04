@@ -99,8 +99,8 @@ export async function createCampaignAction(
     customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
-    groupMaxCapacity: formData.get("groupMaxCapacity"),
-    groupSupportPhones: formData.get("groupSupportPhones"),
+    groupMaxCapacity: formData.get("groupMaxCapacity") || undefined,
+    groupSupportPhones: formData.get("groupSupportPhones") || undefined,
     groupDescription: formData.get("groupDescription") || undefined,
     groupImageUrl: formData.get("groupImageUrl") || undefined,
   });
@@ -136,7 +136,7 @@ export async function createCampaignAction(
   }
 
   try {
-    await prisma.campaign.create({
+    const campaign = await prisma.campaign.create({
       data: {
         name,
         slug,
@@ -153,7 +153,22 @@ export async function createCampaignAction(
       },
     });
 
-    
+    const groupName = formData.get("groupName") as string | null;
+    const groupUrl = formData.get("groupUrl") as string | null;
+    const maxCapacity = formData.get("maxCapacity") as string | null;
+
+    if (groupName && groupUrl) {
+      await prisma.group.create({
+        data: {
+          campaignId: campaign.id,
+          name: groupName,
+          url: groupUrl,
+          maxCapacity: maxCapacity ? parseInt(maxCapacity) : 150,
+          tenantId,
+        }
+      });
+    }
+
     if (finalCustomDomain) {
       await addCustomHostname(finalCustomDomain);
     }
@@ -231,8 +246,8 @@ export async function updateCampaignAction(
     customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
-    groupMaxCapacity: formData.get("groupMaxCapacity"),
-    groupSupportPhones: formData.get("groupSupportPhones"),
+    groupMaxCapacity: formData.get("groupMaxCapacity") || undefined,
+    groupSupportPhones: formData.get("groupSupportPhones") || undefined,
     groupDescription: formData.get("groupDescription") || undefined,
     groupImageUrl: formData.get("groupImageUrl") || undefined,
   });
