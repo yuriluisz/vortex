@@ -9,6 +9,11 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    console.error("❌ Seed não pode rodar em produção!");
+    process.exit(1);
+  }
+
   console.log("🌱 Seeding database...");
 
   const adminPasswordHash = await bcrypt.hash("Admin123!", 12);

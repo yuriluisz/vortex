@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import DynamicForm from "./DynamicForm";
 import parse, { Element, HTMLReactParserOptions } from "html-react-parser";
 import { trackCampaignViewAction } from "./actions";
@@ -34,17 +35,28 @@ interface HtmlRendererProps {
 function extractBodyContent(html: string): string {
   // Tenta extrair o conteúdo entre <body...> e </body>
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  if (bodyMatch) {
-    return bodyMatch[1];
-  }
+  const raw = bodyMatch
+    ? bodyMatch[1]
+    : html
+        .replace(/<\/?html[^>]*>/gi, "")
+        .replace(/<head[^>]*>[\s\S]*<\/head>/gi, "")
+        .replace(/<\/?body[^>]*>/gi, "")
+        .replace(/<!DOCTYPE[^>]*>/gi, "")
+        .trim();
 
-  // Se não encontrou <body>, remove as tags estruturais manualmente
-  return html
-    .replace(/<\/?html[^>]*>/gi, "")
-    .replace(/<head[^>]*>[\s\S]*<\/head>/gi, "")
-    .replace(/<\/?body[^>]*>/gi, "")
-    .replace(/<!DOCTYPE[^>]*>/gi, "")
-    .trim();
+  // 🔒 Sanitizar: permite HTML de layout mas bloqueia scripts e event handlers
+  return DOMPurify.sanitize(raw, {
+    ADD_TAGS: ["style", "link", "iframe"],
+    ADD_ATTR: [
+      "target", "rel", "data-vortex-form-slot",
+      "style", "class", "id", "src", "href", "allow", "allowfullscreen",
+    ],
+    FORBID_TAGS: ["script", "object", "embed", "applet"],
+    FORBID_ATTR: [
+      "onerror", "onload", "onclick", "onmouseover", "onfocus",
+      "onblur", "onsubmit", "onchange", "onkeydown", "onkeyup",
+    ],
+  });
 }
 
 /**

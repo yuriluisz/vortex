@@ -17,6 +17,15 @@ import { webhooksQueue } from "@/lib/queue";
  */
 export async function POST(request: Request) {
   try {
+    // Validar autenticação via apikey header
+    const expectedKey = (process.env.EVOLUTION_API_KEY || "").trim();
+    const receivedKey = (request.headers.get("apikey") || "").trim();
+
+    if (!expectedKey || !receivedKey || receivedKey !== expectedKey) {
+      console.warn("[Webhook Evolution] ❌ Token inválido — rejeitando");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const event = body.event as string;
 
@@ -35,3 +44,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
+

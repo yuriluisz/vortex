@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { submitLeadAction } from "./actions";
 import type { LeadFormState } from "./actions";
 
@@ -42,6 +42,42 @@ export default function DynamicForm({
       // Silencioso — não quebrar o fluxo se o pixel não estiver carregado
     }
   }
+
+  // ==========================================================================
+  // CLOUDFLARE TURNSTILE
+  // ==========================================================================
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || "";
+
+  useEffect(() => {
+    if (!siteKey || !turnstileRef.current) return;
+    
+    // Evitar injetar o script mais de uma vez
+    if (document.getElementById("turnstile-script")) return;
+
+    const script = document.createElement("script");
+    script.id = "turnstile-script";
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      // @ts-ignore
+      if (window.turnstile) {
+        // @ts-ignore
+        window.turnstile.render(turnstileRef.current, {
+          sitekey: siteKey,
+          callback: (token: string) => setTurnstileToken(token),
+          theme: "dark",
+        });
+      }
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup opcional
+    };
+  }, [siteKey]);
 
   return (
     <form action={formAction} onSubmit={handleSubmit} className="vortex-form space-y-4">
@@ -104,6 +140,14 @@ export default function DynamicForm({
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {state.error}
         </div>
+      )}
+
+      {/* Cloudflare Turnstile Widget */}
+      {siteKey && (
+        <>
+          <div ref={turnstileRef} className="flex justify-center my-4" />
+          <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+        </>
       )}
 
       {/* Submit */}

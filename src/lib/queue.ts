@@ -15,8 +15,8 @@ export const leadsQueue = new Queue("leads-queue", {
       type: "exponential",
       delay: 1000, // tenta de novo em 1s, depois 2s, depois 4s...
     },
-    removeOnComplete: true,
-    removeOnFail: false,
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 5000 },
   },
 });
 
@@ -26,8 +26,8 @@ export const viewsQueue = new Queue("views-queue", {
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 1000 },
-    removeOnComplete: true,
-    removeOnFail: false,
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 5000 },
   },
 });
 
@@ -37,8 +37,8 @@ export const groupsQueue = new Queue("groups-queue", {
   defaultJobOptions: {
     attempts: 5, // A API do WhatsApp pode demorar, vamos dar mais tentativas
     backoff: { type: "exponential", delay: 5000 },
-    removeOnComplete: true,
-    removeOnFail: false,
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 5000 },
   },
 });
 
@@ -48,7 +48,7 @@ export const webhooksQueue = new Queue("webhooks-queue", {
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },
-    removeOnComplete: true,
-    removeOnFail: false,
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 5000 },
   },
 });

@@ -220,7 +220,8 @@ export async function createSubscription(customerId: string, plan: string) {
 
   const nextDueDate = new Date().toISOString().split("T")[0];
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl;
 
   const data = await asaasFetch("/subscriptions", {
     method: "POST",
@@ -327,7 +328,8 @@ export async function createSubscriptionWithDate(
 
   logAsaas("info", `Criando assinatura ${plan} com data personalizada`, { customerId, value, nextDueDate });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl;
 
   const data = await asaasFetch("/subscriptions", {
     method: "POST",

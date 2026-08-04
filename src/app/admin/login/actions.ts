@@ -64,8 +64,9 @@ export async function loginAction(
 ): Promise<LoginState> {
   const headersList = await headers();
   const ip =
-    headersList.get("x-forwarded-for") ||
     headersList.get("cf-connecting-ip") ||
+    headersList.get("x-real-ip") ||
+    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
   const rateKey = `login:ip:${ip}`;
   const rateResult = await rateLimit(rateKey, RATE_LIMITS.LOGIN);
@@ -158,8 +159,9 @@ export async function registerAction(
 ): Promise<LoginState> {
   const headersList = await headers();
   const ip =
-    headersList.get("x-forwarded-for") ||
     headersList.get("cf-connecting-ip") ||
+    headersList.get("x-real-ip") ||
+    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
     
   // Limite leve para evitar spam de validações
@@ -256,7 +258,7 @@ export async function registerAction(
         data: {
           email: normalizedEmail,
           name,
-          passwordHash: "",
+          passwordHash: `otp_only_${crypto.randomUUID()}`,
           tenantId: tenant.id,
           role: "ADMIN",
         },

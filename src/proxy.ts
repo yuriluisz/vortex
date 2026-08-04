@@ -24,8 +24,14 @@ export default async function proxy(request: NextRequest) {
 
   // Cabeçalho secreto enviado EXCLUSIVAMENTE pelo Cloudflare Worker para domínios customizados
   const vortexHost = request.headers.get("x-vortex-host");
+  const vortexSecret = request.headers.get("x-vortex-secret");
+  const expectedSecret = process.env.CLOUDFLARE_WORKER_SECRET || "";
   
   if (vortexHost && !vortexHost.includes(mainDomain)) {
+    // Validar que veio do Worker legítimo
+    if (!expectedSecret || vortexSecret !== expectedSecret) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
     // Worker enviou o domínio original do cliente — reescreve para a rota interna
     const cleanHost = vortexHost.split(':')[0].trim().toLowerCase();
     const url = new URL(`/custom-domain/${cleanHost}${pathname}`, request.url);

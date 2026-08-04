@@ -9,7 +9,12 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
-const pool = globalForPrisma.pool ?? new Pool({ connectionString });
+const pool = globalForPrisma.pool ?? new Pool({
+  connectionString,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
 if (process.env.NODE_ENV !== "production") globalForPrisma.pool = pool;
 
 const adapter = new PrismaPg(pool);

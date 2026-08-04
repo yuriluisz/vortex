@@ -176,7 +176,7 @@ export function PlanSelector({
       // Remove the parameter from URL without refreshing so we don't re-trigger it
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("checkout_plan");
-      window.history.replaceState({}, "", newUrl.toString());
+      router.replace(newUrl.pathname + newUrl.search);
 
       // Trigger action
       formAction(formData);
@@ -185,10 +185,10 @@ export function PlanSelector({
 
   // Detectar needsBilling e abrir modal
   useEffect(() => {
-    if (state?.needsBilling && !showBillingModal) {
+    if (state?.needsBilling) {
       setShowBillingModal(true);
     }
-  }, [state?.needsBilling, showBillingModal]);
+  }, [state?.needsBilling]);
 
   const statusInfo = STATUS_LABELS[subscriptionInfo.status] || STATUS_LABELS.TRIAL;
   const StatusIcon = statusInfo.icon;
@@ -505,7 +505,7 @@ export function PlanSelector({
                     Indisponível
                   </div>
                 ) : (
-                  <form action={formAction}>
+                  <form action={formAction} onSubmit={() => setPendingPlan(plan.id)}>
                     <input type="hidden" name="plan" value={plan.id} />
                     <button
                       type="submit"
@@ -570,7 +570,14 @@ export function PlanSelector({
         onClose={() => setShowBillingModal(false)}
         onComplete={() => {
           setShowBillingModal(false);
-          router.replace("/admin/settings?tab=subscription");
+          if (pendingPlan) {
+            const formData = new FormData();
+            formData.append("plan", pendingPlan);
+            formAction(formData);
+            setPendingPlan(null); // Clear after submission
+          } else {
+            router.replace("/admin/settings?tab=subscription");
+          }
         }}
         currentData={billingInfo as any}
       />

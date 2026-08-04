@@ -218,7 +218,7 @@ export async function requestEmailChangeAction(
     return { error: "Este email já está em uso por outra conta." };
   }
 
-  const ip = (await headers()).get("x-forwarded-for") || "unknown";
+  const ip = (await headers()).get("cf-connecting-ip") || (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const rateKey = `email_change:${ip}`;
   const rateResult = await rateLimit(rateKey, RATE_LIMITS.OTP);
   if (!rateResult.allowed) {

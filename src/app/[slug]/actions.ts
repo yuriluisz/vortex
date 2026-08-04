@@ -48,6 +48,33 @@ export async function submitLeadAction(
     };
   }
 
+  // Validar Turnstile
+  const turnstileToken = formData.get("cf-turnstile-response") as string;
+  const turnstileSecret = process.env.CLOUDFLARE_TURNSTILE_SECRET;
+
+  if (turnstileSecret && turnstileToken) {
+    try {
+      const verifyRes = await fetch(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `secret=${turnstileSecret}&response=${turnstileToken}`,
+        }
+      );
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        return { error: "Verificação de segurança falhou. Atualize a página e tente novamente." };
+      }
+    } catch (e) {
+      console.error("[Turnstile] Erro de rede ao verificar:", e);
+      return { error: "Falha na verificação de segurança (rede)." };
+    }
+  } else if (turnstileSecret) {
+    // Se o secret está configurado mas o token não veio, bloqueia (pode ser o form não carregou o script ou bot)
+    return { error: "Por favor, complete a verificação de segurança antes de continuar." };
+  }
+
   // Buscar campanha e dados do tenant via Cache
   const cachedData = await getCachedCampaignData(campaignId);
 

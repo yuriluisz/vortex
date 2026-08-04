@@ -25,12 +25,7 @@ export async function POST(req: Request) {
     // ================================================================
     // LOG de requisição recebida
     // ================================================================
-    const rawHeaders: Record<string, string> = {};
-    req.headers.forEach((value, key) => {
-      rawHeaders[key] = value;
-    });
     console.log("[Asaas Webhook] POST recebido");
-    console.log("[Asaas Webhook] Headers:", JSON.stringify(rawHeaders, null, 2));
 
     // ================================================================
     // AUTENTICAÇÃO via asaas-access-token
@@ -39,29 +34,20 @@ export async function POST(req: Request) {
     const webhookSecret = (process.env.ASAAS_WEBHOOK_SECRET || "").trim();
     const receivedToken = (req.headers.get("asaas-access-token") || "").trim();
 
-    console.log("[Asaas Webhook] 🔑 Token debug:", {
-      receivedToken: receivedToken ? `"${receivedToken}" (len=${receivedToken.length})` : "(vazio)",
-      expectedToken: webhookSecret ? `"${webhookSecret}" (len=${webhookSecret.length})` : "(vazio)",
-      match: receivedToken === webhookSecret,
-    });
+    if (!webhookSecret) {
+      console.error("[Asaas Webhook] ❌ ASAAS_WEBHOOK_SECRET não configurado!");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+    }
 
-    if (webhookSecret && receivedToken) {
-      if (receivedToken !== webhookSecret) {
-        console.warn("[Asaas Webhook] ❌ Token inválido — rejeitando requisição");
-        // Em sandbox, logar mas não rejeitar — aceitar mesmo assim para debug
-        console.warn("[Asaas Webhook] ⚠️ Sandbox mode: aceitando requisição mesmo com token inválido");
-      } else {
-        console.log("[Asaas Webhook] ✅ Token validado");
-      }
-    } else {
-      console.warn("[Asaas Webhook] ⚠️ Sem token para validação (sandbox mode)");
+    if (!receivedToken || receivedToken !== webhookSecret) {
+      console.warn("[Asaas Webhook] ❌ Token inválido — rejeitando");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // ================================================================
     // PARSE DO PAYLOAD
     // ================================================================
     const rawBody = await req.text();
-    console.log("[Asaas Webhook] Body (raw):", rawBody.substring(0, 2000));
 
     let payload: any;
     try {
@@ -71,7 +57,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    console.log("[Asaas Webhook] Payload:", JSON.stringify(payload, null, 2));
+
 
     const event: string = payload.event;
     console.log(`[Asaas Webhook] Evento: ${event}`);

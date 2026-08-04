@@ -29,8 +29,6 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  if (!open) return null;
-
   // Se salvou com sucesso, chamar onComplete (com cleanup para evitar múltiplos disparos)
   useEffect(() => {
     if (state?.success) {
@@ -40,6 +38,8 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
       return () => clearTimeout(timer);
     }
   }, [state?.success, onComplete]);
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

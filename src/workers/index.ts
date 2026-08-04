@@ -51,7 +51,7 @@ const leadsWorker = new Worker<LeadJobData>(
   },
   {
     connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
-    concurrency: 20, // Processa até 20 leads simultaneamente
+    concurrency: 20,
   }
 );
 
@@ -84,7 +84,7 @@ const viewsWorker = new Worker<ViewJobData>(
   },
   {
     connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
-    concurrency: 50, // Permite maior concorrência já que os inserts de pageview são simples
+    concurrency: 50,
   }
 );
 
@@ -349,10 +349,10 @@ async function processConnectionUpdate(payload: any) {
   }
 }
 
-leadsWorker.on("failed", (job, err) => console.error(`[BullMQ] Leads job falhou: ${err.message}`));
-viewsWorker.on("failed", (job, err) => console.error(`[BullMQ] Views job falhou: ${err.message}`));
-groupsWorker.on("failed", (job, err) => console.error(`[BullMQ] Groups job falhou: ${err.message}`));
-webhooksWorker.on("failed", (job, err) => console.error(`[BullMQ] Webhooks job falhou: ${err.message}`));
+leadsWorker.on("failed", (job, err) => console.error(`[BullMQ] Leads job ${job?.id} falhou (attempt ${job?.attemptsMade}): ${err.message}`));
+viewsWorker.on("failed", (job, err) => console.error(`[BullMQ] Views job ${job?.id} falhou (attempt ${job?.attemptsMade}): ${err.message}`));
+groupsWorker.on("failed", (job, err) => console.error(`[BullMQ] Groups job ${job?.id} falhou (attempt ${job?.attemptsMade}): ${err.message}`));
+webhooksWorker.on("failed", (job, err) => console.error(`[BullMQ] Webhooks job ${job?.id} falhou (attempt ${job?.attemptsMade}): ${err.message}`));
 
 console.log("✅ Workers escutando filas: leads, views, groups, webhooks...");
 

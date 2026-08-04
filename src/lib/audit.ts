@@ -20,8 +20,9 @@ export async function logAudit(
   try {
     const headersList = await headers();
     const ip =
-      headersList.get("x-forwarded-for") ||
       headersList.get("cf-connecting-ip") ||
+      headersList.get("x-real-ip") ||
+      headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       "unknown";
 
     await prisma.auditLog.create({

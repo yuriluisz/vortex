@@ -43,8 +43,9 @@ export async function rateLimit(
   const results = await pipeline.exec();
 
   if (!results) {
-    // Se Redis falhar, permitir por segurança (fail open)
-    return { allowed: true, remaining: 1, resetIn: config.windowSeconds };
+    // Fail-closed: Se Redis falhar, BLOQUEAR por segurança
+    console.error("[RateLimit] Redis pipeline failed — blocking request (fail-closed)");
+    return { allowed: false, remaining: 0, resetIn: config.windowSeconds };
   }
 
   const requestCount = (results[2]?.[1] as number) ?? 0;
