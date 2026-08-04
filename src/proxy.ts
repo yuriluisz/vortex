@@ -36,7 +36,18 @@ export default async function proxy(request: NextRequest) {
     // Worker enviou o domínio original do cliente — reescreve para a rota interna
     const cleanHost = vortexHost.split(':')[0].trim().toLowerCase();
     const url = new URL(`/custom-domain/${cleanHost}${pathname}`, request.url);
-    return NextResponse.rewrite(url);
+    
+    // CORREÇÃO SERVER ACTIONS: 
+    // Sobrescrever o header 'x-forwarded-host' para bater com a Origin 
+    // Isso evita o erro: `x-forwarded-host` header does not match `origin`
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-forwarded-host", cleanHost);
+
+    return NextResponse.rewrite(url, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
   const hostname = (request.headers.get("host") || "").split(':')[0];
@@ -54,7 +65,15 @@ export default async function proxy(request: NextRequest) {
     // Fallback: se não veio X-Vortex-Host mas o Hostname é diferente, tenta reescrever
     // Nota: Isso é um fallback caso o Worker falhe em mandar o header, ou acesso direto.
     const url = new URL(`/custom-domain/${hostname}${pathname}`, request.url);
-    return NextResponse.rewrite(url);
+    
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-forwarded-host", hostname);
+    
+    return NextResponse.rewrite(url, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
   // ==========================================================================
