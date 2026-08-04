@@ -118,7 +118,15 @@ export function CampaignWizard({ plan = "FREE" }: CampaignWizardProps) {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
-        <form action={formAction}>
+        <form
+          action={formAction}
+          onSubmit={(e) => {
+            if (step < 3) {
+              e.preventDefault();
+              handleNext();
+            }
+          }}
+        >
           {state?.error && (
             <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {state.error}
