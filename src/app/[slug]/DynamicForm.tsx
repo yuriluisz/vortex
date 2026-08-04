@@ -69,6 +69,7 @@ export default function DynamicForm({
           sitekey: siteKey,
           callback: (token: string) => setTurnstileToken(token),
           theme: "dark",
+          appearance: "interaction-only",
         });
       }
     };
