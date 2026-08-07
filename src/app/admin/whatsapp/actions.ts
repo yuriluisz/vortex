@@ -135,7 +135,16 @@ export async function setupWhatsAppAction(
     }
 
     // Criar instância na Evolution API
-    const result = await createInstance(instanceName, cleanNumber);
+    let result: any = {};
+    try {
+      result = await createInstance(instanceName, cleanNumber);
+    } catch (e: any) {
+      if (e.message.includes("403") || e.message.includes("already in use")) {
+        console.log(`[WhatsApp Setup] Instância ${instanceName} já existe na Evolution. Prosseguindo...`);
+      } else {
+        throw e;
+      }
+    }
 
     // Configurar webhook
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
