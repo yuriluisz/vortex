@@ -153,12 +153,6 @@ export default function Home() {
                   <span className="relative">Começar Validação Grátis</span>
                   <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link
-                  href="/admin/login"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-secondary px-8 py-3.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 border border-border"
-                >
-                  Ver como funciona
-                </Link>
               </div>
 
               <div className="animate-fade-in-up mt-10 flex items-center gap-4 text-sm text-muted-foreground" style={{ animationDelay: "500ms" }}>
@@ -214,7 +208,7 @@ export default function Home() {
                   O fluxo perfeito de validação.
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Do HTML bruto ao lead capturado em 3 passos simples.
+                  Do código simples ao lead capturado em 3 passos.
                 </p>
               </div>
             </Reveal>
@@ -311,7 +305,7 @@ export default function Home() {
                       Proteção contra Scrappers
                     </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed z-10 relative">
-                      Esconda sua oferta vencedora. Links gerados com UUIDs únicos ou domínios personalizados evitam que ferramentas de espionagem roubem seu layout e copy.
+                      Esconda sua oferta vencedora. Links gerados com identificadores únicos ou domínios personalizados evitam que ferramentas de espionagem roubem seu layout e copy.
                     </p>
                   </GlowCard>
                 </Reveal>
