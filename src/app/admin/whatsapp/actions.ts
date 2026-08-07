@@ -139,7 +139,8 @@ export async function setupWhatsAppAction(
 
     // Configurar webhook
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    await setWebhook(instanceName, `${appUrl}/api/webhooks/evolution`);
+    const evolutionKey = process.env.EVOLUTION_API_KEY || "";
+    await setWebhook(instanceName, `${appUrl}/api/webhooks/evolution?token=${evolutionKey}`);
 
     // Se já retornou QR Code na criação
     if (result.qrcode?.base64) {

@@ -17,12 +17,14 @@ import { webhooksQueue } from "@/lib/queue";
  */
 export async function POST(request: Request) {
   try {
-    // Validar autenticação via apikey header
+    // Validar autenticação via apikey header ou query param (token)
     const expectedKey = (process.env.EVOLUTION_API_KEY || "").trim();
-    const receivedKey = (request.headers.get("apikey") || "").trim();
+    const url = new URL(request.url);
+    const queryToken = url.searchParams.get("token") || "";
+    const receivedKey = (request.headers.get("apikey") || queryToken).trim();
 
     if (!expectedKey || !receivedKey || receivedKey !== expectedKey) {
-      console.warn("[Webhook Evolution] ❌ Token inválido — rejeitando");
+      console.warn(`[Webhook Evolution] ❌ Token inválido — rejeitando.`);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

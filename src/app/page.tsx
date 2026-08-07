@@ -26,37 +26,37 @@ export default function Home() {
     {
       icon: Code2,
       step: "01",
-      title: "Injete seu HTML",
+      title: "O Design é Seu",
       description:
-        "Pegue a sua landing page feita no Webflow, Figma ou VSCode e cole na Vórtex. Adicione a tag {{FORM_SLOT}} onde quiser que o formulário apareça.",
+        "Construa no Figma, Webflow ou peça para a IA. Cole o código na Vórtex+ e use a tag {{FORM_SLOT}}. E nós fazemos a mágica acontecer.",
     },
     {
-      icon: MessageSquareMore,
+      icon: Zap,
       step: "02",
-      title: "Conecte o WhatsApp",
+      title: "Infraestrutura Zero",
       description:
-        "Crie dezenas de grupos VIP de forma 100% automática, já com configurações de segurança ativadas (somente admins).",
+        "Sua página vai ao ar em segundos. Código limpo, carregamento ultrarrápido e blindagem contra scrapping.",
     },
     {
-      icon: Network,
+      icon: BarChart3,
       step: "03",
-      title: "Roteamento Inteligente",
+      title: "Tráfego e Escala",
       description:
-        "Divulgue o seu link. O sistema captura o lead, envia para o grupo ativo e, assim que lotar, o redirecionamento muda para o próximo sozinho.",
+        "Jogue o tráfego. O formulário dinâmico captura o lead e o dashboard mostra em tempo real se a oferta converte. Validou? Ligue a automação de WhatsApp e escale.",
     },
   ];
 
   const plans = [
     {
-      name: "Free",
+      name: "Starter",
       price: "Grátis",
       period: "",
-      description: "Para testar e validar sua ideia.",
+      description: "Para validar sua primeira ideia de graça.",
       highlight: false,
       features: [
         "1 campanha ativa",
         "Até 100 leads/mês",
-        "3 grupos de WhatsApp (Manual)",
+        "3 grupos de WhatsApp",
         "Formulário dinâmico",
         "Marca Vórtex+",
       ],
@@ -64,36 +64,36 @@ export default function Home() {
       href: "/admin/login?mode=register",
     },
     {
-      name: "Pro",
+      name: "Validador Pro",
       price: "R$ 97",
       period: "/mês",
-      description: "Para pequenos lançamentos.",
+      description: "Para quem testa ofertas toda semana.",
       highlight: false,
       features: [
         "10 campanhas ativas",
         "Até 10.000 leads/mês",
-        "50 grupos de WhatsApp (Manual)",
+        "Blindagem Anti Scrapping",
         "Domínio personalizado",
         "Sem marca Vórtex+",
-        "Suporte prioritário (chat)",
+        "Suporte prioritário",
       ],
       cta: "Assinar Pro",
       href: "/admin/login?mode=register&plan=PRO",
     },
     {
-      name: "Ultra",
+      name: "Scale / Ultra",
       price: "R$ 157",
       period: "/mês",
-      description: "WhatsApp API + Automação total.",
+      description: "A oferta vendeu. É hora de escalar a operação.",
       highlight: true, // featured com dot grid
       features: [
         "Campanhas ilimitadas",
         "Leads ilimitados",
         "Grupos ilimitados",
-        "Automação de WhatsApp (API)",
+        "Automação de WhatsApp com API",
         "Criação de Grupos em Massa",
         "Domínio personalizado",
-        "Suporte dedicado 24h",
+        "Suporte dedicado",
       ],
       cta: "Assinar Ultra",
       href: "/admin/login?mode=register&plan=ULTRA",
@@ -128,9 +128,9 @@ export default function Home() {
                 className="animate-fade-in-up text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-6"
                 style={{ animationDelay: "200ms" }}
               >
-                Automatize seus lançamentos e capture leads{" "}
+                Valide ofertas em segundos.{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-                  sem gargalos.
+                  Sem gastar com infraestrutura.
                 </span>
               </h1>
               
@@ -138,7 +138,7 @@ export default function Home() {
                 className="animate-fade-in-up text-lg text-muted-foreground mb-8 max-w-[540px] leading-relaxed"
                 style={{ animationDelay: "300ms" }}
               >
-                Chega de criar grupos na mão e perder leads por lotação. Conecte seu WhatsApp, crie dezenas de grupos em massa com travas automáticas de segurança, e deixe o algoritmo rotear cada clique perfeitamente.
+                Pare de tentar vender produtos que não vendem. Hospede o código da sua Landing Page, injete nosso formulário dinâmico automaticamente e descubra se a sua ideia coloca dinheiro no bolso antes mesmo de criá-la.
               </p>
 
               <div
@@ -150,14 +150,14 @@ export default function Home() {
                   className="group relative inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-xl shadow-primary/25 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                  <span className="relative">Começar Gratuitamente</span>
+                  <span className="relative">Começar Validação Grátis</span>
                   <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href="/admin/login"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-secondary px-8 py-3.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 border border-border"
                 >
-                  Acessar Painel
+                  Ver como funciona
                 </Link>
               </div>
 
@@ -175,7 +175,7 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                <p>Junte-se a <span className="font-semibold text-foreground">centenas</span> de produtores e agências.</p>
+                <p>Junte-se a <span className="font-semibold text-foreground">centenas</span> de pessoas testando ofertas diariamente.</p>
               </div>
             </div>
 
@@ -211,10 +211,10 @@ export default function Home() {
             <Reveal>
               <div className="text-center max-w-2xl mx-auto mb-16">
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
-                  O fluxo perfeito para o seu lançamento
+                  O fluxo perfeito de validação.
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Da criação da página à gestão dos grupos, tudo funciona em sincronia.
+                  Do HTML bruto ao lead capturado em 3 passos simples.
                 </p>
               </div>
             </Reveal>
@@ -251,85 +251,45 @@ export default function Home() {
             <Reveal>
               <div className="mb-16 md:w-1/2">
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
-                  Tudo que você precisa,<br />em uma única plataforma
+                  Uma máquina blindada para quem<br />roda tráfego direto.
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Adeus ferramentas complexas. O Vórtex junta criação de landing pages e roteamento inteligente em um único lugar.
+                  Não é um construtor de sites. É um hospedador estratégico de ofertas.
                 </p>
               </div>
             </Reveal>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               
-              {/* BENTO: Automação WhatsApp (Principal) */}
+              {/* BENTO: Injeção HTML (Principal) */}
               <div className="md:col-span-8 flex">
                 <Reveal delay={100} className="w-full">
-                  <GlowCard className="h-full flex flex-col p-8 sm:p-10 justify-between gap-8 group">
+                  <GlowCard className="h-full flex flex-col p-8 sm:p-10 justify-between gap-8 group bg-gradient-to-br from-card to-secondary/20">
                     <div className="space-y-4 max-w-lg z-10 relative">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
-                        <MessageSquareMore className="h-6 w-6" />
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent mb-2">
+                        <Code2 className="h-6 w-6" />
                       </div>
                       <h3 className="text-2xl font-bold text-foreground">
-                        Automação Suprema de WhatsApp
+                        Deploy em 1 Segundo com {'{{'}FORM_SLOT{'}}'}
                       </h3>
                       <p className="text-muted-foreground leading-relaxed">
-                        Esqueça a criação manual. Com um clique, gere dezenas de grupos já configurados com nome, imagem, descrição e travas de segurança (somente administradores). A integração nativa usa o seu próprio número de forma invisível.
+                        Nada de &quot;div soup&quot; ou plugins pesados. Você hospeda HTML/CSS/JS estático. O servidor não processa nada, garantindo a nota máxima no Core Web Vitals do Google. O formulário é injetado automaticamente onde você colocar a tag.
                       </p>
                     </div>
-                    <div className="relative h-48 w-full mt-auto rounded-xl border border-border/50 bg-background overflow-hidden z-10 flex items-center justify-center">
-                      {/* Abstract visual para o whatsapp */}
-                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-                      <div className="flex gap-4 items-center z-10 relative">
-                        <div className="h-16 w-16 rounded-full bg-chart-2/20 flex items-center justify-center border border-chart-2/30 animate-pulse">
-                          <MessageSquareMore className="h-8 w-8 text-chart-2" />
-                        </div>
-                        <ArrowRight className="text-muted-foreground h-6 w-6" />
-                        <div className="flex -space-x-4">
-                          {[
-                            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&crop=faces&q=80",
-                            "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=64&h=64&fit=crop&crop=faces&q=80",
-                            "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=64&h=64&fit=crop&crop=faces&q=80",
-                            "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=64&h=64&fit=crop&crop=faces&q=80"
-                          ].map((src, i) => (
-                            <div key={i} className="h-12 w-12 rounded-full border-4 border-background bg-secondary flex items-center justify-center shadow-lg transform transition-transform group-hover:translate-x-2 overflow-hidden">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={src} alt={`Group member ${i+1}`} className="h-full w-full object-cover" loading="lazy" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </GlowCard>
-                </Reveal>
-              </div>
-
-              {/* BENTO: Formulários Dinâmicos */}
-              <div className="md:col-span-4 flex">
-                <Reveal delay={200} className="w-full">
-                  <GlowCard className="h-full flex flex-col p-8 bg-gradient-to-br from-card to-secondary/20">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent mb-6 z-10 relative">
-                      <Code2 className="h-6 w-6" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground mb-3 z-10 relative">
-                      Injeção de Formulários HTML
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-6 z-10 relative">
-                      Crie qualquer design no Figma ou Webflow. Apenas cole o código na Vórtex e insira a tag <code>{"{{FORM_SLOT}}"}</code>. O formulário é injetado magicamente, sem precisar tocar em JavaScript.
-                    </p>
-                    <div className="mt-auto p-4 rounded-lg bg-[#0d1117] font-mono text-[11px] leading-relaxed text-gray-300 border border-white/10 shadow-inner z-10 relative overflow-hidden">
+                    
+                    <div className="relative w-full mt-auto p-4 rounded-xl bg-[#0d1117] font-mono text-[12px] leading-relaxed text-gray-300 border border-white/10 shadow-inner z-10 overflow-hidden">
                       <div className="flex gap-1.5 mb-3 border-b border-white/5 pb-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
                       </div>
                       <span className="text-gray-500">&lt;!-- index.html (Exportado do Webflow) --&gt;</span><br/>
-                      &lt;<span className="text-blue-400">section</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">"hero-wrapper"</span>&gt;<br/>
-                      &nbsp;&nbsp;&lt;<span className="text-blue-400">div</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">"container"</span>&gt;<br/>
-                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">h1</span>&gt;O Maior Evento do Ano&lt;/<span className="text-blue-400">h1</span>&gt;<br/>
-                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">p</span>&gt;Inscreva-se abaixo para participar&lt;/<span className="text-blue-400">p</span>&gt;<br/>
+                      &lt;<span className="text-blue-400">section</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">&quot;hero-wrapper&quot;</span>&gt;<br/>
+                      &nbsp;&nbsp;&lt;<span className="text-blue-400">div</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">&quot;container&quot;</span>&gt;<br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">h1</span>&gt;A Revelação Milionária&lt;/<span className="text-blue-400">h1</span>&gt;<br/>
                       <br/>
-                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-gray-500">&lt;!-- A mágica da Vórtex acontece aqui --&gt;</span><br/>
-                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">div</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">"form-container"</span>&gt;<br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-gray-500">&lt;!-- A Vórtex injeta o form aqui --&gt;</span><br/>
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-blue-400">div</span> <span className="text-blue-200">class</span>=<span className="text-blue-300">&quot;form-container&quot;</span>&gt;<br/>
                       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-green-400 font-bold bg-green-400/10 px-1 rounded">{'{{'}FORM_SLOT{'}}'}</span><br/>
                       &nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span className="text-blue-400">div</span>&gt;<br/>
                       <br/>
@@ -340,47 +300,86 @@ export default function Home() {
                 </Reveal>
               </div>
 
-              {/* BENTO: Cofre de Leads */}
+              {/* BENTO: Blindagem Anti-Spy */}
               <div className="md:col-span-4 flex">
-                <Reveal delay={300} className="w-full">
+                <Reveal delay={200} className="w-full">
                   <GlowCard className="h-full flex flex-col p-8">
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-chart-1/10 text-chart-1 mb-6 z-10 relative">
-                      <Database className="h-6 w-6" />
+                      <Shield className="h-6 w-6" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground mb-3 z-10 relative">
-                      Cofre Seguro de Leads
+                      Proteção contra Scrappers
                     </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed z-10 relative">
-                      Seus leads não se perdem em planilhas soltas. Tudo é registrado no painel central com exportação nativa em CSV. Dados sempre protegidos por isolamento de tenant.
+                      Esconda sua oferta vencedora. Links gerados com UUIDs únicos ou domínios personalizados evitam que ferramentas de espionagem roubem seu layout e copy.
                     </p>
                   </GlowCard>
                 </Reveal>
               </div>
 
               {/* BENTO: Métricas Real-Time */}
-              <div className="md:col-span-8 flex">
-                <Reveal delay={400} className="w-full">
-                  <GlowCard className="h-full flex flex-col p-8 sm:p-10 justify-between gap-8 md:flex-row md:items-center">
-                    <div className="space-y-4 flex-1 z-10 relative">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3 mb-2">
-                        <BarChart3 className="h-6 w-6" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-foreground">
-                        Métricas ao Vivo
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        Acompanhe cada conversão, clique e loteamento de grupos no instante em que acontecem. Gráficos limpos que te mostram o pulso do seu lançamento sem delay.
-                      </p>
+              <div className="md:col-span-4 flex">
+                <Reveal delay={300} className="w-full">
+                  <GlowCard className="h-full flex flex-col p-8">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3 mb-6 z-10 relative">
+                      <BarChart3 className="h-6 w-6" />
                     </div>
-                    <div className="w-full md:w-64 h-40 rounded-xl bg-background border border-border/50 p-4 flex flex-col justify-end shrink-0 z-10 relative overflow-hidden">
-                       {/* Falso grafico de barras animado */}
-                       <div className="flex items-end h-full gap-2 w-[200%] animate-marquee">
+                    <h3 className="text-xl font-bold text-foreground mb-3 z-10 relative">
+                      Métricas sem Delay
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed z-10 relative">
+                      Acompanhe Pageviews, CTR e Leads capturados no exato milissegundo em que acontecem. Dados precisos para você desligar ou dobrar o orçamento da campanha.
+                    </p>
+                    
+                    <div className="mt-6 h-24 w-full rounded-lg bg-background border border-border/50 p-2 flex flex-col justify-end z-10 relative overflow-hidden">
+                       <div className="flex items-end h-full gap-1.5 w-[200%] animate-marquee">
                          {[40, 70, 45, 90, 65, 100, 50, 80, 40, 70, 45, 90, 65, 100, 50, 80].map((h, i) => (
                            <div key={i} className="flex-1 bg-chart-3/20 rounded-t-sm transition-colors" style={{ height: `${h}%` }}>
-                             <div className="w-full bg-chart-3 rounded-t-sm" style={{ height: '4px' }} />
+                             <div className="w-full bg-chart-3 rounded-t-sm" style={{ height: '2px' }} />
                            </div>
                          ))}
                        </div>
+                    </div>
+                  </GlowCard>
+                </Reveal>
+              </div>
+
+              {/* BENTO: Escala com WhatsApp */}
+              <div className="md:col-span-8 flex">
+                <Reveal delay={400} className="w-full">
+                  <GlowCard className="h-full flex flex-col p-8 sm:p-10 justify-between gap-8 group md:flex-row md:items-center">
+                    <div className="space-y-4 max-w-lg z-10 relative flex-1">
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
+                        <MessageSquareMore className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-foreground">
+                        A oferta validou? Ligue a Máquina.
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Quando a campanha tracionar, ligue nossa integração nativa. O Vórtex+ passa a criar grupos no seu próprio número, com travas de segurança e redirecionamento inteligente. Zero leads perdidos por lotação.
+                      </p>
+                    </div>
+                    
+                    <div className="relative h-40 w-full md:w-64 shrink-0 mt-auto md:mt-0 rounded-xl border border-border/50 bg-background overflow-hidden z-10 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                      <div className="flex gap-3 items-center z-10 relative">
+                        <div className="h-12 w-12 rounded-full bg-chart-2/20 flex items-center justify-center border border-chart-2/30 animate-pulse">
+                          <MessageSquareMore className="h-6 w-6 text-chart-2" />
+                        </div>
+                        <ArrowRight className="text-muted-foreground h-5 w-5" />
+                        <div className="flex -space-x-3">
+                          {[
+                            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&crop=faces&q=80",
+                            "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=64&h=64&fit=crop&crop=faces&q=80",
+                            "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=64&h=64&fit=crop&crop=faces&q=80",
+                          ].map((src, i) => (
+                            <div key={i} className="h-10 w-10 rounded-full border-2 border-background bg-secondary flex items-center justify-center shadow-md transform transition-transform group-hover:translate-x-1 overflow-hidden">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={src} alt={`Group member ${i+1}`} className="h-full w-full object-cover" loading="lazy" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </GlowCard>
                 </Reveal>
