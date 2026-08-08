@@ -5,6 +5,7 @@ import MetaPixel from "@/components/MetaPixel";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 
+export const revalidate = 60; // 60 segundos (Edge Cache para CDN)
 interface PageProps {
   params: Promise<{ hostname: string }>;
 }
