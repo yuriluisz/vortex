@@ -14,7 +14,7 @@ export default function DocsPage() {
           Como funciona o Vórtex+
         </h1>
         <p className="text-base text-muted-foreground leading-relaxed">
-          O Vórtex+ é um sistema de captação de leads de alta performance projetado para gerenciar grandes volumes de tráfego, renderizando páginas dinâmicas e rotacionando grupos de WhatsApp de forma automática e inteligente.
+          O Vórtex+ é uma plataforma de validação de ofertas e hospedagem de landing pages de alta performance, projetada para renderizar páginas dinâmicas, permitir checkouts, embed de vídeos e rotacionar grupos de WhatsApp de forma automática e inteligente, validando suas ideias antes de você escalar o tráfego.
         </p>
       </div>
 
@@ -25,12 +25,12 @@ export default function DocsPage() {
         <section className="space-y-6">
           <div className="flex items-center gap-3 pb-2 border-b border-border">
             <LayoutTemplate className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-semibold">1. Estrutura de Campanhas e HTML</h2>
+            <h2 className="text-xl font-semibold">1. Estrutura de Campanhas e Hospedagem HTML</h2>
           </div>
 
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              Cada campanha no Vórtex+ atua como uma página de captura independente. O sistema permite que você <strong>cole o HTML bruto (raw HTML)</strong> de qualquer página construída em ferramentas como Webflow, Figma, ou codificada manualmente.
+              Cada campanha no Vórtex+ atua como uma página de captura ou vendas independente hospedada conosco. O sistema permite que você <strong>cole o HTML bruto (raw HTML)</strong> de qualquer página construída em ferramentas como Webflow, Figma, Framer, IAs geradoras de código (Bolt/v0), ou codificada manualmente.
             </p>
 
             <div className="bg-card border border-border p-6 rounded-xl mt-4">
@@ -72,6 +72,25 @@ export default function DocsPage() {
   }
 </style>`}</pre>
               </div>
+            </div>
+
+            <div className="bg-card border border-border p-6 rounded-xl mt-4">
+              <h3 className="text-foreground font-medium mb-2 flex items-center gap-2">Vídeos, Imagens e Checkouts</h3>
+              <p className="text-sm mb-4">
+                O Vórtex+ suporta nativamente elementos essenciais para páginas de vendas através da injeção no seu HTML base, contando com sanitização para segurança.
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-sm">
+                <li><strong>Vídeos VSL:</strong> Você pode usar a tag <code className="font-mono text-xs text-foreground bg-muted px-1 py-0.5 rounded">{"<iframe>"}</code> para embedar vídeos do YouTube, Vimeo ou Vturb.</li>
+                <li><strong>Botões de Checkout:</strong> Basta usar a tag <code className="font-mono text-xs text-foreground bg-muted px-1 py-0.5 rounded">{"<a>"}</code> com o link do seu produto (Hotmart, Eduzz, Kiwify, etc).</li>
+                <li><strong>Imagens:</strong> Utilize imagens via URL (CDNs, Cloudflare R2, Imgur). Por motivos de performance e Core Web Vitals, converta sempre para WebP, use <code className="font-mono text-xs text-foreground bg-muted px-1 py-0.5 rounded">loading="lazy"</code> e declare as dimensões originais (width e height).</li>
+              </ul>
+            </div>
+            
+            <div className="bg-card border border-destructive/20 p-6 rounded-xl mt-4">
+              <h3 className="text-destructive font-medium mb-2 flex items-center gap-2">Segurança (DOMPurify)</h3>
+              <p className="text-sm">
+                Para prevenir ataques de XSS (Cross-Site Scripting), a renderização das campanhas remove completamente tags <code className="font-mono text-[10px] bg-muted px-1 py-0.5 rounded text-foreground">{"<script>"}</code>, <code className="font-mono text-[10px] bg-muted px-1 py-0.5 rounded text-foreground">{"<object>"}</code> e handlers de eventos inline (ex: <code className="font-mono text-[10px] bg-muted px-1 py-0.5 rounded text-foreground">onclick</code>).
+              </p>
             </div>
           </div>
         </section>

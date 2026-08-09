@@ -264,9 +264,9 @@ export default function AdminDocsPage() {
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
                 O <strong className="text-foreground">Vórtex+</strong> é uma
-                plataforma de captação de leads de alta performance. Com ele,
-                você cria páginas de captura personalizadas, gerencia grupos de
-                WhatsApp e acompanha seus resultados em tempo real.
+                plataforma de validação de ofertas e hospedagem de landing pages de alta performance. Com ele,
+                você hospeda seu código, cria páginas de captura ou vendas personalizadas, gerencia grupos de
+                WhatsApp e acompanha seus resultados em tempo real para descobrir se sua oferta vende antes de escalar.
               </p>
 
               <div id="login" className="bg-card border border-border p-5 rounded-xl space-y-3">
@@ -542,12 +542,10 @@ export default function AdminDocsPage() {
 
                 <div id="campo-html" className="space-y-2">
                   <h4 className="text-foreground text-sm font-medium">
-                    HTML da Página de Captura
+                    HTML Customizado
                   </h4>
                   <p className="text-sm">
-                    Cole aqui o HTML completo da sua landing page. Você pode
-                    criar sua página em qualquer ferramenta (Webflow, Figma,
-                    codificação manual) e colar o código aqui.
+                    Cole aqui o HTML completo da sua landing page. O Vórtex+ permite que você crie sua página em qualquer ferramenta (Webflow, Figma, Framer, IA como Bolt/v0, ou codificação manual) e hospede diretamente conosco.
                   </p>
                 </div>
 
@@ -556,48 +554,90 @@ export default function AdminDocsPage() {
                     A Tag Especial: {`{{FORM_SLOT}}`}
                   </h4>
                   <p className="text-sm">
-                    Insira a tag{" "}
+                    Para capturar leads, insira a tag{" "}
                     <code className="font-mono text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                       {`{{FORM_SLOT}}`}
                     </code>{" "}
-                    no local exato do seu HTML onde o formulário de captura deve
-                    aparecer. O Vórtex+ substituirá essa tag pelo formulário
-                    dinâmico configurado.
+                    no local exato do seu HTML onde o formulário deve aparecer. O Vórtex+ substituirá essa tag pelo formulário dinâmico.
                   </p>
                 </div>
+                
+                <div id="html-videos" className="space-y-2 mt-4 border-l-2 border-border pl-4">
+                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                    Vídeos (Vturb, YouTube, Vimeo)
+                  </h4>
+                  <p className="text-sm">
+                    Para inserir vídeos de vendas (VSL), você deve utilizar a tag <code className="font-mono text-xs text-primary">{"<iframe>"}</code>. Scripts de players externos são bloqueados por segurança.
+                  </p>
+                  <p className="text-sm font-semibold mt-2">Exemplo Vturb:</p>
+                  <div className="bg-background rounded p-2 text-xs font-mono overflow-x-auto border border-border">
+                    {`<iframe src="https://scripts.converteai.net/xxxx/players/xxxx/embed.html" id="igr-video" style="width:100%;height:100%;" allowfullscreen></iframe>`}
+                  </div>
+                </div>
 
-                <div className="space-y-2">
+                <div id="html-checkout" className="space-y-2 mt-4 border-l-2 border-border pl-4">
+                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                    Botões de Checkout
+                  </h4>
+                  <p className="text-sm">
+                    Se sua página for de vendas diretas e não de captura de leads, você não precisa usar a tag FORM_SLOT. Apenas insira links normais para o seu checkout (Hotmart, Kiwify, Eduzz, etc).
+                  </p>
+                  <div className="bg-background rounded p-2 text-xs font-mono overflow-x-auto border border-border">
+                    {`<a href="https://pay.kiwify.com.br/xxxxx" class="botao-comprar" target="_blank">Quero Comprar Agora</a>`}
+                  </div>
+                </div>
+
+                <div id="html-imagens" className="space-y-2 mt-4 border-l-2 border-border pl-4">
+                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                    Imagens via URL e Performance
+                  </h4>
+                  <p className="text-sm">
+                    O Vórtex+ hospeda seu código, mas não arquivos de mídia. Todas as imagens devem ser inseridas através de links (URLs).
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm mt-2">
+                    <li>Hospede suas imagens em CDNs como Cloudflare R2, MinIO ou Imgur.</li>
+                    <li>Sempre converta suas imagens para <strong>WebP</strong> ou <strong>AVIF</strong> antes de usar.</li>
+                    <li>Use ferramentas como TinyPNG ou Squoosh para comprimir.</li>
+                    <li>Sempre defina os atributos <code className="font-mono text-[10px]">width</code> e <code className="font-mono text-[10px]">height</code> no HTML para evitar <a href="https://web.dev/cls/" target="_blank" className="text-primary hover:underline">Cumulative Layout Shift (CLS)</a>, garantindo uma boa nota no Google Lighthouse.</li>
+                    <li>Use <code className="font-mono text-[10px]">loading="lazy"</code> para imagens que ficam abaixo da dobra.</li>
+                  </ul>
+                </div>
+
+                <div id="html-bloqueado" className="space-y-2 mt-4 border-l-2 border-destructive/50 pl-4">
+                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                    O que é Bloqueado?
+                  </h4>
+                  <p className="text-sm">
+                    Para garantir que nenhuma campanha maliciosa derrube o servidor (XSS), o Vórtex+ utiliza sanitização rigorosa (DOMPurify).
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm mt-2 text-muted-foreground">
+                    <li>A tag <code className="font-mono text-[10px]">{"<script>"}</code> é totalmente removida.</li>
+                    <li>Eventos inline (como <code className="font-mono text-[10px]">onclick</code>, <code className="font-mono text-[10px]">onload</code>, <code className="font-mono text-[10px]">onerror</code>) são removidos.</li>
+                    <li>Tags como <code className="font-mono text-[10px]">{"<object>"}</code> e <code className="font-mono text-[10px]">{"<embed>"}</code> são removidas.</li>
+                  </ul>
+                  <p className="text-xs font-semibold text-foreground mt-2">Dica: Todo o estilo CSS deve ser inserido na tag <code className="font-mono text-[10px]">{"<style>"}</code>. O formulário injetado pode ser estilizado usando a classe pai <code className="font-mono text-[10px]">.vortex-form</code>.</p>
+                </div>
+
+                <div className="space-y-2 mt-6">
                   <h4 className="text-foreground text-sm font-medium">
                     Templates Prontos
                   </h4>
                   <p className="text-sm">
-                    Se você não tem HTML próprio, utilize os templates prontos
-                    disponíveis no seletor de templates. Basta escolher um e
-                    personalizar.
+                    Se você não tem HTML próprio, utilize os templates prontos disponíveis no seletor. Basta escolher um e personalizar.
                   </p>
                 </div>
 
-                <div id="campo-formulario" className="space-y-2">
+                <div id="campo-formulario" className="space-y-2 mt-4">
                   <h4 className="text-foreground text-sm font-medium">
                     Construtor de Formulário
                   </h4>
                   <p className="text-sm">
-                    Monte as perguntas que os leads responderão ao se cadastrar:
+                    Se for capturar leads, monte as perguntas no construtor dinâmico:
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm">
-                    <li>
-                      Tipos de campo: texto, email, número, select
-                      como dropdown, checkbox e textarea
-                    </li>
-                    <li>
-                      Defina se cada campo é{" "}
-                      <strong>obrigatório ou opcional</strong>
-                    </li>
-                    <li>
-                      Use os <strong>botões rápidos</strong> para adicionar
-                      campos comuns como Email, WhatsApp e Nome com um clique
-                    </li>
-                    <li>Visualize o formulário em tempo real no preview</li>
+                    <li>Tipos de campo: texto, email, número.</li>
+                    <li>Defina se cada campo é <strong>obrigatório ou opcional</strong>.</li>
+                    <li>Use os <strong>botões rápidos</strong> para adicionar campos comuns com um clique.</li>
                   </ul>
                 </div>
               </div>

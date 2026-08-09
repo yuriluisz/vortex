@@ -10,8 +10,8 @@
 </h1>
 
 <p align="center">
-  <b>Automatize a captura de leads, distribua para grupos de WhatsApp</b><br>
-  e <b>nunca mais perca uma venda</b> porque o grupo lotou.
+  <b>A plataforma definitiva para validação de ofertas e hospedagem de landing pages.</b><br>
+  Hospede seu código, faça vendas, capture leads e <b>nunca perca dinheiro</b> com infraestrutura complexa.
 </p>
 
 <br>
@@ -51,64 +51,47 @@
 
 ## 🔥 O PROBLEMA
 
-> Você gira R\$ 1.000 em tráfego, sua página captura 200 leads…  
-> Seu grupo de WhatsApp lota com 150.  
-> **50 pessoas ficam de fora.**  
-> **R\$ 250 vão direto pro lixo.**
+> Você gasta dias (e milhares de reais) construindo um site inteiro,
+> configurando banco de dados, servidores, SSL e plugins complexos...
+> Só para descobrir que **a oferta não converte**.
+> **Você perdeu tempo e dinheiro.**
 
-**Não é culpa do seu tráfego. É culpa do seu funil.**
+**A infraestrutura não deve ser um obstáculo para testar ideias.**
 
-O WhatsApp limita grupos a 1.024 participantes. Em lançamentos e eventos ao vivo, um grupo enche em **minutos**. Se o seu sistema não distribuir os leads automaticamente entre múltiplos grupos, você **perde contatos, perde vendas, perde dinheiro.**
+Validar uma oferta precisa ser rápido. Você precisa de uma landing page no ar em segundos, capturando leads ou fazendo vendas diretas, com métricas precisas e proteção contra curiosos. Sem configurar servidores.
 
 ---
 
 ## 💰 O GANHO
 
 <p align="center">
-  <b>Com o Vórtex+, cada lead que chega encontra um grupo com vaga.</b><br>
-  <b>Sempre.</b>
+  <b>Com o Vórtex+, você hospeda seu código, insere checkouts ou captura leads em segundos.</b><br>
+  <b>Valide rápido, escale depois.</b>
 </p>
 
-| Cenário | Captura | Perda | Dinheiro perdido |
-|---------|---------|-------|-----------------|
-| **Sem Vórtex+** 🚫 | 200 leads | ~50 (grupo lota) | ~R\$ 250/campanha |
-| **Com Vórtex+** ✅ | 200 leads | 0 (rotação automática) | R\$ 0 |
+| Cenário | Tempo | Infraestrutura | Risco |
+|---------|-------|----------------|-------|
+| **Modelo Tradicional** 🚫 | Dias / Semanas | Hospedagem, SSL, Banco, Plugins | Alto |
+| **Vórtex+** ✅ | 1 Minuto | Zero (Nós cuidamos de tudo) | Quase Zero |
 
-1 campanha por mês → **R\$ 3.000/ano recuperados**.  
-5 campanhas por mês → **R\$ 15.000/ano**.
+Em vez de gastar dias configurando tudo, você foca 100% no tráfego e na copy.
 
-**O Vórtex+ se paga na primeira campanha.**
+**O Vórtex+ acelera sua validação.**
 
 ---
 
 ## ⚡ COMO FUNCIONA
 
-```mermaid
-flowchart LR
-  A[📱 Visitante] --> B[📄 Página de Captura]
-  B --> C[💾 Cofre de Leads]
-  C --> D[🔄 Rotacionador]
-  D --> E{📱 Grupo 1 lotou?}
-  E -->|Sim| F[📱 Grupo 2]
-  E -->|Não| G[📱 Grupo 1]
-  F --> H[✅ Lead salvo + redirecionado]
-  G --> H
-```
+### 1. 📄 Cole seu HTML
+Exporte o HTML da sua página de ferramentas como Webflow, Figma, Framer, IAs (v0/Bolt) ou código puro. Nós hospedamos com performance de ponta.
 
-### 1. 📄 Página de Captura
-Cole o HTML da sua página pronta (Webflow, Figma, código) ou crie uma do zero.  
-O Vórtex+ injeta o formulário automaticamente onde você marcar com `{{FORM_SLOT}}`.  
-**Tempo: 5 minutos.**
+### 2. 🔌 Adicione Vídeos, Checkouts ou Formulários
+- Embede VSLs facilmente via `<iframe>` (Vturb, YouTube, Vimeo).
+- Crie botões de vendas usando links normais para Hotmart/Kiwify.
+- Se preferir capturar leads, injete nosso formulário super rápido adicionando a tag `{{FORM_SLOT}}`.
 
-### 2. 💾 Cofre de Leads
-Cada cadastro é salvo com segurança na sua base PostgreSQL.  
-Nome, WhatsApp, respostas do formulário, IP, device, localização — tudo.  
-**Sua base. Seu patrimônio.**
-
-### 3. 🔄 Rotacionador Inteligente
-O lead é redirecionado ao grupo do evento.  
-Grupo encheu? O sistema detecta **em tempo real** e manda os próximos para o seguinte.  
-**Zero perda. Zero gargalo. Zero manutenção.**
+### 3. 🚀 Valide a Oferta (e Escale se Funcionar)
+Com a página no ar, analise os resultados em tempo real. Se der bom, use nossos recursos Ultra: ative a rotação inteligente de grupos de WhatsApp, envie disparos em massa e conecte um domínio próprio.
 
 ---
 
@@ -158,27 +141,27 @@ Deploy      Docker + PostgreSQL + Redis (qualquer VPS / Railway / Fly.io)
 
 | Perfil | O Vórtex+ resolve |
 |--------|-------------------|
-| **Infoprodutor** | Lançamentos com múltiplos grupos de WhatsApp — sem perder leads |
-| **Agência de marketing** | Gerencia campanhas de vários clientes num painel só |
-| **Coach / Mentor** | Eventos ao vivo com limite de vagas por grupo |
-| **E-commerce** | Captura de leads com formulário + redirecionamento pra grupo de ofertas |
-| **Qualquer um com tráfego** | Se você gasta dinheiro pra trazer gente, o Vórtex+ garante que ninguém escapa |
+| **Copywriter / Validador de Ofertas** | Precisa colocar uma VSL no ar rápido sem depender de devs |
+| **Infoprodutor** | Hospeda a landing page e, se validar, usa nossos grupos de WhatsApp para escala |
+| **Agência de marketing** | Gerencia campanhas e testes A/B de vários clientes num painel só |
+| **Coach / Mentor** | Venda direta ou captação de leads para eventos High-Ticket |
+| **Qualquer um que testa ideias** | Não quer gastar dinheiro e tempo com infraestrutura antes de saber se o produto vende |
 
 ---
 
 ## 💰 PLANOS
 
-| | **Free** | **Pro** | **Enterprise** |
+| | **Starter** | **Validador Pro** | **Scale / Ultra** |
 |---|---|---|---|
-| **Preço** | **R\$ 0** | **R\$ 97/mês** | **Sob medida** |
+| **Preço** | **R\$ 0** | **R\$ 97/mês** | **R\$ 157/mês** |
 | Campanhas | 1 | 10 | Ilimitadas |
 | Leads/mês | 100 | 10.000 | Ilimitados |
 | Grupos | 3 | 50 | Ilimitados |
+| Automação WhatsApp | ❌ | ❌ | ✅ |
 | Domínio próprio | ❌ | ✅ | ✅ |
 | Marca Vórtex+ | ✅ | ❌ | ❌ |
-| Suporte | — | Chat prioritário | Dedicado 24h |
-| SLA | — | — | 99,9% uptime |
-| | [Começar grátis](https://app.vortex.app) | [Assinar Pro](https://app.vortex.app) | [Falar com vendas](mailto:vendas@vortex.app) |
+| Suporte | — | Prioritário | Dedicado 24h |
+| | [Começar grátis](https://app.vortex.app) | [Assinar Pro](https://app.vortex.app) | [Assinar Ultra](https://app.vortex.app) |
 
 ---
 
