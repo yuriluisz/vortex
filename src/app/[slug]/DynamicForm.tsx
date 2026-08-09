@@ -52,31 +52,49 @@ export default function DynamicForm({
 
   useEffect(() => {
     if (!siteKey || !turnstileRef.current) return;
-    
-    // Evitar injetar o script mais de uma vez
-    if (document.getElementById("turnstile-script")) return;
 
-    const script = document.createElement("script");
-    script.id = "turnstile-script";
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+    let widgetId: string | undefined;
+
+    const renderWidget = () => {
       // @ts-ignore
-      if (window.turnstile) {
-        // @ts-ignore
-        window.turnstile.render(turnstileRef.current, {
-          sitekey: siteKey,
-          callback: (token: string) => setTurnstileToken(token),
-          theme: "dark",
-          appearance: "interaction-only",
-        });
+      if (window.turnstile && turnstileRef.current) {
+        try {
+          turnstileRef.current.innerHTML = "";
+          // @ts-ignore
+          widgetId = window.turnstile.render(turnstileRef.current, {
+            sitekey: siteKey,
+            callback: (token: string) => setTurnstileToken(token),
+            theme: "dark",
+            appearance: "interaction-only",
+          });
+        } catch (e) {
+          console.error("[Turnstile] Render error:", e);
+        }
       }
     };
-    document.head.appendChild(script);
+
+    // @ts-ignore
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      let script = document.getElementById("turnstile-script") as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement("script");
+        script.id = "turnstile-script";
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", renderWidget);
+    }
 
     return () => {
-      // Cleanup opcional
+      // @ts-ignore
+      if (widgetId !== undefined && window.turnstile) {
+        // @ts-ignore
+        window.turnstile.remove(widgetId);
+      }
     };
   }, [siteKey]);
 
