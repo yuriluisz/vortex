@@ -154,8 +154,8 @@ export function TenantCard({ tenant }: { tenant: TenantInfo }) {
         }`}
       >
         <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4 min-w-0">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0 w-full">
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Building2 className="h-6 w-6" />
               </div>
@@ -196,7 +196,7 @@ export function TenantCard({ tenant }: { tenant: TenantInfo }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0 w-full lg:w-auto mt-2 lg:mt-0">
               {isPending && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
 
               <button type="button" onClick={() => setShowEmailModal(true)} disabled={isPending}

@@ -124,7 +124,7 @@ export default async function SuperAdminPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
@@ -214,7 +214,7 @@ export default async function SuperAdminPage({ searchParams }: PageProps) {
       </div>
 
       {/* Distribuição de Planos */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Planos:</span>
         <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
           FREE {planCounts.FREE} ({totalTenants > 0 ? ((planCounts.FREE / totalTenants) * 100).toFixed(0) : 0}%)
