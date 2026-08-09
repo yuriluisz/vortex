@@ -21,7 +21,7 @@ export default async function CampaignsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl w-full px-1 sm:px-0">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-foreground tracking-tight">Campanhas</h2>
@@ -39,7 +39,7 @@ export default async function CampaignsPage() {
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-16 text-center bg-card/50">
+        <div className="rounded-xl border border-dashed border-border p-8 sm:p-16 text-center bg-card/50">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
             <Megaphone className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -59,7 +59,7 @@ export default async function CampaignsPage() {
               {/* Status bar */}
               <div className={`h-1 w-full ${campaign.active ? "bg-primary" : "bg-muted-foreground/30"}`} />
               
-              <div className="p-6 flex flex-col flex-1">
+              <div className="p-4 sm:p-6 flex flex-col flex-1">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-card-foreground group-hover:text-primary transition-colors line-clamp-1">

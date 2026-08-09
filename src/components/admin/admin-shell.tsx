@@ -281,7 +281,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           return null;
         })()}
 
-        <div className="flex-1 overflow-y-auto bg-background p-8 animate-in fade-in duration-300 relative">
+        <div className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 md:p-8 animate-in fade-in duration-300 relative">
           {/* Se estiver bloqueado, podemos aplicar uma camada transparente para evitar cliques, ou deixar apenas o aviso. 
               Como o usuário pediu "toast de aviso", o topo já chama bastante atenção. */}
           {children}

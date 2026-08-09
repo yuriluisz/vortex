@@ -77,9 +77,9 @@ export default async function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-5 sm:gap-8">
       {/* Header com DotGrid */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-sm group">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-8 lg:p-10 shadow-sm group">
         <DotGrid />
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -105,7 +105,7 @@ export default async function AdminDashboardPage() {
       {/* ─── 2. KPIS ─── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Campanhas */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-1 bg-chart-1/10">
               <Megaphone className="h-4 w-4" />
@@ -118,7 +118,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Leads */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-2 bg-chart-2/10">
               <Users className="h-4 w-4" />
@@ -131,7 +131,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Grupos */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-3 bg-chart-3/10">
               <MessageCircle className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Média */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg text-chart-4 bg-chart-4/10">
               <BarChart3 className="h-4 w-4" />
@@ -173,7 +173,7 @@ export default async function AdminDashboardPage() {
               <Link
                 key={campaign.id}
                 href={`/admin/campaigns/${campaign.id}`}
-                className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5"
+                className="group rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5"
               >
                 {/* Header da campanha — nome + total de leads no canto */}
                 <div className="flex items-center justify-between mb-4">

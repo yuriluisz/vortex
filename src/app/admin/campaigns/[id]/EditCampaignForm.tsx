@@ -30,7 +30,7 @@ export function EditCampaignForm({ campaign, plan = "FREE" }: { campaign: Campai
   );
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
       <div className="mb-6">
         <h3 className="text-lg font-medium text-card-foreground">Editar Configurações da Campanha</h3>
         <p className="text-sm text-muted-foreground mt-1">Atualize os detalhes, HTML ou o formulário desta campanha.</p>
