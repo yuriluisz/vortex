@@ -80,15 +80,26 @@ export default async function CampaignLeadsPage({
         </div>
         <div className="flex gap-2">
           {isUltra && <SyncLeadsButton campaignId={id} tenantId={session.tenantId} />}
-          <button 
-            type="button"
-            disabled
-            className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground border border-border transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Exportar CSV (Em breve)"
-          >
-            <Download className="h-4 w-4" />
-            Exportar CSV
-          </button>
+          {totalLeads > 0 ? (
+            <a 
+              href={`/admin/campaigns/${id}/leads/export`}
+              className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground border border-border transition-colors hover:bg-accent"
+              title="Exportar CSV"
+            >
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </a>
+          ) : (
+            <button 
+              type="button"
+              disabled
+              className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground border border-border transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Nenhum lead para exportar"
+            >
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </button>
+          )}
         </div>
       </div>
 

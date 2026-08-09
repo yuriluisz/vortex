@@ -996,8 +996,7 @@ export default function AdminDocsPage() {
                   Exportação CSV
                 </h3>
                 <p>
-                  A funcionalidade de exportar seus leads para um arquivo CSV
-                  está em desenvolvimento e será disponibilizada em breve.
+                  Você pode exportar toda a sua base de leads para um arquivo CSV clicando no botão "Exportar CSV". O arquivo será gerado instantaneamente com todas as respostas personalizadas do formulário, metadados de acesso (IP, Cidade, Aparelho) e status de grupo de cada lead.
                 </p>
               </div>
             </div>
