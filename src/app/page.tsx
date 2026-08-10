@@ -20,6 +20,7 @@ import { HeroMockup } from "@/components/landing/hero-mockup";
 import { MobileHeroMockup } from "@/components/landing/mobile-hero-mockup";
 import { Reveal } from "@/components/ui/reveal";
 import { GlowCard } from "@/components/ui/glow-card";
+import { InspireSection } from "@/components/landing/inspire-section";
 
 export default function Home() {
   const steps = [
@@ -381,6 +382,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Seção Inspire-SE — Templates da Comunidade */}
+        <InspireSection />
 
         {/* Seção Pricing */}
         <section className="py-24 sm:py-32 relative overflow-hidden">

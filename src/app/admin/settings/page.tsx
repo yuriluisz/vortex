@@ -80,7 +80,6 @@ export default async function SettingsPage() {
         <SettingsTabs
           companyName={tenant.name}
           userName={user.name ?? ""}
-          slug={tenant.slug}
           email={user.email}
           currentPlan={tenant.plan}
           billingInfo={{

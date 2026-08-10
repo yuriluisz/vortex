@@ -39,7 +39,18 @@ interface PlanSelectorProps {
   usage: UsageStats;
   billingInfo?: {
     billingCpfCnpj: string | null;
+    billingPersonType: string | null;
+    billingBusinessName: string | null;
     billingPhone: string | null;
+    billingAddress: {
+      street?: string;
+      number?: string;
+      complement?: string;
+      neighborhood?: string;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+    } | null;
   } | null;
   subscriptionInfo: SubscriptionInfo;
 }
@@ -366,7 +377,89 @@ export function PlanSelector({
       )}
 
       {/* ================================================================ */}
-      {/* SEÇÃO 2: Uso do Plano */}
+      {/* SEÇÃO 2: Endereço de Cobrança */}
+      {/* ================================================================ */}
+      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-card-foreground mb-1">
+              Endereço de Cobrança
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Dados usados para emissão de notas fiscais e cobrança.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowBillingModal(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.97]"
+          >
+            Editar dados
+          </button>
+        </div>
+
+        {billingInfo && (billingInfo.billingCpfCnpj || billingInfo.billingBusinessName || billingInfo.billingAddress) ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Tipo de Pessoa */}
+            {billingInfo.billingPersonType && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <span className="text-xs text-muted-foreground">Tipo de Pessoa</span>
+                <p className="text-sm font-medium text-foreground mt-0.5">
+                  {billingInfo.billingPersonType === "FISICA" ? "Pessoa Física" : "Pessoa Jurídica"}
+                </p>
+              </div>
+            )}
+
+            {/* CPF/CNPJ */}
+            {billingInfo.billingCpfCnpj && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <span className="text-xs text-muted-foreground">CPF/CNPJ</span>
+                <p className="text-sm font-medium text-foreground mt-0.5">{billingInfo.billingCpfCnpj}</p>
+              </div>
+            )}
+
+            {/* Razão Social */}
+            {billingInfo.billingBusinessName && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 sm:col-span-2">
+                <span className="text-xs text-muted-foreground">Razão Social</span>
+                <p className="text-sm font-medium text-foreground mt-0.5">{billingInfo.billingBusinessName}</p>
+              </div>
+            )}
+
+            {/* Telefone */}
+            {billingInfo.billingPhone && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <span className="text-xs text-muted-foreground">Telefone / WhatsApp</span>
+                <p className="text-sm font-medium text-foreground mt-0.5">{billingInfo.billingPhone}</p>
+              </div>
+            )}
+
+            {/* Endereço */}
+            {billingInfo.billingAddress && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 sm:col-span-2">
+                <span className="text-xs text-muted-foreground">Endereço Completo</span>
+                <p className="text-sm font-medium text-foreground mt-0.5">
+                  {[
+                    billingInfo.billingAddress.street,
+                    billingInfo.billingAddress.number ? `Nº ${billingInfo.billingAddress.number}` : null,
+                    billingInfo.billingAddress.complement,
+                    billingInfo.billingAddress.neighborhood,
+                    `${billingInfo.billingAddress.city} - ${billingInfo.billingAddress.state}`,
+                    billingInfo.billingAddress.zipCode,
+                  ].filter(Boolean).join(", ")}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
+            <strong>Atenção:</strong> Você ainda não preencheu seus dados de cobrança. Preencha clicando em "Editar dados" para assinar um plano pago.
+          </div>
+        )}
+      </div>
+
+      {/* ================================================================ */}
+      {/* SEÇÃO 3: Uso do Plano */}
       {/* ================================================================ */}
       <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
         <h2 className="text-lg font-semibold text-card-foreground mb-1">
@@ -416,7 +509,7 @@ export function PlanSelector({
       </div>
 
       {/* ================================================================ */}
-      {/* SEÇÃO 3: Escolher Plano */}
+      {/* SEÇÃO 4: Escolher Plano */}
       {/* ================================================================ */}
       <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
         <h2 className="text-lg font-semibold text-card-foreground mb-1">

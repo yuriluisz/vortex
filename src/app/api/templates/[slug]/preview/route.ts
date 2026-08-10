@@ -48,6 +48,12 @@ export async function GET(
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow-x: hidden; }
+    
+    /* Desabilitar todos os links e botões — apenas visuais */
+    a, button, [role="button"], input, select, textarea, [onclick] {
+      pointer-events: none !important;
+      cursor: default !important;
+    }
   </style>
 </head>
 <body>

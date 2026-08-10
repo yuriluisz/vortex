@@ -23,6 +23,51 @@ import type { Plan } from "@/lib/prisma-types";
 import type { Plan as PrismaPlan } from "@prisma/client";
 
 // ============================================================================
+// SEGURANÇA: Lista de nomes reservados (bloqueia variações de "vortex")
+// ============================================================================
+
+const RESERVED_NAMES = [
+  // Exatas
+  "vortex", "vortexpages", "vortex-pages", "vortex_pages",
+  "vortexplus", "vortex_plus",
+  // Com números
+  "vortex1", "vortex2", "vortex3", "vortexapp", "vortexapp",
+  "vortexpages1", "vortexpages2",
+  // Variações com caracteres especiais/acentos
+  "vórtex", "vórTEX", "v0rtex", "v0rt3x", "vort3x",
+  "vortexbr", "vortexbrasil", "vortexbr",
+  "myvortex", "meuvortex", "seuvortex",
+];
+
+/**
+ * Verifica se um nome/slug contém variações reservadas de "vortex".
+ * Apenas o admin (yulusica@gmail.com) pode usar esses nomes.
+ */
+function isReservedName(name: string, email: string): boolean {
+  const normalized = name.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase() || "yulusica@gmail.com";
+
+  // Admin pode usar qualquer nome reservado
+  if (email.toLowerCase() === adminEmail) return false;
+
+  // Verifica correspondência exata ou parcial
+  for (const reserved of RESERVED_NAMES) {
+    const reservedNormalized = reserved.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (normalized === reservedNormalized || normalized.includes(reservedNormalized) || reservedNormalized.includes(normalized)) {
+      return true;
+    }
+  }
+
+  // Regex para capturar variações criativas (v0rtex, vort3x, etc.)
+  const vortexRegex = /^v[o0òóõ]r[t7]e?[x×]?[a-z0-9]*$/i;
+  if (vortexRegex.test(normalized.replace(/[^a-z0-9]/g, ""))) {
+    return true;
+  }
+
+  return false;
+}
+
+// ============================================================================
 // SEGURANÇA: Validação de sessão reutilizável
 // ============================================================================
 async function requireAuth() {
@@ -94,6 +139,11 @@ export async function updateProfileAction(
   }
 
   const { companyName, slug } = parsed.data;
+
+  // Verificar se o nome da empresa contém variações reservadas de "vortex"
+  if (isReservedName(companyName, email)) {
+    return { error: "Este nome está reservado. Escolha outro." };
+  }
 
   if (slug !== tenantSlug) {
     const existing = await prisma.tenant.findUnique({ where: { slug } });
