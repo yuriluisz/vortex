@@ -68,6 +68,8 @@ model Tenant {
   auditLogs          AuditLog[]
   evolutionInstance  EvolutionInstance?
   groupMessages      GroupMessage[]
+  templates          Template[]
+  templateUsages     TemplateUsage[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -83,6 +85,13 @@ model User {
   passwordHash String
   avatarUrl    String?
 
+  // Perfil público (comunidade)
+  handle       String?      @unique // @unique permite null, mas só um null
+  displayName  String?
+  bio          String?      @db.Text
+  profileLinks Json?        // { website, instagram, youtube, whatsapp }
+  publicProfile Boolean     @default(false)
+
   // Tenant direto (one-to-one simplificado)
   tenantId     String?
   tenant       Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -97,12 +106,164 @@ model User {
 
   // Relações
   auditLogs    AuditLog[]
+  templates    Template[]   // Templates publicados pelo usuário
+  templateLikes TemplateLike[]
+  templateReports TemplateReport[]
 
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
   @@index([email])
   @@index([tenantId])
+  @@index([handle])
+}
+
+// ============================================================================
+// COMMUNITY & TEMPLATES
+// ============================================================================
+
+enum TemplateStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  TAKEN_DOWN
+}
+
+enum TemplateTheme {
+  DARK
+  LIGHT
+  COLORFUL
+}
+
+enum TemplateCategory {
+  LANDING_PAGE
+  SQUEEZE_PAGE
+  WEBINAR
+  ECOMMERCE
+  INFOPRODUCT
+  PORTFOLIO
+  EVENT
+  OTHER
+}
+
+model Template {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  description   String?  @db.Text
+  thumbnailUrl  String?
+
+  // Metadados de categorização
+  category      TemplateCategory @default(OTHER)
+  theme         TemplateTheme    @default(LIGHT)
+  primaryColor  String?          @default("#000000")
+  typography    String?          // Nome da fonte principal
+  productType   String?          // Tipo de produto/serviço
+  tags          String[]         // Tags de busca
+
+  // Status e moderação
+  status        TemplateStatus @default(DRAFT)
+  isFeatured    Boolean        @default(false)
+  rejectionReason String?       @db.Text
+
+  // Contadores
+  viewCount     Int  @default(0)
+  useCount      Int  @default(0)
+  likeCount     Int  @default(0)
+
+  // Proveniência (apenas auditoria — snapshot 100% autônomo)
+  sourceCampaignId String?
+  authorId          String
+  author            User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Versões do template
+  versions         TemplateVersion[]
+
+  // Relações
+  tenantId          String?
+  tenant            Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  usages            TemplateUsage[]
+  likes             TemplateLike[]
+  reports           TemplateReport[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([status, useCount])
+  @@index([category, status])
+  @@index([theme, status])
+  @@index([authorId])
+  @@index([tenantId])
+}
+
+model TemplateVersion {
+  id            String   @id @default(uuid())
+  templateId    String
+  template      Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  version       Int      @default(1)
+  rawHtml       String   @db.Text
+  formSchema    Json?
+
+  // Status da versão (para moderação)
+  status        TemplateStatus @default(DRAFT)
+  rejectionReason String?       @db.Text
+  moderationNote  String?       @db.Text
+
+  publishedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  @@unique([templateId, version])
+  @@index([templateId, status])
+  @@index([templateId, version])
+}
+
+model TemplateUsage {
+  id          String   @id @default(uuid())
+  templateId  String
+  tenantId    String
+  campaignId  String
+
+  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([templateId])
+  @@index([tenantId])
+  @@index([campaignId])
+}
+
+model TemplateLike {
+  id          String   @id @default(uuid())
+  templateId  String
+  userId      String
+
+  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([templateId, userId])
+}
+
+model TemplateReport {
+  id          String   @id @default(uuid())
+  templateId  String
+  userId      String?
+  reason      String   @db.Text
+  status      String   @default("PENDING") // PENDING | RESOLVED | DISMISSED
+
+  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+
+  @@index([templateId])
+  @@index([status])
 }
 
 // ============================================================================
@@ -135,6 +296,13 @@ enum AuditAction {
   GROUP_AUTO_CREATED
   GROUP_BULK_CREATED
   GROUP_SYNCED
+  TEMPLATE_PUBLISHED
+  TEMPLATE_APPROVED
+  TEMPLATE_REJECTED
+  TEMPLATE_CLONED
+  TEMPLATE_REPORTED
+  TEMPLATE_TAKEN_DOWN
+  PROFILE_UPDATED
 }
 
 model AuditLog {
@@ -177,6 +345,9 @@ model Campaign {
   // Domínio customizado exclusivo (ULTRA)
   customDomain String?  @unique
 
+  // Rastreabilidade de template (opcional)
+  templateOriginId String?
+
   // Configurações Padrão para Auto-Criação de Grupos
   groupMaxCapacity   Int      @default(1000)
   groupSupportPhones String[] // Array de telefones (ex: ["5511999999999"])
@@ -188,6 +359,7 @@ model Campaign {
   leads         Lead[]
   pageViews     PageView[]
   groupMessages GroupMessage[]
+  templateUsages TemplateUsage[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
