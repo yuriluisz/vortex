@@ -11,7 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { ChevronDown, Filter } from "lucide-react";
-import { DotGrid } from "@/components/landing/dot-grid";
+
 import { getLeadsTimeSeries, getCampaignsForFilter } from "./dashboard-actions";
 import type { DayPoint } from "./dashboard-actions";
 
@@ -201,8 +201,8 @@ export function DashboardCharts() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
-          <DotGrid />
+        <div className="relative overflow-hidden glass-panel rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
+          
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-card-foreground">Visitas</h3>
             <p className="mt-1 text-2xl font-bold text-card-foreground tracking-tight tabular-nums">
@@ -231,8 +231,8 @@ export function DashboardCharts() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
-          <DotGrid />
+        <div className="relative overflow-hidden glass-panel rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
+          
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-card-foreground">Leads</h3>
             <p className="mt-1 text-2xl font-bold text-chart-1 tracking-tight tabular-nums">
@@ -261,8 +261,8 @@ export function DashboardCharts() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
-          <DotGrid />
+        <div className="relative overflow-hidden glass-panel rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 group">
+          
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-card-foreground">Conversão</h3>
             <p className="mt-1 text-2xl font-bold text-primary tracking-tight tabular-nums">

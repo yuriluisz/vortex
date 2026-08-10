@@ -30,7 +30,7 @@ export function EditCampaignForm({ campaign, plan = "FREE" }: { campaign: Campai
   );
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
+    <div className="glass-panel rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20">
       <div className="mb-6">
         <h3 className="text-lg font-medium text-card-foreground">Editar Configurações da Campanha</h3>
         <p className="text-sm text-muted-foreground mt-1">Atualize os detalhes, HTML ou o formulário desta campanha.</p>
@@ -158,7 +158,7 @@ export function EditCampaignForm({ campaign, plan = "FREE" }: { campaign: Campai
         </div>
 
         {/* Botão Fixo (Sticky) */}
-        <div className="sticky bottom-4 z-10 p-4 bg-card/80 backdrop-blur-md rounded-xl border border-border shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="sticky bottom-4 z-10 p-4 glass-panel rounded-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
           <div className="flex-1">
             {state?.error && (
               <div className="flex items-start gap-2 text-sm text-destructive font-medium">

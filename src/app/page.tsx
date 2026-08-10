@@ -15,11 +15,11 @@ import {
   Layers,
   Network
 } from "lucide-react";
-import { DotGrid } from "@/components/landing/dot-grid";
+import { DotGrid } from "@/components/ui/dot-grid";
 import { HeroMockup } from "@/components/landing/hero-mockup";
 import { MobileHeroMockup } from "@/components/landing/mobile-hero-mockup";
-import { Reveal } from "@/components/landing/reveal";
-import { GlowCard } from "@/components/landing/glow-card";
+import { Reveal } from "@/components/ui/reveal";
+import { GlowCard } from "@/components/ui/glow-card";
 
 export default function Home() {
   const steps = [

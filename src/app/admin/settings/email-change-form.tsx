@@ -27,7 +27,7 @@ function UserNameSection({ userName }: { userName: string }) {
   const [state, formAction, pending] = useActionState(updateUserNameAction, undefined);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
       <h2 className="text-lg font-semibold text-card-foreground mb-1">
         Dados pessoais
       </h2>
@@ -101,7 +101,7 @@ function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
       <div className="flex items-center gap-2 mb-1">
         <Shield className="h-5 w-5 text-muted-foreground" />
         <h2 className="text-lg font-semibold text-card-foreground">

@@ -67,7 +67,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm flex flex-col min-h-[400px]">
+      <div className="glass-panel rounded-xl overflow-hidden shadow-sm flex flex-col min-h-[400px]">
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left text-sm text-muted-foreground">
             <thead className="bg-muted text-xs uppercase text-muted-foreground border-b border-border">
@@ -191,7 +191,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
       {/* Modal de Detalhes do Lead */}
       {selectedLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-2xl rounded-xl border border-border bg-card shadow-lg flex flex-col max-h-[90vh]">
+          <div className="relative w-full max-w-2xl rounded-xl glass-panel shadow-lg flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <User className="h-5 w-5 text-muted-foreground" />

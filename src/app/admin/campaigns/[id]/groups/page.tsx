@@ -57,7 +57,7 @@ export default async function CampaignGroupsPage({
         <GroupSettingsForm campaign={campaign} isUltra={isUltra} />
       )}
 
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left text-sm text-muted-foreground">
           <thead className="bg-muted text-xs uppercase text-muted-foreground border-b border-border">
             <tr>

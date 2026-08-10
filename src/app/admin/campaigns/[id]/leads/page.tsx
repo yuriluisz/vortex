@@ -76,7 +76,7 @@ export default async function CampaignLeadsPage({
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium text-card-foreground">Base de Leads</h3>
-          <p className="text-sm text-muted-foreground">Total de {totalLeads} leads capturados</p>
+          <p className="text-sm text-muted-foreground">Total de {totalLeads} leads</p>
         </div>
         <div className="flex gap-2">
           {isUltra && <SyncLeadsButton campaignId={id} tenantId={session.tenantId} />}

@@ -59,37 +59,38 @@ export default function AdminLoginPage() {
   }, [isOTPStep]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-background">
-      {/* Background gradient */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-primary/15 blur-[128px]" />
-        <div className="absolute -bottom-1/4 -right-1/4 h-[600px] w-[600px] rounded-full bg-accent/20 blur-[128px]" />
+    <div className="flex min-h-screen items-center justify-center px-4 bg-background relative overflow-hidden">
+      {/* Background global effects */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -left-1/4 -top-1/4 h-[800px] w-[800px] rounded-full bg-primary/20 blur-[128px]" />
+        <div className="absolute -bottom-1/4 -right-1/4 h-[800px] w-[800px] rounded-full bg-accent/20 blur-[128px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[url('/noise.png')] opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-block">
+        <div className="mb-10 text-center animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+          <Link href="/" className="inline-block relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-10 mx-auto invert" />
+            <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-10 mx-auto invert drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
           </Link>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-3 text-sm text-muted-foreground">
             Painel Administrativo
           </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-xl">
+        <div className="glass-panel rounded-2xl p-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
           {!isOTPStep ? (
             <>
               {/* Toggle Login / Registro */}
-              <div className="flex mb-6 p-1 rounded-lg bg-muted">
+              <div className="flex mb-8 p-1 rounded-xl bg-black/40 border border-white/5 backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => setMode("login")}
-                  className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${
+                  className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all duration-300 ${
                     mode === "login"
-                      ? "bg-background text-foreground shadow-sm"
+                      ? "bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary),0.3)] border border-primary/30"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -98,9 +99,9 @@ export default function AdminLoginPage() {
                 <button
                   type="button"
                   onClick={() => setMode("register")}
-                  className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${
+                  className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all duration-300 ${
                     mode === "register"
-                      ? "bg-background text-foreground shadow-sm"
+                      ? "bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary),0.3)] border border-primary/30"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -112,23 +113,23 @@ export default function AdminLoginPage() {
                 /* ===== LOGIN: EMAIL ===== */
                 <form action={loginFormAction} className="space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-card-foreground">
+                    <h2 className="text-xl font-bold text-foreground">
                       Acessar painel
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Insira seu e-mail para receber um código de verificação.
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                      Insira seu e-mail para receber um código de acesso.
                     </p>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <label
                       htmlFor="login-email"
-                      className="block text-sm font-medium text-foreground/80"
+                      className="block text-sm font-medium text-foreground/90"
                     >
                       E-mail
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="relative group">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <input
                         id="login-email"
                         name="email"
@@ -136,13 +137,13 @@ export default function AdminLoginPage() {
                         required
                         autoComplete="email"
                         placeholder="seu@email.com"
-                        className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-[border-color,box-shadow] duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
+                        className="w-full rounded-xl border border-white/10 bg-black/50 pl-10 pr-4 py-3.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/20 focus:bg-black/70 backdrop-blur-md"
                       />
                     </div>
                   </div>
 
                   {currentError && (
-                    <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
                       {currentError}
                     </div>
                   )}
@@ -150,7 +151,7 @@ export default function AdminLoginPage() {
                   <button
                     type="submit"
                     disabled={loginPending}
-                    className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.4)] transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(var(--primary),0.6)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
                   >
                     {loginPending ? (
                       <>
@@ -169,10 +170,10 @@ export default function AdminLoginPage() {
                 /* ===== REGISTRO: DADOS DA CONTA ===== */
                 <form action={registerFormAction} className="space-y-5">
                   <div>
-                    <h2 className="text-lg font-semibold text-card-foreground">
+                    <h2 className="text-xl font-bold text-foreground">
                       Criar nova conta
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                       Preencha os dados para criar seu ambiente.
                     </p>
                   </div>
@@ -184,12 +185,12 @@ export default function AdminLoginPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="reg-name"
-                      className="block text-sm font-medium text-foreground/80"
+                      className="block text-sm font-medium text-foreground/90"
                     >
                       Seu nome
                     </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="relative group">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <input
                         id="reg-name"
                         name="name"
@@ -197,7 +198,7 @@ export default function AdminLoginPage() {
                         required
                         defaultValue={registerState?.name || ""}
                         placeholder="Ex: João Silva"
-                        className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
+                        className="w-full rounded-xl border border-white/10 bg-black/50 pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/20 focus:bg-black/70 backdrop-blur-md"
                       />
                     </div>
                   </div>
@@ -206,12 +207,12 @@ export default function AdminLoginPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="reg-email"
-                      className="block text-sm font-medium text-foreground/80"
+                      className="block text-sm font-medium text-foreground/90"
                     >
                       Seu e-mail
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="relative group">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <input
                         id="reg-email"
                         name="email"
@@ -220,7 +221,7 @@ export default function AdminLoginPage() {
                         autoComplete="email"
                         defaultValue={registerState?.email || ""}
                         placeholder="joao@minhaempresa.com"
-                        className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
+                        className="w-full rounded-xl border border-white/10 bg-black/50 pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/20 focus:bg-black/70 backdrop-blur-md"
                       />
                     </div>
                   </div>
@@ -229,12 +230,12 @@ export default function AdminLoginPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="reg-tenant"
-                      className="block text-sm font-medium text-foreground/80"
+                      className="block text-sm font-medium text-foreground/90"
                     >
                       Nome da empresa
                     </label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="relative group">
+                      <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <input
                         id="reg-tenant"
                         name="tenantName"
@@ -242,13 +243,13 @@ export default function AdminLoginPage() {
                         required
                         defaultValue={registerState?.tenantName || ""}
                         placeholder="Ex: Minha Empresa"
-                        className="w-full rounded-lg border border-input bg-secondary pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20"
+                        className="w-full rounded-xl border border-white/10 bg-black/50 pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/20 focus:bg-black/70 backdrop-blur-md"
                       />
                     </div>
                   </div>
 
                   {currentError && (
-                    <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
                       {currentError}
                     </div>
                   )}
@@ -256,7 +257,7 @@ export default function AdminLoginPage() {
                   <button
                     type="submit"
                     disabled={registerPending}
-                    className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.4)] transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(var(--primary),0.6)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 mt-2"
                   >
                     {registerPending ? (
                       <>
@@ -274,10 +275,10 @@ export default function AdminLoginPage() {
             /* ===== VERIFICAÇÃO OTP ===== */
             <form action={otpFormAction} className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-card-foreground">
+                <h2 className="text-xl font-bold text-foreground">
                   Verificação
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                   Insira o código de 6 dígitos enviado para{" "}
                   <span className="font-medium text-foreground">
                     {activeState?.email}
@@ -293,7 +294,7 @@ export default function AdminLoginPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="otp-code"
-                  className="block text-sm font-medium text-foreground/80"
+                  className="block text-sm font-medium text-foreground/90"
                 >
                   Código de verificação
                 </label>
@@ -308,24 +309,24 @@ export default function AdminLoginPage() {
                   required
                   autoComplete="one-time-code"
                   placeholder="000000"
-                  className="w-full rounded-lg border border-input bg-secondary px-4 py-3 text-center text-2xl font-bold tracking-[0.5em] text-foreground placeholder-muted-foreground outline-none transition-all duration-200 focus:border-ring focus:ring-2 focus:ring-ring/20 font-mono"
+                  className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-4 text-center text-3xl font-bold tracking-[0.5em] text-foreground placeholder-muted-foreground/30 outline-none transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/20 focus:bg-black/70 backdrop-blur-md font-mono"
                 />
               </div>
 
               {otpState?.error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
                   {otpState.error}
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground text-center">
                 O código expira em 5 minutos.
               </p>
 
               <button
                 type="submit"
                 disabled={otpPending}
-                className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.4)] transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(var(--primary),0.6)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
               >
                 {otpPending ? (
                   <span className="flex items-center justify-center gap-2">
@@ -341,9 +342,9 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 flex justify-center">
+        <div className="mt-8 flex justify-center animate-fade-in-up" style={{ animationDelay: "300ms" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-4 w-auto invert opacity-60" />
+          <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-4 w-auto invert opacity-40 hover:opacity-100 transition-opacity" />
         </div>
       </div>
     </div>

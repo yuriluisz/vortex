@@ -22,7 +22,7 @@ export function GroupSettingsForm({ campaign, isUltra }: { campaign: CampaignGro
   );
 
   return (
-    <div className={`rounded-xl border bg-card p-6 shadow-sm mb-8 transition-all duration-300 relative ${isUltra ? 'border-border hover:shadow-md hover:border-primary/20' : 'border-border/50 opacity-80'}`}>
+    <div className={`glass-panel rounded-xl p-6 relative overflow-hidden mb-8 transition-all duration-300 ${isUltra ? 'hover:shadow-md hover:border-primary/20' : 'opacity-80'}`}>
       {!isUltra && (
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
           <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">

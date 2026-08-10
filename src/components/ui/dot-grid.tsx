@@ -83,28 +83,33 @@ export function DotGrid() {
           const x = i * SPACING;
           const y = j * SPACING;
 
-          // Onda idle bem sutil
-          const wave = reduced
+          // Onda idle para opacidade
+          const waveAlpha = reduced
             ? 0
-            : (Math.sin(time * 0.8 + (x + y) * 0.008) + 1) * 0.06;
+            : (Math.sin(time * 0.5 + (x + y) * 0.01) + 1) * 0.08;
+            
+          // Onda idle para tamanho
+          const waveRadius = reduced
+            ? 0
+            : (Math.sin(time * 0.8 + (x * 0.02) - (y * 0.02)) + 1) * 0.6;
 
           const dx = x - mouse.x;
           const dy = y - mouse.y;
           const dist = Math.hypot(dx, dy);
           const influence = Math.max(0, 1 - dist / INFLUENCE_RADIUS);
-          const eased = influence * influence; // easing quadrático
+          const eased = influence * influence * influence; // easing cúbico (mais concentrado)
 
           let drawX = x;
           let drawY = y;
 
           if (dist > 0 && influence > 0) {
-            const force = eased * 15; // Intensidade da repulsão
+            const force = eased * 12; // Repulsão suave
             drawX += (dx / dist) * force;
             drawY += (dy / dist) * force;
           }
 
-          const alpha = 0.15 + wave + eased * 0.7;
-          const radius = 1.2 + eased * 2.0;
+          const alpha = 0.15 + waveAlpha + eased * 0.8;
+          const radius = 0.8 + waveRadius + eased * 4.0;
 
           ctx.beginPath();
           ctx.arc(drawX, drawY, radius, 0, Math.PI * 2);

@@ -101,7 +101,7 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
   return (
     <div className="space-y-8">
       {/* ── Formulário de Envio ── */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
         <h3 className="text-lg font-medium text-card-foreground mb-6">
           Novo Disparo
         </h3>
@@ -277,7 +277,7 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
         {/* Modal de Confirmação */}
         {showConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="mx-4 w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
+            <div className="mx-4 w-full max-w-md rounded-xl glass-panel p-6 shadow-2xl relative overflow-hidden">
               <h4 className="text-lg font-semibold text-card-foreground mb-2">
                 Confirmar Disparo
               </h4>

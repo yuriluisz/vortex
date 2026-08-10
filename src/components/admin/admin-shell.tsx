@@ -26,8 +26,8 @@ const PRIMARY_NAV = [
 ];
 
 const SECONDARY_NAV = [
-  { href: "/admin/settings", label: "Configurações", icon: Settings },
   { href: "/admin/docs", label: "Documentação", icon: BookText, exact: true },
+  { href: "/admin/settings", label: "Configurações", icon: Settings },
 ];
 
 interface TenantInfo {
@@ -92,11 +92,17 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
   const planType = tenantInfo?.plan as "FREE" | "PRO" | "ULTRA" | undefined;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground antialiased">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground antialiased relative">
+      {/* Background global effects */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[128px]" />
+        <div className="absolute -bottom-1/4 -right-1/4 h-[600px] w-[600px] rounded-full bg-accent/10 blur-[128px]" />
+      </div>
+
       {/* Overlay escuro para mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 motion-safe:transition-opacity motion-safe:duration-300 md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm motion-safe:transition-all motion-safe:duration-300 md:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -105,16 +111,17 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       {/* Sidebar Navigation */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-sidebar-border bg-sidebar flex flex-col
+          fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col
+          bg-background/40 backdrop-blur-2xl border-r border-border/50
           motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[var(--ease-drawer)]
-          md:static md:z-auto md:translate-x-0
+          md:static md:z-auto md:translate-x-0 shadow-2xl
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
+        <div className="flex h-16 items-center px-6 border-b border-border/50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert" />
+          <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
           {planType && (
             <PlanBadge plan={planType} className="ml-2" />
           )}
@@ -122,9 +129,9 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
         {/* Header do Tenant */}
         {tenantInfo && (
-          <div className="px-4 py-3 border-b border-sidebar-border">
+          <div className="px-4 py-3 border-b border-border/50">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-[0_0_15px_rgba(var(--primary),0.2)] border border-primary/20">
                 <Building2 className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
@@ -143,7 +150,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
               href="/admin/super"
               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 pathname === "/admin/super"
-                  ? "bg-amber-500/10 text-amber-400 shadow-sm"
+                  ? "bg-amber-500/15 text-amber-400 shadow-sm border border-amber-500/20"
                   : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-400"
               }`}
             >
@@ -164,11 +171,11 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
                 href={item.href}
                 className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
+                    : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
                 }`}
               >
-                <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                <item.icon className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]' : ''}`} />
                 {item.label}
               </Link>
             );
@@ -180,18 +187,19 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
               href="/admin/whatsapp"
               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                 pathname?.startsWith("/admin/whatsapp")
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
+                  : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
               }`}
             >
-              <MessageSquareMore className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+              <MessageSquareMore className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${pathname?.startsWith("/admin/whatsapp") ? 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]' : ''}`} />
               WhatsApp
             </Link>
           )}
 
-          {/* Divider */}
-          <div className="my-3 border-t border-sidebar-border" />
+        </nav>
 
+        {/* Footer */}
+        <div className="p-3 border-t border-border/50 space-y-1">
           {/* Navegação secundária */}
           {SECONDARY_NAV.map((item) => {
             const isActive = item.exact
@@ -204,23 +212,22 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
                 href={item.href}
                 className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
+                    : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
                 }`}
               >
-                <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                <item.icon className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]' : ''}`} />
                 {item.label}
               </Link>
             );
           })}
-        </nav>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-sidebar-border space-y-1">
+          <div className="my-2 border-t border-border/50" />
+
           <form action={logoutAction}>
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive/80 transition-colors hover:bg-destructive/15 hover:text-destructive"
             >
               <LogOut className="h-5 w-5" />
               Sair da conta
@@ -230,13 +237,13 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden relative z-10">
         {/* Botão hamburger — visível apenas em mobile */}
-        <div className="md:hidden flex items-center h-14 px-4 border-b border-sidebar-border bg-background">
+        <div className="md:hidden flex items-center h-14 px-4 border-b border-border/50 bg-background/50 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setSidebarOpen((prev) => !prev)}
-            className="flex items-center justify-center rounded-lg p-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            className="flex items-center justify-center rounded-lg p-2 text-foreground/70 hover:bg-white/5 hover:text-foreground transition-colors"
             aria-label={sidebarOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={sidebarOpen}
           >
@@ -264,14 +271,14 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
           if (isBlocked) {
             return (
-              <div className="bg-destructive text-destructive-foreground px-4 py-3 flex items-center justify-between shadow-md relative z-50">
+              <div className="bg-destructive/20 border-b border-destructive/30 backdrop-blur-md text-destructive px-4 py-3 flex items-center justify-between shadow-md relative z-50">
                 <div className="flex items-center gap-2 font-medium text-sm">
                   <Megaphone className="h-5 w-5" />
                   {message}
                 </div>
                 <Link
-                  href="/admin/settings" // Direciona para a página de settings/billing
-                  className="bg-background text-foreground text-xs font-bold px-3 py-1.5 rounded hover:bg-muted transition-colors"
+                  href="/admin/settings"
+                  className="bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-md shadow-[0_0_10px_rgba(var(--destructive),0.4)] hover:scale-105 transition-transform"
                 >
                   Regularizar Agora
                 </Link>
@@ -281,9 +288,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           return null;
         })()}
 
-        <div className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 md:p-8 animate-in fade-in duration-300 relative">
-          {/* Se estiver bloqueado, podemos aplicar uma camada transparente para evitar cliques, ou deixar apenas o aviso. 
-              Como o usuário pediu "toast de aviso", o topo já chama bastante atenção. */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 animate-in fade-in duration-300 relative z-10">
           {children}
         </div>
 

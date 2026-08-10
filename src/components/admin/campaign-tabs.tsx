@@ -11,7 +11,7 @@ interface CampaignTabsProps {
 const TABS = [
   { segment: "", label: "Detalhes", icon: Settings },
   { segment: "/groups", label: "Grupos WhatsApp", icon: MessageCircle },
-  { segment: "/leads", label: "Leads Capturados", icon: Users },
+  { segment: "/leads", label: "Leads", icon: Users },
 ];
 
 export function CampaignTabs({ campaignId }: CampaignTabsProps) {

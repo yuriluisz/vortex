@@ -41,7 +41,7 @@ export function ProfileForm({ companyName, slug, billingInfo }: ProfileFormProps
   return (
     <form action={formAction} className="space-y-8">
       {/* 1. Informações da Empresa */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
         <h2 className="text-lg font-semibold text-card-foreground mb-1">
           Informações da Empresa
         </h2>
@@ -112,7 +112,7 @@ export function ProfileForm({ companyName, slug, billingInfo }: ProfileFormProps
       </div>
 
       {/* 2. Dados de Cobrança */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden mt-8">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-card-foreground">
             Dados de Cobrança
@@ -291,7 +291,7 @@ export function ProfileForm({ companyName, slug, billingInfo }: ProfileFormProps
       </div>
 
       {/* Feedback e Botão Unificado */}
-      <div className="sticky bottom-4 z-10 p-4 bg-card/80 backdrop-blur-md rounded-xl border border-border shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="sticky bottom-4 z-10 p-4 glass-panel rounded-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
         <div className="flex-1">
           {state?.error && (
             <div className="flex items-start gap-2 text-sm text-destructive font-medium">

@@ -39,7 +39,7 @@ export default function CreateGroupForm({
   const currentAction = isAuto ? autoFormAction : formAction;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm mb-8">
+    <div className="glass-panel rounded-xl p-6 relative overflow-hidden mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h3 className="text-lg font-medium text-card-foreground">Adicionar Novo Grupo</h3>
         

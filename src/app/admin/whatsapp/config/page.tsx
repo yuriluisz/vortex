@@ -494,7 +494,7 @@ export default function WhatsAppConfigPage() {
       <StepIndicator currentStep={currentStep} />
 
       {/* Step Content */}
-      <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
+      <div className="glass-panel rounded-xl p-8 shadow-sm relative overflow-hidden">
         {currentStep === "phone" && (
           <PhoneStep
             state={state}

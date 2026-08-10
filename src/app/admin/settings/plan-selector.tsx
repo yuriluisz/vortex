@@ -242,7 +242,7 @@ export function PlanSelector({
       {/* SEÇÃO 1: Status da Assinatura */}
       {/* ================================================================ */}
       {isPaid && (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-card-foreground mb-1">
@@ -368,7 +368,7 @@ export function PlanSelector({
       {/* ================================================================ */}
       {/* SEÇÃO 2: Uso do Plano */}
       {/* ================================================================ */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
         <h2 className="text-lg font-semibold text-card-foreground mb-1">
           Uso do Plano
         </h2>
@@ -418,7 +418,7 @@ export function PlanSelector({
       {/* ================================================================ */}
       {/* SEÇÃO 3: Escolher Plano */}
       {/* ================================================================ */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
         <h2 className="text-lg font-semibold text-card-foreground mb-1">
           Escolher Plano
         </h2>

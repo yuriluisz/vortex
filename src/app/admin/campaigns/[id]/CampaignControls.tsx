@@ -129,7 +129,7 @@ export function CampaignControls({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
       {/* Coluna Principal: Links */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
+        <div className="glass-panel rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20">
           <h3 className="text-lg font-medium text-card-foreground mb-4">Links de Acesso</h3>
 
           <div className="space-y-8">
@@ -351,7 +351,7 @@ export function CampaignControls({
 
       {/* Coluna Lateral: Ações */}
       <div className="space-y-6 lg:sticky lg:top-8 self-start">
-        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20">
+        <div className="glass-panel rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-card-foreground">Controles</h3>
             <FieldTooltip tooltip="Gerencie o status e segurança da campanha." docsAnchor="campanha-ativar-pausar" />

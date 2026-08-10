@@ -56,7 +56,7 @@ export function LogsTable({ messages, groupNames, senderNumber }: LogsTableProps
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-medium text-card-foreground">
             Histórico de Disparos
@@ -117,7 +117,7 @@ export function LogsTable({ messages, groupNames, senderNumber }: LogsTableProps
       {/* Modal de Detalhes */}
       {selectedMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-2xl rounded-xl border border-border bg-card shadow-lg flex flex-col max-h-[90vh]">
+          <div className="relative w-full max-w-2xl rounded-xl glass-panel shadow-lg flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <h2 className="text-xl font-semibold text-foreground">
                 Detalhes do Disparo

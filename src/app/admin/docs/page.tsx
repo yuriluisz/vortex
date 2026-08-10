@@ -269,7 +269,7 @@ export default function AdminDocsPage() {
                 WhatsApp e acompanha seus resultados em tempo real para descobrir se sua oferta vende antes de escalar.
               </p>
 
-              <div id="login" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="login" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Como acessar o painel
                 </h3>
@@ -295,7 +295,7 @@ export default function AdminDocsPage() {
                 </ol>
               </div>
 
-              <div id="registro" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="registro" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Criando uma conta nova
                 </h3>
@@ -342,7 +342,7 @@ export default function AdminDocsPage() {
                 um resumo completo do desempenho das suas campanhas.
               </p>
 
-              <div id="dashboard-kpis" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="dashboard-kpis" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Indicadores Chave
                 </h3>
@@ -372,7 +372,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div id="dashboard-grafico" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="dashboard-grafico" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Gráfico de Leads por Dia
                 </h3>
@@ -395,7 +395,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div id="dashboard-cards" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="dashboard-cards" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Cards de Campanhas
                 </h3>
@@ -478,7 +478,7 @@ export default function AdminDocsPage() {
                 de 3 etapas:
               </p>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Etapa 1 — Configuração
                 </h3>
@@ -535,7 +535,7 @@ export default function AdminDocsPage() {
                 </Tip>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Etapa 2 — Conteúdo
                 </h3>
@@ -642,7 +642,7 @@ export default function AdminDocsPage() {
                 </div>
               </div>
 
-              <div id="wizard-etapa-grupo" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="wizard-etapa-grupo" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Etapa 3 — Grupo WhatsApp
                 </h3>
@@ -689,7 +689,7 @@ export default function AdminDocsPage() {
                 <strong>Leads Capturados</strong>.
               </p>
 
-              <div id="campanha-links" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="campanha-links" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <LinkIcon className="h-4 w-4" />
                   Links de Acesso
@@ -720,7 +720,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   Controles da Campanha
@@ -754,7 +754,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Editando a Campanha
                 </h3>
@@ -795,7 +795,7 @@ export default function AdminDocsPage() {
                 campanha.
               </p>
 
-              <div id="rotacao-grupos" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="rotacao-grupos" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Rotação Automática
                 </h3>
@@ -807,7 +807,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div id="grupo-criar" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="grupo-criar" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Adicionando Grupos
                 </h3>
@@ -856,7 +856,7 @@ export default function AdminDocsPage() {
                 </div>
               </div>
 
-              <div id="padrao-grupos" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="padrao-grupos" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center">
                   Padrão para Auto-Criação de Grupos <PlanBadge plan='ULTRA' className='ml-2' />
                 </h3>
@@ -879,7 +879,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Criação em Massa <PlanBadge plan='ULTRA' className='ml-2' />
                 </h3>
@@ -890,7 +890,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Ações por Grupo
                 </h3>
@@ -935,7 +935,7 @@ export default function AdminDocsPage() {
                 os contatos que se cadastraram na sua campanha.
               </p>
 
-              <div id="leads-status" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="leads-status" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Status dos Leads
                 </h3>
@@ -962,7 +962,7 @@ export default function AdminDocsPage() {
                 </div>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Informações de cada Lead
                 </h3>
@@ -977,7 +977,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div id="leads-sincronizar" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div id="leads-sincronizar" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
                   <PlanBadge plan='ULTRA' /> Sincronizar Leads
@@ -990,7 +990,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div id="leads-exportar" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div id="leads-exportar" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   Exportação CSV
@@ -1038,7 +1038,7 @@ export default function AdminDocsPage() {
                 disparos, sincronização), primeiro conecte seu número.
               </p>
 
-              <div id="whatsapp-numero" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="whatsapp-numero" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
                   Passo 1 — Informar o Número
@@ -1055,7 +1055,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div id="whatsapp-qrcode" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="whatsapp-qrcode" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <QrCode className="h-4 w-4" />
                   Passo 2 — Conectar
@@ -1080,7 +1080,7 @@ export default function AdminDocsPage() {
                 </Tip>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <Wifi className="h-4 w-4" />
                   Passo 3 — Conectado!
@@ -1113,7 +1113,7 @@ export default function AdminDocsPage() {
                 mensagens para todos os grupos de uma campanha de uma só vez.
               </p>
 
-              <div id="broadcast-enviar" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="broadcast-enviar" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Como enviar um disparo
                 </h3>
@@ -1163,7 +1163,7 @@ export default function AdminDocsPage() {
                 as mensagens enviadas e seus resultados.
               </p>
 
-              <div id="logs-kpis" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="logs-kpis" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   KPIs de Mensagens
                 </h3>
@@ -1189,7 +1189,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div id="logs-status" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="logs-status" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Status das Mensagens
                 </h3>
@@ -1255,7 +1255,7 @@ export default function AdminDocsPage() {
                 editar os dados da sua empresa:
               </p>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <ul className="list-disc pl-5 space-y-2">
                   <li id="perfil-nome">
                     <strong className="text-foreground">
@@ -1292,7 +1292,7 @@ export default function AdminDocsPage() {
                 os planos Pro e Ultra.
               </p>
 
-              <div id="cobranca-dados" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div id="cobranca-dados" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Campos disponíveis
                 </h3>
@@ -1340,7 +1340,7 @@ export default function AdminDocsPage() {
                 Na aba <strong>&quot;Conta&quot;</strong> das Configurações:
               </p>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Dados Pessoais
                 </h3>
@@ -1350,7 +1350,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div id="conta-email" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div id="conta-email" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Alterando o Email de Acesso
                 </h3>
@@ -1395,7 +1395,7 @@ export default function AdminDocsPage() {
                 Configurações, gerencie seu plano.
               </p>
 
-              <div id="planos-comparacao" className="bg-card border border-border p-5 rounded-xl space-y-3">
+              <div id="planos-comparacao" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
                   Comparação de Planos
                 </h3>
@@ -1465,7 +1465,7 @@ export default function AdminDocsPage() {
                 </div>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Uso do Plano
                 </h3>
@@ -1477,7 +1477,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div id="planos-upgrade" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div id="planos-upgrade" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Fazendo Upgrade
                 </h3>
@@ -1499,7 +1499,7 @@ export default function AdminDocsPage() {
                 </ol>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Status da Assinatura
                 </h3>
@@ -1529,7 +1529,7 @@ export default function AdminDocsPage() {
                 </ul>
               </div>
 
-              <div id="planos-cancelar" className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div id="planos-cancelar" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Cancelando a Assinatura
                 </h3>
@@ -1544,7 +1544,7 @@ export default function AdminDocsPage() {
                 </p>
               </div>
 
-              <div className="bg-card border border-border p-5 rounded-xl space-y-3 text-sm">
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
                 <h3 className="text-foreground font-medium">
                   Verificando Pagamento Pendente
                 </h3>
