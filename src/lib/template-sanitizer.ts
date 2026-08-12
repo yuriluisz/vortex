@@ -32,6 +32,9 @@ const ALLOWED_TAGS = [
   "img", "picture", "source", "video", "audio",
   "a",
   "iframe",
+  // Formulários customizados — permitidos mas neutralizados (action/method removidos)
+  "form", "input", "select", "textarea", "button", "label", "option", "optgroup",
+  "fieldset", "legend",
 ];
 
 const ALLOWED_ATTRS = [
@@ -44,6 +47,11 @@ const ALLOWED_ATTRS = [
   "charset", "name", "content", "http-equiv",
   "data-vortex-form-slot",
   "type", "media",
+  // Atributos de formulário — permitidos mas neutralizados
+  "name", "value", "placeholder", "required", "disabled", "readonly",
+  "min", "max", "step", "rows", "cols", "multiple", "checked", "selected",
+  "for", "autocomplete", "maxlength", "minlength", "pattern",
+  "data-vortex-custom-form",
 ];
 
 /**
@@ -119,6 +127,36 @@ export function hasFormSlot(html: string): boolean {
 }
 
 /**
+ * Verifica se o HTML contém um formulário customizado.
+ */
+export function hasCustomForm(html: string): boolean {
+  return /<form[\s>]/i.test(html);
+}
+
+/**
+ * Marca formulários customizados com data-vortex-custom-form="true"
+ * para que o HtmlRenderer possa adotá-los (interceptar o submit).
+ * Também garante que action/method sejam removidos (defesa em profundidade).
+ */
+export function markCustomForms(html: string): string {
+  return html.replace(/<form\b([^>]*)>/gi, (match, attrs: string) => {
+    // Remover action/method/enctype (defesa em profundidade)
+    const safeAttrs = attrs
+      .replace(/\s+action\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+method\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+enctype\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+formaction\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+formmethod\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+formtarget\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+formnovalidate\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+formenctype\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+
+    // Adicionar marcador
+    return `<form data-vortex-custom-form="true"${safeAttrs}>`;
+  });
+}
+
+/**
  * Sanitiza o HTML de um template para publicação segura.
  *
  * Esta função DEVE ser chamada no servidor (server-only) antes de
@@ -133,9 +171,13 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
     throw new Error("O HTML do template não pode estar vazio.");
   }
 
-  if (!hasFormSlot(rawHtml)) {
+  // O template pode ter {{FORM_SLOT}} (form padrão) OU um <form> customizado.
+  // Se não tiver nenhum dos dois, é inválido.
+  const hasSlot = hasFormSlot(rawHtml);
+  const hasCustom = hasCustomForm(rawHtml);
+  if (!hasSlot && !hasCustom) {
     throw new Error(
-      "O HTML deve conter a tag {{FORM_SLOT}} para que o formulário seja injetado."
+      "O HTML deve conter a tag {{FORM_SLOT}} ou um formulário <form> customizado."
     );
   }
 
@@ -153,9 +195,8 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
     ALLOW_DATA_ATTR: true,
     ADD_ATTR: ["target", "rel"],
     FORBID_TAGS: [
-      "script", "noscript", "object", "embed", "applet", "form", "input",
-      "select", "textarea", "button", "label", "option", "optgroup",
-      "fieldset", "legend", "datalist", "keygen", "output", "progress",
+      "script", "noscript", "object", "embed", "applet",
+      "datalist", "keygen", "output", "progress",
       "meter", "details", "summary", "dialog", "menu", "menuitem",
       "style", "link",
     ],
@@ -176,6 +217,9 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
       "onpageshow", "onpopstate", "onresize", "onstorage",
       "onafterprint", "onbeforeprint",
       "expression", "behavior", "-moz-binding",
+      // Atributos de envio de formulário — SEMPRE removidos (segurança)
+      "action", "method", "enctype", "formaction", "formmethod",
+      "formtarget", "formnovalidate", "formenctype",
     ],
     ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp|mailto|tel|sms):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
   });
@@ -200,10 +244,13 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
   // Terceira passada: remover dados sensíveis
   sanitized = stripSensitiveData(sanitized);
 
-  // Quarta passada: verificar que {{FORM_SLOT}} ainda está presente
-  if (!hasFormSlot(sanitized)) {
+  // Quarta passada: marcar forms customizados (remover action/method, adicionar data-vortex-custom-form)
+  sanitized = markCustomForms(sanitized);
+
+  // Quinta passada: verificar que pelo menos um mecanismo de form sobreviveu
+  if (!hasFormSlot(sanitized) && !hasCustomForm(sanitized)) {
     throw new Error(
-      "A sanitização removeu a tag {{FORM_SLOT}}. Verifique se ela está em um contexto de texto, não dentro de uma tag removida."
+      "A sanitização removeu o formulário do template. Verifique se ele está em um contexto válido."
     );
   }
 
@@ -228,9 +275,8 @@ export function sanitizeForPreview(rawHtml: string): string {
     ALLOWED_TAGS: ALLOWED_TAGS.concat(["script"]),
     ALLOWED_ATTR: ALLOWED_ATTRS,
     FORBID_TAGS: [
-      "object", "embed", "applet", "form", "input",
-      "select", "textarea", "button", "label", "option", "optgroup",
-      "fieldset", "legend", "datalist", "keygen", "output", "progress",
+      "object", "embed", "applet",
+      "datalist", "keygen", "output", "progress",
       "meter", "details", "summary", "dialog", "menu", "menuitem",
       "style", "link",
     ],

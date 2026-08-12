@@ -7,6 +7,8 @@ interface VortexFooterProps {
   campaignSlug: string;
   campaignName: string;
   tenantSlug: string;
+  /** Tipo de conteúdo sendo exibido (campaign ou template) */
+  contentType?: "campaign" | "template";
   /** Se true, o footer não é exibido (plano ULTRA com removeBranding) */
   hidden?: boolean;
 }
@@ -20,6 +22,7 @@ export default function VortexFooter({
   campaignSlug,
   campaignName,
   tenantSlug,
+  contentType = "campaign",
   hidden = false,
 }: VortexFooterProps) {
   const [showReport, setShowReport] = useState(false);
@@ -99,6 +102,7 @@ export default function VortexFooter({
           campaignSlug={campaignSlug}
           campaignName={campaignName}
           tenantSlug={tenantSlug}
+          contentType={contentType}
           onClose={() => setShowReport(false)}
         />
       )}

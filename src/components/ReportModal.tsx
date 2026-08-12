@@ -6,6 +6,8 @@ interface ReportModalProps {
   campaignSlug: string;
   campaignName: string;
   tenantSlug: string;
+  /** Tipo de conteúdo sendo denunciado (campaign ou template) */
+  contentType?: "campaign" | "template";
   onClose: () => void;
 }
 
@@ -17,6 +19,7 @@ export default function ReportModal({
   campaignSlug,
   campaignName,
   tenantSlug,
+  contentType = "campaign",
   onClose,
 }: ReportModalProps) {
   const [email, setEmail] = useState("");
@@ -45,6 +48,7 @@ export default function ReportModal({
           campaignSlug,
           campaignName,
           tenantSlug,
+          contentType,
         }),
       });
 

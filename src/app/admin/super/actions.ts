@@ -8,6 +8,7 @@ import type { Plan } from "@/lib/prisma-types";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { enforceDowngrade } from "@/lib/subscription-guard";
 import { sendEmail } from "@/lib/notifications";
+import { updateTemplateStatus } from "@/services/template.service";
 import { z } from "zod";
 
 // ============================================================================
@@ -248,6 +249,36 @@ export async function toggleCampaignActiveAction(campaignId: string, active: boo
     campaign.tenantId
   );
   revalidatePath("/admin/super");
+}
+
+// ============================================================================
+// MODERAR TEMPLATE (aprovar/rejeitar)
+// ============================================================================
+export async function moderateTemplateAction(
+  templateId: string,
+  action: "approve" | "reject",
+  reason?: string
+) {
+  const session = await requireSuperAdmin();
+
+  if (action === "reject" && !reason?.trim()) {
+    throw new Error("Motivo de rejeição é obrigatório.");
+  }
+
+  await updateTemplateStatus(
+    templateId,
+    action === "approve" ? "PUBLISHED" : "REJECTED",
+    session.userId,
+    reason?.trim() || undefined
+  );
+
+  await logAudit(
+    action === "approve" ? "TEMPLATE_APPROVED" : "TEMPLATE_REJECTED",
+    { templateId, reason: reason?.trim() || null },
+    session.userId,
+    undefined
+  );
+  revalidatePath("/admin/super/templates");
 }
 
 // ============================================================================

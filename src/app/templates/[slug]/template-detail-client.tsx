@@ -5,6 +5,7 @@ import { Heart, Eye, Copy, ArrowLeft, Maximize2, X } from "lucide-react";
 import Link from "next/link";
 import { TemplatePreview } from "@/components/templates/template-preview";
 import { TemplateUseButton } from "@/components/templates/template-use-button";
+import VortexFooter from "@/components/VortexFooter";
 
 interface TemplateDetailClientProps {
   template: {
@@ -43,6 +44,12 @@ const labels: Record<string, string> = {
 export default function TemplateDetailClient({ template }: TemplateDetailClientProps) {
   const [showFullscreen, setShowFullscreen] = useState(false);
 
+  // Detectar tema para adaptar o botão de fechar
+  const isDarkTheme = template.theme === "DARK";
+  const closeBtnClass = isDarkTheme
+    ? "bg-white/10 text-white hover:bg-white/20"
+    : "bg-black/10 text-black hover:bg-black/20";
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header minimalista */}
@@ -63,11 +70,11 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
         </button>
       </div>
 
-      {/* Preview grande — modo teatro */}
-      <div className="pt-16 flex items-center justify-center" style={{ height: "calc(100vh - 56px)" }}>
-        <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8">
+      {/* Preview grande — modo teatro (ocupa todo o espaço) */}
+      <div className="pt-16" style={{ height: "calc(100vh - 56px)" }}>
+        <div className="relative w-full h-full">
           {/* Container do preview com hover overlay */}
-          <div className="group relative w-full max-w-6xl h-full max-h-[85vh] rounded-2xl overflow-hidden border border-border/40 shadow-2xl shadow-primary/5 bg-white">
+          <div className="group relative w-full h-full overflow-hidden bg-white">
             <TemplatePreview
               templateId={template.id}
               slug={template.slug}
@@ -171,13 +178,21 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
         </div>
       </div>
 
+      {/* Rodapé Vórtex padrão — denúncia como template */}
+      <VortexFooter
+        campaignSlug={template.slug}
+        campaignName={template.name}
+        tenantSlug={template.author?.handle ?? "template"}
+        contentType="template"
+      />
+
       {/* Modal Fullscreen */}
       {showFullscreen && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-          {/* Close button */}
+          {/* Close button — adaptativo ao tema */}
           <button
             onClick={() => setShowFullscreen(false)}
-            className="absolute top-4 right-4 z-10 rounded-full bg-white/10 text-white p-2 hover:bg-white/20 transition-colors"
+            className={`absolute top-4 right-4 z-10 rounded-full p-2.5 shadow-lg transition-colors ${closeBtnClass}`}
           >
             <X className="w-6 h-6" />
           </button>

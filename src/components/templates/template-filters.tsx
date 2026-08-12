@@ -63,7 +63,13 @@ export function TemplateFilters({
     updateFilter("search", searchInput);
   }
 
+  function handleClearSearch() {
+    setSearchInput("");
+    updateFilter("search", "");
+  }
+
   function clearAll() {
+    setSearchInput("");
     router.push("/templates");
   }
 
@@ -78,7 +84,7 @@ export function TemplateFilters({
             onClick={() => setShowMobileFilters(!showMobileFilters)}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Filtros ({(currentCategory ? 1 : 0) + (currentTheme ? 1 : 0) + (currentSort !== "recent" ? 1 : 0)})
+            Filtros ({(currentCategory ? 1 : 0) + (currentTheme ? 1 : 0) + (currentSort !== "recent" ? 1 : 0) + (currentSearch ? 1 : 0)})
           </button>
           {hasActiveFilters && (
             <button
@@ -91,8 +97,7 @@ export function TemplateFilters({
         </div>
 
         {/* Filters content */}
-        {(showMobileFilters || true) && (
-          <div className={`${showMobileFilters ? "py-4" : "py-4"} ${showMobileFilters ? "block" : "hidden sm:block"}`}>
+        <div className={`py-4 ${showMobileFilters ? "block" : "hidden sm:block"}`}>
             <div className="flex flex-col gap-4">
               {/* Search bar */}
               <form onSubmit={handleSearch} className="relative">
@@ -107,7 +112,8 @@ export function TemplateFilters({
                 {searchInput && (
                   <button
                     type="button"
-                    onClick={() => setSearchInput("")}
+                    onClick={handleClearSearch}
+                    aria-label="Limpar busca"
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-muted transition-colors"
                   >
                     <X className="w-3.5 h-3.5 text-muted-foreground" />
@@ -119,10 +125,11 @@ export function TemplateFilters({
               <div className="flex flex-wrap items-center gap-2">
                 {/* Category pills */}
                 <div className="flex flex-wrap gap-1.5">
-                  {CATEGORIES.slice(0, 5).map((cat) => (
+                  {CATEGORIES.map((cat) => (
                     <button
                       key={cat.value}
                       onClick={() => updateFilter("category", cat.value)}
+                      aria-pressed={currentCategory === cat.value}
                       className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
                         currentCategory === cat.value
                           ? "bg-primary text-primary-foreground shadow-sm"
@@ -142,6 +149,7 @@ export function TemplateFilters({
                     <button
                       key={theme.value}
                       onClick={() => updateFilter("theme", theme.value)}
+                      aria-pressed={currentTheme === theme.value}
                       className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
                         currentTheme === theme.value
                           ? "bg-primary text-primary-foreground shadow-sm"
@@ -180,7 +188,6 @@ export function TemplateFilters({
               </div>
             </div>
           </div>
-        )}
       </div>
     </div>
   );

@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sanitizeForPreview } from "@/lib/template-sanitizer";
+import { cookies } from "next/headers";
+import { decrypt } from "@/lib/session";
+
+const COOKIE_NAME = "vortex_admin_session";
 
 /**
- * GET /api/templates/[slug]/preview
+ * GET /api/templates/[slug]/admin-preview
  *
- * Retorna o HTML sanitizado do template para preview em iframe.
- * Usa sanitizeForPreview (mais leve) porque o iframe já tem sandbox.
+ * Preview administrativo para SUPER_ADMIN revisar templates PENDING_REVIEW.
+ * Retorna HTML sanitizado + código-fonte da versão pendente.
  */
 export async function GET(
   _request: Request,
@@ -14,29 +18,41 @@ export async function GET(
 ) {
   const { slug } = await params;
 
+  // Verificar sessão de super admin
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get(COOKIE_NAME)?.value;
+  const session = await decrypt(cookie);
+
+  if (!session?.email || session.role !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
+  }
+
   try {
     const template = await prisma.template.findUnique({
       where: { slug },
       include: {
         versions: {
-          where: { status: "PUBLISHED" },
+          where: { status: "PENDING_REVIEW" },
           orderBy: { version: "desc" },
           take: 1,
+        },
+        author: {
+          select: { email: true, displayName: true, handle: true },
         },
       },
     });
 
     if (!template) {
-      return new NextResponse("Template não encontrado", { status: 404 });
+      return NextResponse.json({ error: "Template não encontrado" }, { status: 404 });
     }
 
-    const activeVersion = template.versions[0];
-    if (!activeVersion) {
-      return new NextResponse("Template sem versão publicada", { status: 404 });
+    const pendingVersion = template.versions[0];
+    if (!pendingVersion) {
+      return NextResponse.json({ error: "Template sem versão pendente" }, { status: 404 });
     }
 
-    // Sanitizar para preview (mantém scripts, mas remove handlers perigosos)
-    let previewHtml = sanitizeForPreview(activeVersion.rawHtml);
+    // Sanitizar para preview
+    let previewHtml = sanitizeForPreview(pendingVersion.rawHtml);
 
     // Cores do template para o form dinâmico
     const primaryColor = template.primaryColor || "#6d28d9";
@@ -54,7 +70,7 @@ export async function GET(
 <div style="max-width:400px;margin:0 auto;padding:24px;background:${cardBg};border:1px solid ${cardBorder};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08);font-family:${template.typography || "inherit"};">
   <div style="margin-bottom:16px;">
     <label style="display:block;font-size:14px;font-weight:600;color:${labelColor};margin-bottom:6px;">Nome</label>
-    <input type="text" placeholder="Seu nome" style="width:100%;padding:12px 14px;border:1px solid ${inputBorder};border-radius:8px;font-size:14px;color:${textColor};background:${inputBg};outline:none;::placeholder{color:${placeholderColor}}" />
+    <input type="text" placeholder="Seu nome" style="width:100%;padding:12px 14px;border:1px solid ${inputBorder};border-radius:8px;font-size:14px;color:${textColor};background:${inputBg};outline:none;" />
   </div>
   <div style="margin-bottom:16px;">
     <label style="display:block;font-size:14px;font-weight:600;color:${labelColor};margin-bottom:6px;">WhatsApp</label>
@@ -88,15 +104,22 @@ ${previewHtml}
 </body>
 </html>`;
 
-    return new NextResponse(fullHtml, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "X-Content-Type-Options": "nosniff",
-        "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https:; frame-src 'self' https://www.youtube.com https://player.vimeo.com;",
+    return NextResponse.json({
+      html: fullHtml,
+      sourceCode: pendingVersion.rawHtml,
+      formSchema: pendingVersion.formSchema,
+      template: {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        theme: template.theme,
+        version: pendingVersion.version,
+        author: template.author,
       },
     });
   } catch (error) {
-    console.error("Preview error:", error);
-    return new NextResponse("Erro ao carregar preview", { status: 500 });
+    console.error("Admin preview error:", error);
+    return NextResponse.json({ error: "Erro ao carregar preview" }, { status: 500 });
   }
 }

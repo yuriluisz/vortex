@@ -2,6 +2,9 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { sanitizeTemplateHtml } from "@/lib/template-sanitizer";
+import { hasFeature } from "@/lib/plans";
+import { sendTemplateStatusEmail } from "@/lib/notifications";
+import type { Plan } from "@/lib/prisma-types";
 import type { TemplateStatus, TemplateCategory, TemplateTheme } from "@prisma/client";
 
 /**
@@ -162,6 +165,24 @@ export async function cloneTemplate(
     throw new Error("Template não possui uma versão publicada.");
   }
 
+  // Verificar que a campanha pertence ao tenant
+  const campaign = await prisma.campaign.findFirst({
+    where: { id: campaignId, tenantId },
+    select: { id: true },
+  });
+  if (!campaign) {
+    throw new Error("Campanha não encontrada para este tenant.");
+  }
+
+  // Verificar plano — pode usar templates?
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { plan: true },
+  });
+  if (!tenant || !hasFeature(tenant.plan, "useTemplates")) {
+    throw new Error("Seu plano não permite usar templates.");
+  }
+
   // Registrar o uso
   await prisma.templateUsage.create({
     data: {
@@ -235,6 +256,17 @@ export async function updateTemplateVersion(
       status: "PENDING_REVIEW",
     },
   });
+
+  // Se o template estava REJECTED, voltar para PENDING_REVIEW (reenvio)
+  if (template.status === "REJECTED" || template.status === "TAKEN_DOWN") {
+    await prisma.template.update({
+      where: { id: templateId },
+      data: {
+        status: "PENDING_REVIEW",
+        rejectionReason: null,
+      },
+    });
+  }
 
   return version;
 }
@@ -384,8 +416,18 @@ export async function getAuthorTemplates(authorId: string) {
 export async function updateTemplateStatus(
   templateId: string,
   status: TemplateStatus,
+  adminUserId: string,
   reason?: string
 ) {
+  // Verificar que quem está moderando é SUPER_ADMIN
+  const admin = await prisma.user.findUnique({
+    where: { id: adminUserId },
+    select: { role: true },
+  });
+  if (!admin || admin.role !== "SUPER_ADMIN") {
+    throw new Error("Apenas super administradores podem moderar templates.");
+  }
+
   const template = await prisma.template.update({
     where: { id: templateId },
     data: {
@@ -415,6 +457,24 @@ export async function updateTemplateStatus(
     }
   }
 
+  // Notificar o autor por email (aprovado, rejeitado ou removido)
+  if (status === "PUBLISHED" || status === "REJECTED" || status === "TAKEN_DOWN") {
+    const author = await prisma.user.findUnique({
+      where: { id: template.authorId },
+      select: { email: true, name: true },
+    });
+
+    if (author?.email) {
+      await sendTemplateStatusEmail({
+        to: author.email,
+        authorName: author.name || "usuário",
+        templateName: template.name,
+        status,
+        reason,
+      });
+    }
+  }
+
   return template;
 }
 
@@ -422,5 +482,5 @@ export async function updateTemplateStatus(
  * Verifica se o usuário pode publicar templates baseado no plano.
  */
 export function canPublishTemplate(plan: string): boolean {
-  return plan === "PRO" || plan === "ULTRA";
+  return hasFeature(plan as Plan, "publishTemplates");
 }

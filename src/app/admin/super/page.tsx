@@ -138,9 +138,15 @@ export default async function SuperAdminPage({ searchParams }: PageProps) {
             </p>
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 flex items-center gap-4">
           <Link href="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors">
             ← Voltar ao dashboard
+          </Link>
+          <Link
+            href="/admin/super/templates"
+            className="text-sm text-primary hover:text-primary/80 transition-colors"
+          >
+            Moderação de Templates →
           </Link>
         </div>
       </div>

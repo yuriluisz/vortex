@@ -483,9 +483,17 @@ export default function Home() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert opacity-50" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Vórtex+. Todos os direitos reservados.
-          </p>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/privacy"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Política de Privacidade
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              &copy; {new Date().getFullYear()} Vórtex+. Todos os direitos reservados.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

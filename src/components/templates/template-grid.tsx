@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { Heart, Eye, Copy, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface TemplateGridProps {
   templates: Array<{
@@ -77,14 +76,9 @@ export function TemplateGrid({ templates, total, page, totalPages }: TemplateGri
         </p>
       </div>
 
-      {/* Grid com stagger animation */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-      >
-        {templates.map((template, i) => {
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {templates.map((template) => {
           const gradient = gradients[template.theme] || "from-muted to-muted/80";
           const emojiMap: Record<string, string> = {
             EVENT: "🎉",
@@ -98,18 +92,10 @@ export function TemplateGrid({ templates, total, page, totalPages }: TemplateGri
           };
 
           return (
-            <motion.div
+            <div
               key={template.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.4,
-                ease: [0.23, 1, 0.32, 1],
-                delay: Math.min(i * 50, 300),
-              }}
-              whileHover={{ y: -4, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
               onClick={() => router.push(`/templates/${template.slug}`)}
-              className="group cursor-pointer overflow-hidden rounded-xl border border-border/40 bg-card hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300"
+              className="group cursor-pointer overflow-hidden rounded-xl border border-border/40 bg-card hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
             >
               {/* Preview Placeholder */}
               <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${gradient}`}>
@@ -177,10 +163,10 @@ export function TemplateGrid({ templates, total, page, totalPages }: TemplateGri
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
 
       {/* Paginação */}
       {totalPages > 1 && (
