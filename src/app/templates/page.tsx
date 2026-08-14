@@ -2,6 +2,7 @@ import { getPublishedTemplates } from "@/services/template.service";
 import { TemplateGrid } from "@/components/templates/template-grid";
 import { TemplateFilters } from "@/components/templates/template-filters";
 import { PublicNav } from "@/components/landing/public-nav";
+import { getSession } from "@/lib/session";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 
 interface TemplatesPageProps {
@@ -21,6 +22,8 @@ export const metadata = {
 
 export default async function TemplatesPage({ searchParams }: TemplatesPageProps) {
   const params = await searchParams;
+  const session = await getSession();
+  const isLoggedIn = !!(session?.userId && session?.tenantId);
 
   const { templates, total, page, totalPages } = await getPublishedTemplates({
     category: params.category as TemplateCategory | undefined,
@@ -34,7 +37,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <PublicNav />
+      <PublicNav isLoggedIn={isLoggedIn} />
 
       {/* Spacer for fixed nav */}
       <div className="h-16" />
@@ -81,12 +84,21 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
           <p className="mt-3 text-muted-foreground max-w-md mx-auto">
             Comece grátis ou faça upgrade para publicar seus próprios templates na galeria.
           </p>
-          <a
-            href="/admin/login?mode=register"
-            className="group mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:scale-105 active:scale-95"
-          >
-            Começar grátis
-          </a>
+          {isLoggedIn ? (
+            <a
+              href="/admin/templates"
+              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:scale-105 active:scale-95"
+            >
+              Meus Templates
+            </a>
+          ) : (
+            <a
+              href="/admin/login?mode=register"
+              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:scale-105 active:scale-95"
+            >
+              Começar grátis
+            </a>
+          )}
         </div>
       </section>
     </div>
