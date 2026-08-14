@@ -143,11 +143,6 @@ export function CampaignSettingsModal({
     return true;
   });
 
-  // Reset tab when modal opens
-  useEffect(() => {
-    if (open) setActiveTab("general");
-  }, [open]);
-
   // Close on Escape
   useEffect(() => {
     if (!open) return;

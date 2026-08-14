@@ -54,7 +54,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       let start = Math.max(1, currentPage - 2);
-      let end = Math.min(totalPages, start + maxVisiblePages - 1);
+      const end = Math.min(totalPages, start + maxVisiblePages - 1);
       
       if (end - start < maxVisiblePages - 1) {
         start = Math.max(1, end - maxVisiblePages + 1);
