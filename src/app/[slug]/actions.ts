@@ -86,7 +86,10 @@ export async function submitLeadAction(
 
       const verifyResult = await verifyRes.json();
 
-      if (!verifyResult.success || verifyResult.score < 0.5) {
+      const isDev = process.env.NODE_ENV === "development";
+      const minScore = 0.3; // Tolerância maior para chaves novas (o Google aprende com o tempo)
+
+      if (!verifyResult.success || (!isDev && verifyResult.score < minScore)) {
         console.error("[reCAPTCHA] Failed or low score:", verifyResult);
         return { error: "Verificação de segurança falhou (score muito baixo). Tente novamente." };
       }
