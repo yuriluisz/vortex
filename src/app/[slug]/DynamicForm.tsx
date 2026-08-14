@@ -44,16 +44,23 @@ export default function DynamicForm({
   }
 
   // ==========================================================================
-  // CLOUDFLARE TURNSTILE (Lazy Loaded)
+  // CLOUDFLARE TURNSTILE (Delayed Load)
   // ==========================================================================
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [turnstileReady, setTurnstileReady] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || "";
 
   useEffect(() => {
+    // Delay Turnstile initialization by 1.2 seconds to ensure any CSS
+    // animations (like opacity: 0 from .fade-in) have finished.
+    const timer = setTimeout(() => setTurnstileReady(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (campaignId === "preview") return;
-    if (!siteKey || !turnstileRef.current || !userInteracted) return;
+    if (!siteKey || !turnstileRef.current || !turnstileReady) return;
 
     let widgetId: string | undefined;
 
@@ -67,7 +74,7 @@ export default function DynamicForm({
             sitekey: siteKey,
             callback: (token: string) => setTurnstileToken(token),
             theme: "dark",
-            appearance: "interaction-only",
+            appearance: "always", // Exibe sempre para o usuário ter certeza
           });
         } catch (e) {
           console.error("[Turnstile] Render error:", e);
@@ -98,16 +105,15 @@ export default function DynamicForm({
         window.turnstile.remove(widgetId);
       }
     };
-  }, [siteKey, userInteracted]);
+  }, [siteKey, turnstileReady, campaignId]);
+
+  const isTurnstilePending = !!siteKey && campaignId !== "preview" && !turnstileToken;
 
   return (
     <form 
       action={formAction} 
       onSubmit={handleSubmit} 
       className="vortex-form space-y-4"
-      onFocus={() => setUserInteracted(true)}
-      onMouseEnter={() => setUserInteracted(true)}
-      onTouchStart={() => setUserInteracted(true)}
     >
       {/* Hidden fields */}
       <input type="hidden" name="campaignId" value={campaignId} />
@@ -181,7 +187,7 @@ export default function DynamicForm({
       {/* Submit */}
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || isTurnstilePending}
         className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-green-500/25 transition-all duration-200 hover:from-green-400 hover:to-emerald-500 hover:shadow-green-500/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? (
@@ -192,6 +198,8 @@ export default function DynamicForm({
             </svg>
             Enviando...
           </span>
+        ) : isTurnstilePending ? (
+          "Aguardando verificação..."
         ) : (
           "QUERO PARTICIPAR"
         )}
