@@ -56,45 +56,44 @@ export async function submitLeadAction(
     return { error: "Campanha não encontrada ou inativa." };
   }
 
-  // Validar Turnstile
-  const turnstileToken = formData.get("cf-turnstile-response") as string;
-  const turnstileSecret = process.env.CLOUDFLARE_TURNSTILE_SECRET;
+  // GOOGLE RECAPTCHA V3 VALIDATION
+  const recaptchaToken = formData.get("g-recaptcha-response") as string | null;
+  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
 
-  if (turnstileSecret && turnstileToken) {
+  // Se a chave secreta estiver configurada, a verificação é OBRIGATÓRIA
+  if (recaptchaSecret) {
+    if (!recaptchaToken) {
+      return { error: "Por favor, complete a verificação de segurança antes de continuar." };
+    }
+
     try {
-      const verifyRes = await fetch(
-        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: `secret=${turnstileSecret}&response=${turnstileToken}`,
-        }
-      );
-      const verifyData = await verifyRes.json();
-      if (!verifyData.success) {
-        return { error: "Verificação de segurança falhou. Atualize a página e tente novamente." };
+      const verifyData = new URLSearchParams({
+        secret: recaptchaSecret,
+        response: recaptchaToken,
+      });
+
+      const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: verifyData.toString(),
+      });
+
+      if (!verifyRes.ok) {
+        return { error: "Falha na verificação de segurança (rede)." };
       }
 
-      // Validação de Hostname (SaaS Support via Iframe)
-      // O iframe do Turnstile sempre roda no domínio principal da aplicação.
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
-      let baseHostname = "localhost";
-      try { if (appUrl) baseHostname = new URL(appUrl).hostname; } catch {}
+      const verifyResult = await verifyRes.json();
 
-      const allowedHosts = ["localhost", "127.0.0.1", baseHostname];
-
-      if (!allowedHosts.includes(verifyData.hostname)) {
-        console.error(`[Turnstile] Hostname mismatch. Expected one of ${allowedHosts.join(", ")}, got ${verifyData.hostname}`);
-        return { error: "Acesso negado: Origem do domínio não autorizada." };
+      if (!verifyResult.success || verifyResult.score < 0.5) {
+        console.error("[reCAPTCHA] Failed or low score:", verifyResult);
+        return { error: "Verificação de segurança falhou (score muito baixo). Tente novamente." };
       }
-
     } catch (e) {
-      console.error("[Turnstile] Erro de rede ao verificar:", e);
+      console.error("[reCAPTCHA] Erro de rede ao verificar:", e);
       return { error: "Falha na verificação de segurança (rede)." };
     }
-  } else if (turnstileSecret) {
-    // Se o secret está configurado mas o token não veio, bloqueia (pode ser o form não carregou o script ou bot)
-    return { error: "Por favor, complete a verificação de segurança antes de continuar." };
   }
 
   // Verificar limite de leads do plano

@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, startTransition } from "react";
+import Script from "next/script";
 import { submitLeadAction } from "./actions";
 import type { LeadFormState } from "./actions";
 
@@ -31,7 +32,16 @@ export default function DynamicForm({
     undefined
   );
 
+  // ==========================================================================
+  // GOOGLE RECAPTCHA V3
+  // ==========================================================================
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
     // Disparar evento Lead no Pixel da Meta antes de enviar o formulário
     try {
       const fbq = (window as any).fbq;
@@ -39,45 +49,31 @@ export default function DynamicForm({
         fbq("track", "Lead");
       }
     } catch {
-      // Silencioso — não quebrar o fluxo se o pixel não estiver carregado
+      // Silencioso
     }
-  }
 
-  // ==========================================================================
-  // CLOUDFLARE TURNSTILE (Delayed Load)
-  // ==========================================================================
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileReady, setTurnstileReady] = useState(false);
-  const turnstileRef = useRef<HTMLDivElement>(null);
-  const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || "";
-
-  useEffect(() => {
-    // Delay Turnstile iframe visibility by 1.2s to match old fade-in timing if needed,
-    // though the iframe loads asynchronously anyway.
-    const timer = setTimeout(() => setTurnstileReady(true), 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (campaignId === "preview") return;
-
-    // Listener para o iframe do Turnstile
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === "TURNSTILE_SUCCESS") {
-        setTurnstileToken(event.data.token);
+    if (campaignId !== "preview" && siteKey) {
+      // @ts-ignore
+      if (window.grecaptcha) {
+        // @ts-ignore
+        window.grecaptcha.ready(() => {
+          // @ts-ignore
+          window.grecaptcha.execute(siteKey, { action: 'submit' }).then((token: string) => {
+            formData.set("g-recaptcha-response", token);
+            startTransition(() => {
+              formAction(formData);
+            });
+          });
+        });
+        return;
       }
-    };
+    }
 
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [campaignId]);
-
-  const isTurnstilePending = !!siteKey && campaignId !== "preview" && !turnstileToken;
-
-  // Monta a URL do iframe baseada no domínio atual para evitar cross-origin hardcoded,
-  // mas se estiver em custom domain, precisa forçar o domínio raiz do SaaS.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
-  const iframeSrc = isCustomDomain ? `${appUrl}/turnstile` : "/turnstile";
+    // Fallback caso não tenha recaptcha
+    startTransition(() => {
+      formAction(formData);
+    });
+  }
 
   return (
     <form 
@@ -147,23 +143,20 @@ export default function DynamicForm({
       )}
 
       {/* Cloudflare Turnstile Widget via Iframe SaaS */}
+      {/* Google reCAPTCHA v3 */}
       {siteKey && campaignId !== "preview" && (
-        <div className="flex justify-center my-4 min-h-[65px]">
-          {turnstileReady && (
-            <iframe 
-              src={iframeSrc}
-              style={{ border: 'none', overflow: 'hidden', width: '300px', height: '65px', backgroundColor: 'transparent' }}
-              title="Security Check"
-            />
-          )}
-          <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
-        </div>
+        <>
+          <Script src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`} strategy="lazyOnload" />
+          <div className="text-center mt-4 text-[10px] text-neutral-500 opacity-60">
+            Protegido pelo reCAPTCHA. <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline hover:text-neutral-300">Privacidade</a> e <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline hover:text-neutral-300">Termos</a>.
+          </div>
+        </>
       )}
 
       {/* Submit */}
       <button
         type="submit"
-        disabled={pending || isTurnstilePending}
+        disabled={pending}
         className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-green-500/25 transition-all duration-200 hover:from-green-400 hover:to-emerald-500 hover:shadow-green-500/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? (
@@ -174,8 +167,6 @@ export default function DynamicForm({
             </svg>
             Enviando...
           </span>
-        ) : isTurnstilePending ? (
-          "Aguardando verificação..."
         ) : (
           "QUERO PARTICIPAR"
         )}

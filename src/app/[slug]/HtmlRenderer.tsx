@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import DynamicForm from "./DynamicForm";
 import parse, { Element, HTMLReactParserOptions, domToReact } from "html-react-parser";
+import Script from "next/script";
 import { trackCampaignViewAction, submitLeadAction } from "./actions";
 import VortexFooter from "@/components/VortexFooter";
 
@@ -105,6 +106,8 @@ function CustomForm({
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     e.stopPropagation();
@@ -118,14 +121,6 @@ function CustomForm({
     formData.set("slug", slug);
     if (isCustomDomain) formData.set("isCustomDomain", "true");
 
-    // Se houver Turnstile no DOM, capturar o token
-    const turnstileInput = form.querySelector<HTMLInputElement>(
-      'input[name="cf-turnstile-response"]'
-    );
-    if (turnstileInput?.value) {
-      formData.set("cf-turnstile-response", turnstileInput.value);
-    }
-
     // Disparar evento Lead no Pixel
     try {
       const fbq = (window as any).fbq;
@@ -134,17 +129,39 @@ function CustomForm({
       // silencioso
     }
 
-    startTransition(async () => {
-      const result = await submitLeadAction(undefined, formData);
-      if (result?.error) {
-        setError(result.error);
+    const executeSubmit = () => {
+      startTransition(async () => {
+        const result = await submitLeadAction(undefined, formData);
+        if (result?.error) {
+          setError(result.error);
+        }
+      });
+    };
+
+    if (siteKey && campaignId !== "preview") {
+      // @ts-ignore
+      if (window.grecaptcha) {
+        // @ts-ignore
+        window.grecaptcha.ready(() => {
+          // @ts-ignore
+          window.grecaptcha.execute(siteKey, { action: 'submit' }).then((token: string) => {
+            formData.set("g-recaptcha-response", token);
+            executeSubmit();
+          });
+        });
+        return;
       }
-      // Se sucesso, submitLeadAction redireciona via redirect()
-    });
+    }
+
+    executeSubmit();
   }
 
   return (
-    <form onSubmit={handleSubmit} data-vortex-custom-form="true">
+    <>
+      {siteKey && campaignId !== "preview" && (
+        <Script src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`} strategy="lazyOnload" />
+      )}
+      <form onSubmit={handleSubmit} data-vortex-custom-form="true">
       {children}
       {error && (
         <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "#f87171", backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.5rem", padding: "0.75rem" }}>
@@ -157,6 +174,7 @@ function CustomForm({
         </div>
       )}
     </form>
+    </>
   );
 }
 

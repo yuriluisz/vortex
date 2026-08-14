@@ -42,15 +42,16 @@ vi.mock("@/lib/campaign-cache", () => ({
   getCachedLeadCount: vi.fn(async () => 0),
 }));
 
-describe("Turnstile Security Validation", () => {
+describe("reCAPTCHA v3 Security Validation", () => {
   let fetchMock: any;
 
   beforeEach(() => {
     vi.resetAllMocks();
-    process.env.CLOUDFLARE_TURNSTILE_SECRET = "secret-key";
+    process.env.RECAPTCHA_SECRET_KEY = "secret-key";
     fetchMock = vi.spyOn(global, "fetch").mockImplementation(async () => {
       return {
-        json: async () => ({ success: true, hostname: "localhost" }),
+        ok: true,
+        json: async () => ({ success: true, score: 0.9, hostname: "localhost" }),
       } as Response;
     });
   });
@@ -62,12 +63,12 @@ describe("Turnstile Security Validation", () => {
     formData.append("name", "Test User");
     formData.append("whatsapp", "11999999999");
     if (token !== undefined) {
-      formData.append("cf-turnstile-response", token);
+      formData.append("g-recaptcha-response", token);
     }
     return formData;
   }
 
-  it("should reject submission if Turnstile secret is configured but no token is provided", async () => {
+  it("should reject submission if reCAPTCHA secret is configured but no token is provided", async () => {
     const formData = createFormData(); // Sem token
     const result = await submitLeadAction(undefined, formData);
     
@@ -75,10 +76,10 @@ describe("Turnstile Security Validation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("should reject submission if Cloudflare validation fails", async () => {
-    // Simulando falha na Cloudflare (ex: token inválido)
+  it("should reject submission if Google validation fails (success: false)", async () => {
     fetchMock.mockImplementationOnce(async () => {
       return {
+        ok: true,
         json: async () => ({ success: false, "error-codes": ["invalid-input-response"] }),
       } as Response;
     });
@@ -86,7 +87,22 @@ describe("Turnstile Security Validation", () => {
     const formData = createFormData("invalid-token");
     const result = await submitLeadAction(undefined, formData);
     
-    expect(result?.error).toBe("Verificação de segurança falhou. Atualize a página e tente novamente.");
+    expect(result?.error).toBe("Verificação de segurança falhou (score muito baixo). Tente novamente.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should reject submission if score is too low", async () => {
+    fetchMock.mockImplementationOnce(async () => {
+      return {
+        ok: true,
+        json: async () => ({ success: true, score: 0.1 }),
+      } as Response;
+    });
+
+    const formData = createFormData("bot-token");
+    const result = await submitLeadAction(undefined, formData);
+    
+    expect(result?.error).toBe("Verificação de segurança falhou (score muito baixo). Tente novamente.");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -99,7 +115,7 @@ describe("Turnstile Security Validation", () => {
     expect(result?.error).toBe("Falha na verificação de segurança (rede).");
   });
 
-  it("should accept submission if Turnstile token is valid", async () => {
+  it("should accept submission if reCAPTCHA token is valid and score is high", async () => {
     const formData = createFormData("valid-token");
     const result = await submitLeadAction(undefined, formData);
     
