@@ -44,14 +44,16 @@ export default function DynamicForm({
   }
 
   // ==========================================================================
-  // CLOUDFLARE TURNSTILE
+  // CLOUDFLARE TURNSTILE (Lazy Loaded)
   // ==========================================================================
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [userInteracted, setUserInteracted] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || "";
 
   useEffect(() => {
-    if (!siteKey || !turnstileRef.current) return;
+    if (campaignId === "preview") return;
+    if (!siteKey || !turnstileRef.current || !userInteracted) return;
 
     let widgetId: string | undefined;
 
@@ -96,10 +98,17 @@ export default function DynamicForm({
         window.turnstile.remove(widgetId);
       }
     };
-  }, [siteKey]);
+  }, [siteKey, userInteracted]);
 
   return (
-    <form action={formAction} onSubmit={handleSubmit} className="vortex-form space-y-4">
+    <form 
+      action={formAction} 
+      onSubmit={handleSubmit} 
+      className="vortex-form space-y-4"
+      onFocus={() => setUserInteracted(true)}
+      onMouseEnter={() => setUserInteracted(true)}
+      onTouchStart={() => setUserInteracted(true)}
+    >
       {/* Hidden fields */}
       <input type="hidden" name="campaignId" value={campaignId} />
       <input type="hidden" name="slug" value={slug} />
@@ -162,7 +171,7 @@ export default function DynamicForm({
       )}
 
       {/* Cloudflare Turnstile Widget */}
-      {siteKey && (
+      {siteKey && campaignId !== "preview" && (
         <>
           <div ref={turnstileRef} className="flex justify-center my-4" />
           <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
