@@ -32,12 +32,14 @@ vi.mock("@/lib/plans", () => ({
 }));
 
 vi.mock("@/lib/campaign-cache", () => ({
-  getCachedCampaignData: vi.fn(() => ({
+  getCachedCampaignData: vi.fn(async () => ({
+    id: "campaign-123",
+    tenantId: "tenant-123",
     active: true,
-    plan: "ULTRA",
-    tenantId: "tenant-1",
+    plan: "FREE",
+    customDomain: null,
   })),
-  getCachedLeadCount: vi.fn(() => 0),
+  getCachedLeadCount: vi.fn(async () => 0),
 }));
 
 describe("Turnstile Security Validation", () => {
@@ -48,7 +50,7 @@ describe("Turnstile Security Validation", () => {
     process.env.CLOUDFLARE_TURNSTILE_SECRET = "secret-key";
     fetchMock = vi.spyOn(global, "fetch").mockImplementation(async () => {
       return {
-        json: async () => ({ success: true }),
+        json: async () => ({ success: true, hostname: "localhost" }),
       } as Response;
     });
   });
@@ -67,7 +69,6 @@ describe("Turnstile Security Validation", () => {
 
   it("should reject submission if Turnstile secret is configured but no token is provided", async () => {
     const formData = createFormData(); // Sem token
-    
     const result = await submitLeadAction(undefined, formData);
     
     expect(result?.error).toBe("Por favor, complete a verificação de segurança antes de continuar.");

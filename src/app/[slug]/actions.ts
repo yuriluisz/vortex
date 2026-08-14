@@ -48,6 +48,14 @@ export async function submitLeadAction(
     };
   }
 
+  // Buscar campanha e dados do tenant via Cache PRIMEIRO
+  // Precisamos disso para validar o hostname do Turnstile automaticamente
+  const cachedData = await getCachedCampaignData(campaignId);
+
+  if (!cachedData || !cachedData.active) {
+    return { error: "Campanha não encontrada ou inativa." };
+  }
+
   // Validar Turnstile
   const turnstileToken = formData.get("cf-turnstile-response") as string;
   const turnstileSecret = process.env.CLOUDFLARE_TURNSTILE_SECRET;
@@ -66,6 +74,20 @@ export async function submitLeadAction(
       if (!verifyData.success) {
         return { error: "Verificação de segurança falhou. Atualize a página e tente novamente." };
       }
+
+      // Validação de Hostname (SaaS Support via Iframe)
+      // O iframe do Turnstile sempre roda no domínio principal da aplicação.
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+      let baseHostname = "localhost";
+      try { if (appUrl) baseHostname = new URL(appUrl).hostname; } catch {}
+
+      const allowedHosts = ["localhost", "127.0.0.1", baseHostname];
+
+      if (!allowedHosts.includes(verifyData.hostname)) {
+        console.error(`[Turnstile] Hostname mismatch. Expected one of ${allowedHosts.join(", ")}, got ${verifyData.hostname}`);
+        return { error: "Acesso negado: Origem do domínio não autorizada." };
+      }
+
     } catch (e) {
       console.error("[Turnstile] Erro de rede ao verificar:", e);
       return { error: "Falha na verificação de segurança (rede)." };
@@ -73,13 +95,6 @@ export async function submitLeadAction(
   } else if (turnstileSecret) {
     // Se o secret está configurado mas o token não veio, bloqueia (pode ser o form não carregou o script ou bot)
     return { error: "Por favor, complete a verificação de segurança antes de continuar." };
-  }
-
-  // Buscar campanha e dados do tenant via Cache
-  const cachedData = await getCachedCampaignData(campaignId);
-
-  if (!cachedData || !cachedData.active) {
-    return { error: "Campanha não encontrada ou inativa." };
   }
 
   // Verificar limite de leads do plano

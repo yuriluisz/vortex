@@ -52,62 +52,32 @@ export default function DynamicForm({
   const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || "";
 
   useEffect(() => {
-    // Delay Turnstile initialization by 1.2 seconds to ensure any CSS
-    // animations (like opacity: 0 from .fade-in) have finished.
+    // Delay Turnstile iframe visibility by 1.2s to match old fade-in timing if needed,
+    // though the iframe loads asynchronously anyway.
     const timer = setTimeout(() => setTurnstileReady(true), 1200);
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (campaignId === "preview") return;
-    if (!siteKey || !turnstileRef.current || !turnstileReady) return;
 
-    let widgetId: string | undefined;
-
-    const renderWidget = () => {
-      // @ts-ignore
-      if (window.turnstile && turnstileRef.current) {
-        try {
-          turnstileRef.current.innerHTML = "";
-          // @ts-ignore
-          widgetId = window.turnstile.render(turnstileRef.current, {
-            sitekey: siteKey,
-            callback: (token: string) => setTurnstileToken(token),
-            theme: "dark",
-            appearance: "always", // Exibe sempre para o usuário ter certeza
-          });
-        } catch (e) {
-          console.error("[Turnstile] Render error:", e);
-        }
+    // Listener para o iframe do Turnstile
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "TURNSTILE_SUCCESS") {
+        setTurnstileToken(event.data.token);
       }
     };
 
-    // @ts-ignore
-    if (window.turnstile) {
-      renderWidget();
-    } else {
-      let script = document.getElementById("turnstile-script") as HTMLScriptElement;
-      if (!script) {
-        script = document.createElement("script");
-        script.id = "turnstile-script";
-        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-      }
-      script.addEventListener("load", renderWidget);
-    }
-
-    return () => {
-      // @ts-ignore
-      if (widgetId !== undefined && window.turnstile) {
-        // @ts-ignore
-        window.turnstile.remove(widgetId);
-      }
-    };
-  }, [siteKey, turnstileReady, campaignId]);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [campaignId]);
 
   const isTurnstilePending = !!siteKey && campaignId !== "preview" && !turnstileToken;
+
+  // Monta a URL do iframe baseada no domínio atual para evitar cross-origin hardcoded,
+  // mas se estiver em custom domain, precisa forçar o domínio raiz do SaaS.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
+  const iframeSrc = isCustomDomain ? `${appUrl}/turnstile` : "/turnstile";
 
   return (
     <form 
@@ -176,12 +146,18 @@ export default function DynamicForm({
         </div>
       )}
 
-      {/* Cloudflare Turnstile Widget */}
+      {/* Cloudflare Turnstile Widget via Iframe SaaS */}
       {siteKey && campaignId !== "preview" && (
-        <>
-          <div ref={turnstileRef} className="flex justify-center my-4" />
+        <div className="flex justify-center my-4 min-h-[65px]">
+          {turnstileReady && (
+            <iframe 
+              src={iframeSrc}
+              style={{ border: 'none', overflow: 'hidden', width: '300px', height: '65px', backgroundColor: 'transparent' }}
+              title="Security Check"
+            />
+          )}
           <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
-        </>
+        </div>
       )}
 
       {/* Submit */}
