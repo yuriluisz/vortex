@@ -2,8 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
 import { getUserTenant } from "@/lib/auth";
-import { EditCampaignForm } from "./EditCampaignForm";
-import { CampaignControls } from "./CampaignControls";
+import { CampaignEditor } from "@/components/admin/campaign-editor";
 
 export default async function CampaignDetailsPage({
   params,
@@ -15,9 +14,19 @@ export default async function CampaignDetailsPage({
     redirect("/admin/login");
   }
 
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.tenantId },
+    select: { maxGroups: true }
+  });
+
   const { id } = await params;
   const campaign = await prisma.campaign.findUnique({
     where: { id },
+    include: {
+      groups: {
+        orderBy: { createdAt: "asc" }
+      }
+    }
   });
 
   if (!campaign || campaign.tenantId !== session.tenantId) {
@@ -33,17 +42,39 @@ export default async function CampaignDetailsPage({
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <CampaignControls
-        campaignId={campaign.id}
-        initialActive={campaign.active}
-        initialProtected={campaign.protected}
-        slug={campaign.slug}
-        accessCode={campaign.accessCode}
-        customDomain={campaign.customDomain}
-      />
-
-      <EditCampaignForm campaign={campaign} plan={plan} />
-    </div>
+    <CampaignEditor
+      mode="edit"
+      plan={plan}
+      campaign={{
+        id: campaign.id,
+        name: campaign.name,
+        slug: campaign.slug,
+        rawHtml: campaign.rawHtml,
+        formSchema: campaign.formSchema,
+        pixelId: campaign.pixelId,
+        customDomain: campaign.customDomain,
+        active: campaign.active,
+        protected: campaign.protected,
+        accessCode: campaign.accessCode,
+        metaTitle: campaign.metaTitle,
+        metaDescription: campaign.metaDescription,
+        ogImageUrl: campaign.ogImageUrl,
+        faviconUrl: campaign.faviconUrl,
+        groupMaxCapacity: campaign.groupMaxCapacity,
+        groupSupportPhones: campaign.groupSupportPhones,
+        groupDescription: campaign.groupDescription,
+        groupImageUrl: campaign.groupImageUrl,
+        groups: campaign.groups.map(g => ({
+          id: g.id,
+          name: g.name,
+          url: g.url,
+          currentCount: g.currentCount,
+          maxCapacity: g.maxCapacity,
+          active: g.active,
+        })),
+      }}
+      tenantId={session.tenantId}
+      tenantMaxGroups={tenant?.maxGroups || 3}
+    />
   );
 }

@@ -1,13 +1,38 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getActiveGroupForCampaign } from "@/lib/rotator";
 import MetaPixel from "@/components/MetaPixel";
 import RedirectClient from "../../../[slug]/redirect/RedirectClient";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
+import { buildCampaignMetadata } from "@/lib/campaign-meta";
 
 interface PageProps {
   params: Promise<{ hostname: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const rawHost = await params;
+  const cleanHost = decodeURIComponent(rawHost.hostname)
+    .toLowerCase()
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+  const campaign = await prisma.campaign.findFirst({
+    where: {
+      OR: [
+        { customDomain: cleanHost },
+        { customDomain: `https://${cleanHost}` },
+        { customDomain: `http://${cleanHost}` },
+        { customDomain: { equals: cleanHost, mode: "insensitive" } },
+      ],
+      active: true,
+    },
+    include: { tenant: true },
+  });
+  if (!campaign || !campaign.tenant) return {};
+  return buildCampaignMetadata(campaign);
 }
 
 export default async function DomainRedirectPage({ params }: PageProps) {

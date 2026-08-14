@@ -1,0 +1,18 @@
+# Vórtex+
+
+Vórtex+ is a landing page hosting and lead validation platform. Users paste HTML/CSS/JS code from tools like Figma or Webflow, and the platform hosts the page, injects a dynamic lead-capture form via a `{{FORM_SLOT}}` tag, and provides real-time metrics (pageviews, CTR, leads). It also includes WhatsApp group automation for scaling validated campaigns.
+
+## Key Pages
+
+- Homepage: https://vortexpages.online/
+- Login / Sign up: https://vortexpages.online/admin/login
+- Dashboard: https://vortexpages.online/admin
+- Templates gallery: https://vortexpages.online/templates
+- Documentation: https://vortexpages.online/docs
+- Community profiles: https://vortexpages.online/community/[handle]
+
+## Plans
+
+- Starter (Free): 1 campaign, 100 leads/month, 3 WhatsApp groups
+- Pro (R$97/month): 10 campaigns, 10,000 leads/month, custom domain
+- Ultra (R$157/month): unlimited campaigns and leads, WhatsApp API automation

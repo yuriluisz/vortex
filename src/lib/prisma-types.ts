@@ -31,7 +31,14 @@ export type AuditAction =
   | "GROUP_MESSAGE_SENT"
   | "GROUP_AUTO_CREATED"
   | "GROUP_BULK_CREATED"
-  | "GROUP_SYNCED";
+  | "GROUP_SYNCED"
+  | "TEMPLATE_PUBLISHED"
+  | "TEMPLATE_APPROVED"
+  | "TEMPLATE_REJECTED"
+  | "TEMPLATE_CLONED"
+  | "TEMPLATE_REPORTED"
+  | "TEMPLATE_TAKEN_DOWN"
+  | "PROFILE_UPDATED";
 
 /**
  * Tipo simplificado para InputJsonValue do Prisma.

@@ -49,6 +49,7 @@ export function WhatsAppStatusToast({ plan }: WhatsAppStatusToastProps) {
   useEffect(() => {
     if (!isUltra) return;
 
+     
     checkStatus();
     const interval = setInterval(checkStatus, 30_000);
 
@@ -61,6 +62,7 @@ export function WhatsAppStatusToast({ plan }: WhatsAppStatusToastProps) {
       const timer = setTimeout(() => setIsVisible(true), 100);
       return () => clearTimeout(timer);
     } else {
+       
       setIsVisible(false);
     }
   }, [isOffline, isDismissed, isOnConfigPage]);

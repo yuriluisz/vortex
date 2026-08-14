@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useTransition, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import DynamicForm from "./DynamicForm";
-import parse, { Element, HTMLReactParserOptions } from "html-react-parser";
-import { trackCampaignViewAction } from "./actions";
+import parse, { Element, HTMLReactParserOptions, domToReact } from "html-react-parser";
+import { trackCampaignViewAction, submitLeadAction } from "./actions";
 import VortexFooter from "@/components/VortexFooter";
 
 interface FormField {
@@ -46,15 +47,20 @@ function extractBodyContent(html: string): string {
 
   // 🔒 Sanitizar: permite HTML de layout mas bloqueia scripts e event handlers
   return DOMPurify.sanitize(raw, {
-    ADD_TAGS: ["style", "link", "iframe"],
+    ADD_TAGS: ["style", "link", "iframe", "form", "input", "select", "textarea", "button", "label", "option", "optgroup", "fieldset", "legend"],
     ADD_ATTR: [
-      "target", "rel", "data-vortex-form-slot",
+      "target", "rel", "data-vortex-form-slot", "data-vortex-custom-form",
       "style", "class", "id", "src", "href", "allow", "allowfullscreen",
+      "name", "value", "placeholder", "required", "disabled", "readonly",
+      "min", "max", "step", "rows", "cols", "multiple", "checked", "selected",
+      "for", "autocomplete", "maxlength", "minlength", "pattern", "type",
     ],
     FORBID_TAGS: ["script", "object", "embed", "applet"],
     FORBID_ATTR: [
       "onerror", "onload", "onclick", "onmouseover", "onfocus",
       "onblur", "onsubmit", "onchange", "onkeydown", "onkeyup",
+      "action", "method", "enctype", "formaction", "formmethod",
+      "formtarget", "formnovalidate", "formenctype",
     ],
   });
 }
@@ -81,9 +87,85 @@ function extractHeadAssets(html: string): string {
 }
 
 /**
+ * Wrapper para forms customizados — intercepta o submit e envia via server action.
+ * Mantém 100% do design do autor, só "adota" o envio com segurança.
+ */
+function CustomForm({
+  children,
+  campaignId,
+  slug,
+  isCustomDomain,
+}: {
+  children: React.ReactNode;
+  campaignId: string;
+  slug: string;
+  isCustomDomain: boolean;
+}) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setError("");
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    // Sempre injetar os campos hidden do Vortex
+    formData.set("campaignId", campaignId);
+    formData.set("slug", slug);
+    if (isCustomDomain) formData.set("isCustomDomain", "true");
+
+    // Se houver Turnstile no DOM, capturar o token
+    const turnstileInput = form.querySelector<HTMLInputElement>(
+      'input[name="cf-turnstile-response"]'
+    );
+    if (turnstileInput?.value) {
+      formData.set("cf-turnstile-response", turnstileInput.value);
+    }
+
+    // Disparar evento Lead no Pixel
+    try {
+      const fbq = (window as any).fbq;
+      if (fbq) fbq("track", "Lead");
+    } catch {
+      // silencioso
+    }
+
+    startTransition(async () => {
+      const result = await submitLeadAction(undefined, formData);
+      if (result?.error) {
+        setError(result.error);
+      }
+      // Se sucesso, submitLeadAction redireciona via redirect()
+    });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} data-vortex-custom-form="true">
+      {children}
+      {error && (
+        <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "#f87171", backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.5rem", padding: "0.75rem" }}>
+          {error}
+        </div>
+      )}
+      {isPending && (
+        <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "#94a3b8", textAlign: "center" }}>
+          Enviando...
+        </div>
+      )}
+    </form>
+  );
+}
+
+/**
  * Renderiza o HTML customizado da campanha.
- * Onde existir {{FORM_SLOT}}, injeta o componente <DynamicForm> de forma segura,
- * convertendo o HTML bruto em React Elements para não quebrar a árvore do DOM.
+ * Onde existir {{FORM_SLOT}}, injeta o componente <DynamicForm> de forma segura.
+ *
+ * Forms customizados (com data-vortex-custom-form) são adotados: o design é
+ * preservado 100%, mas o submit é interceptado e enviado via submitLeadAction.
  *
  * O HTML é sanitizado para remover <html>, <head> e <body>, evitando
  * hydration mismatch com o shell do Next.js.
@@ -111,8 +193,11 @@ export default function HtmlRenderer({
   const headAssets = extractHeadAssets(rawHtml);
   const SLOT_MARKER = "{{FORM_SLOT}}";
 
-  // Se não há {{FORM_SLOT}}, apenas renderiza o HTML e joga o form no final
-  if (!sanitizedHtml.includes(SLOT_MARKER)) {
+  const hasSlot = sanitizedHtml.includes(SLOT_MARKER);
+  const hasCustomForm = sanitizedHtml.includes("data-vortex-custom-form");
+
+  // Se não há {{FORM_SLOT}} nem form customizado, renderiza HTML e joga o form no final
+  if (!hasSlot && !hasCustomForm) {
     return (
       <>
         {headAssets && parse(headAssets)}
@@ -133,7 +218,7 @@ export default function HtmlRenderer({
     '<div data-vortex-form-slot="true"></div>'
   );
 
-  // Parseia o HTML e substitui as divs âncoras pelo React Component
+  // Parseia o HTML e substitui as divs âncoras / forms customizados
   const options: HTMLReactParserOptions = {
     replace: (domNode) => {
       if (
@@ -148,6 +233,21 @@ export default function HtmlRenderer({
             formSchema={formSchema}
             isCustomDomain={isCustomDomain}
           />
+        );
+      }
+
+      // Adotar forms customizados marcados na sanitização
+      if (
+        domNode instanceof Element &&
+        domNode.attribs &&
+        domNode.attribs["data-vortex-custom-form"] === "true" &&
+        domNode.name === "form"
+      ) {
+        // Preservar 100% do conteúdo interno do form (inputs, labels, botões)
+        return (
+          <CustomForm campaignId={campaignId} slug={slug} isCustomDomain={isCustomDomain}>
+            {domToReact(domNode.children as any, options)}
+          </CustomForm>
         );
       }
     },

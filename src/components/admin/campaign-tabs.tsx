@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, MessageCircle, Users } from "lucide-react";
+import { MessageCircle, Users } from "lucide-react";
 
 interface CampaignTabsProps {
   campaignId: string;
 }
 
 const TABS = [
-  { segment: "", label: "Detalhes", icon: Settings },
   { segment: "/groups", label: "Grupos WhatsApp", icon: MessageCircle },
   { segment: "/leads", label: "Leads", icon: Users },
 ];
@@ -23,9 +22,7 @@ export function CampaignTabs({ campaignId }: CampaignTabsProps) {
       <nav className="-mb-px flex space-x-8 min-w-max px-1">
         {TABS.map((tab) => {
           const tabPath = `${basePath}${tab.segment}`;
-          const isActive = tab.segment === ""
-            ? pathname === basePath
-            : pathname.startsWith(tabPath);
+          const isActive = pathname.startsWith(tabPath);
 
           return (
             <Link

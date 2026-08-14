@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { User, Building2, CreditCard } from "lucide-react";
+import { User, CreditCard } from "lucide-react";
 import { ProfileForm } from "./profile-form";
-import { AccountForm } from "./email-change-form";
 import { PlanSelector } from "./plan-selector";
 import type { Plan } from "@prisma/client";
 
@@ -34,36 +33,44 @@ interface SubscriptionInfo {
 interface SettingsTabsProps {
   companyName: string;
   userName: string;
-  slug: string;
   email: string;
   currentPlan: Plan;
   billingInfo: BillingInfo;
   subscriptionInfo: SubscriptionInfo;
   usage: UsageStats;
+  displayName?: string | null;
+  handle?: string | null;
+  bio?: string | null;
+  publicProfile?: boolean;
+  profileLinks?: Record<string, string> | null;
 }
 
-type Tab = "profile" | "account" | "subscription";
+type Tab = "profile" | "subscription";
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
-  { id: "profile", label: "Perfil", icon: Building2 },
-  { id: "account", label: "Conta", icon: User },
+  { id: "profile", label: "Perfil", icon: User },
   { id: "subscription", label: "Assinatura", icon: CreditCard },
 ];
 
 export function SettingsTabs({
   companyName,
   userName,
-  slug,
   email,
   currentPlan,
   billingInfo,
   subscriptionInfo,
   usage,
+  displayName,
+  handle,
+  bio,
+  publicProfile,
+  profileLinks,
 }: SettingsTabsProps) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const initialTab = TABS.find(t => t.id === tabParam)?.id || "profile";
-  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+  const [activeTab, setActiveTab] = useState<Tab>(
+    (TABS.find(t => t.id === tabParam)?.id) || "profile"
+  );
 
   return (
     <div>
@@ -74,6 +81,7 @@ export function SettingsTabs({
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors duration-150 border-b-2 -mb-px ${
                 activeTab === tab.id
@@ -89,19 +97,19 @@ export function SettingsTabs({
       </div>
 
       {/* Tab Content */}
-      {activeTab === "profile" && (
-        <div className="space-y-8 pb-16">
-          <ProfileForm companyName={companyName} slug={slug} billingInfo={billingInfo} />
-        </div>
-      )}
-
-      {activeTab === "account" && (
-        <div className="space-y-8">
-          <AccountForm currentEmail={email} userName={userName} />
-        </div>
-      )}
-
-      {activeTab === "subscription" && (
+      {activeTab === "profile" ? (
+        <ProfileForm
+          companyName={companyName}
+          userName={userName}
+          email={email}
+          billingInfo={billingInfo}
+          displayName={displayName}
+          handle={handle}
+          bio={bio}
+          publicProfile={publicProfile}
+          profileLinks={profileLinks}
+        />
+      ) : (
         <PlanSelector
           currentPlan={currentPlan}
           usage={usage}

@@ -20,7 +20,53 @@ import {
 } from "@/services/asaas.service";
 import { PLAN_LIMITS } from "@/lib/plans";
 import type { Plan } from "@/lib/prisma-types";
+import { Prisma } from "@prisma/client";
 import type { Plan as PrismaPlan } from "@prisma/client";
+
+// ============================================================================
+// SEGURANÇA: Lista de nomes reservados (bloqueia variações de "vortex")
+// ============================================================================
+
+const RESERVED_NAMES = [
+  // Exatas
+  "vortex", "vortexpages", "vortex-pages", "vortex_pages",
+  "vortexplus", "vortex_plus",
+  // Com números
+  "vortex1", "vortex2", "vortex3", "vortexapp", "vortexapp",
+  "vortexpages1", "vortexpages2",
+  // Variações com caracteres especiais/acentos
+  "vórtex", "vórTEX", "v0rtex", "v0rt3x", "vort3x",
+  "vortexbr", "vortexbrasil", "vortexbr",
+  "myvortex", "meuvortex", "seuvortex",
+];
+
+/**
+ * Verifica se um nome/slug contém variações reservadas de "vortex".
+ * Apenas o admin (yulusica@gmail.com) pode usar esses nomes.
+ */
+function isReservedName(name: string, email: string): boolean {
+  const normalized = name.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase() || "yulusica@gmail.com";
+
+  // Admin pode usar qualquer nome reservado
+  if (email.toLowerCase() === adminEmail) return false;
+
+  // Verifica correspondência exata ou parcial
+  for (const reserved of RESERVED_NAMES) {
+    const reservedNormalized = reserved.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (normalized === reservedNormalized || normalized.includes(reservedNormalized) || reservedNormalized.includes(normalized)) {
+      return true;
+    }
+  }
+
+  // Regex para capturar variações criativas (v0rtex, vort3x, etc.)
+  const vortexRegex = /^v[o0òóõ]r[t7]e?[x×]?[a-z0-9]*$/i;
+  if (vortexRegex.test(normalized.replace(/[^a-z0-9]/g, ""))) {
+    return true;
+  }
+
+  return false;
+}
 
 // ============================================================================
 // SEGURANÇA: Validação de sessão reutilizável
@@ -95,6 +141,11 @@ export async function updateProfileAction(
 
   const { companyName, slug } = parsed.data;
 
+  // Verificar se o nome da empresa contém variações reservadas de "vortex"
+  if (isReservedName(companyName, email)) {
+    return { error: "Este nome está reservado. Escolha outro." };
+  }
+
   if (slug !== tenantSlug) {
     const existing = await prisma.tenant.findUnique({ where: { slug } });
     if (existing) {
@@ -130,6 +181,11 @@ export async function updateCombinedSettingsAction(
   const profileResult = await updateProfileAction(state, formData);
   if (profileResult?.error || profileResult?.fieldErrors) {
     return profileResult;
+  }
+
+  const publicProfileResult = await updatePublicProfileAction(state, formData);
+  if (publicProfileResult?.error || publicProfileResult?.fieldErrors) {
+    return publicProfileResult;
   }
 
   const billingResult = await saveBillingInfoAction(state, formData);
@@ -168,7 +224,7 @@ export async function updateUserNameAction(
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { name: parsed.data.userName },
+      data: { name: parsed.data.userName, displayName: parsed.data.userName },
     });
   } catch (error) {
     console.error(error);
@@ -176,6 +232,90 @@ export async function updateUserNameAction(
   }
 
   revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+// ============================================================================
+// ATUALIZAR PERFIL PÚBLICO (comunidade)
+// ============================================================================
+
+const PublicProfileSchema = z.object({
+  displayName: z.string().min(1, "O nome de exibição é obrigatório").max(60),
+  handle: z
+    .string()
+    .min(1, "O handle é obrigatório")
+    .max(40)
+    .transform((val) => val.toLowerCase().replace(/^@/, "").replace(/\s+/g, "-"))
+    .refine((val) => /^[a-z0-9-]+$/.test(val), "O handle deve conter apenas letras minúsculas, números e hífens"),
+  bio: z.string().max(500).optional(),
+  publicProfile: z.boolean().optional(),
+  profileWebsite: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileInstagram: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileYoutube: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileWhatsapp: z.string().url("URL inválida").optional().or(z.literal("")),
+});
+
+export async function updatePublicProfileAction(
+  state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const { userId } = await requireAuth();
+
+  const parsed = PublicProfileSchema.safeParse({
+    displayName: formData.get("displayName"),
+    handle: formData.get("handle"),
+    bio: formData.get("bio") || undefined,
+    publicProfile: formData.get("publicProfile") === "on",
+    profileWebsite: formData.get("profileWebsite") || "",
+    profileInstagram: formData.get("profileInstagram") || "",
+    profileYoutube: formData.get("profileYoutube") || "",
+    profileWhatsapp: formData.get("profileWhatsapp") || "",
+  });
+
+  if (!parsed.success) {
+    return {
+      error: "Verifique os erros no formulário.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const { displayName, handle, bio, publicProfile, ...links } = parsed.data;
+
+  // Verificar unicidade do handle (excluindo o próprio usuário)
+  const existing = await prisma.user.findFirst({
+    where: { handle, id: { not: userId } },
+    select: { id: true },
+  });
+  if (existing) {
+    return { error: "Este handle já está em uso. Escolha outro." };
+  }
+
+  const profileLinks: Record<string, string> = {};
+  if (links.profileWebsite) profileLinks.website = links.profileWebsite;
+  if (links.profileInstagram) profileLinks.instagram = links.profileInstagram;
+  if (links.profileYoutube) profileLinks.youtube = links.profileYoutube;
+  if (links.profileWhatsapp) profileLinks.whatsapp = links.profileWhatsapp;
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        displayName,
+        handle,
+        bio: bio || null,
+        publicProfile,
+        profileLinks: Object.keys(profileLinks).length > 0 ? profileLinks : Prisma.JsonNull,
+      },
+    });
+
+    await logAudit("PROFILE_UPDATED", { handle, publicProfile }, userId);
+  } catch (error) {
+    console.error(error);
+    return { error: "Erro ao atualizar perfil público." };
+  }
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/community/[handle]", "page");
   return { success: true };
 }
 

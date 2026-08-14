@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   MessageSquareMore,
+  LayoutTemplate,
 } from "lucide-react";
 import { logoutAction } from "@/app/admin/logout-action";
 import { Shield } from "lucide-react";
@@ -23,6 +24,7 @@ import { PlanBadge } from "@/components/admin/plan-badge";
 const PRIMARY_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/campaigns", label: "Campanhas", icon: Megaphone },
+  { href: "/admin/templates", label: "Meus Templates", icon: LayoutTemplate },
 ];
 
 const SECONDARY_NAV = [

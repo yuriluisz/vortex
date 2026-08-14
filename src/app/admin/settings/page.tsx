@@ -41,7 +41,15 @@ export default async function SettingsPage() {
     }),
     prisma.user.findUnique({
       where: { id: session.userId },
-      select: { name: true, email: true },
+      select: {
+        name: true,
+        email: true,
+        displayName: true,
+        handle: true,
+        bio: true,
+        publicProfile: true,
+        profileLinks: true,
+      },
     }),
     prisma.campaign.count({ where: { active: true, tenantId: session.tenantId } }),
     prisma.group.count({ where: { active: true, tenantId: session.tenantId } }),
@@ -80,8 +88,12 @@ export default async function SettingsPage() {
         <SettingsTabs
           companyName={tenant.name}
           userName={user.name ?? ""}
-          slug={tenant.slug}
           email={user.email}
+          displayName={user.displayName}
+          handle={user.handle}
+          bio={user.bio}
+          publicProfile={user.publicProfile}
+          profileLinks={user.profileLinks as Record<string, string> | null}
           currentPlan={tenant.plan}
           billingInfo={{
             billingCpfCnpj: tenant.billingCpfCnpj,

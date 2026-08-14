@@ -404,9 +404,11 @@ export function HelpFAB() {
   }, [isOpen]);
 
   // Fechar ao navegar
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const prevPathname = useRef(pathname);
+  if (prevPathname.current !== pathname) {
+    prevPathname.current = pathname;
+    if (isOpen) setIsOpen(false);
+  }
 
   if (pathname?.startsWith("/admin/docs")) {
     return null;

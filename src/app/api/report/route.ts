@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { reporterEmail, message, campaignSlug, campaignName, tenantSlug } = body;
+    const { reporterEmail, message, campaignSlug, campaignName, tenantSlug, contentType } = body;
 
     // Validação básica
     if (!reporterEmail || !message || !campaignSlug) {
@@ -54,6 +54,7 @@ export async function POST(req: Request) {
       campaignSlug,
       campaignName: campaignName || campaignSlug,
       tenantSlug: tenantSlug || "unknown",
+      contentType: contentType === "template" ? "template" : "campaign",
     });
 
     if (!result.success) {
