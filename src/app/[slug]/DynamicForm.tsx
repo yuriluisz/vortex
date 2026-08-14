@@ -76,7 +76,13 @@ export default function DynamicForm({
 
   // Monta a URL do iframe baseada no domínio atual para evitar cross-origin hardcoded,
   // mas se estiver em custom domain, precisa forçar o domínio raiz do SaaS.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
+  // IMPORTANTE: Em ambiente de desenvolvimento, forçamos o localhost para evitar 404
+  // tentando buscar a rota na produção que ainda não subiu.
+  const isDev = process.env.NODE_ENV === "development";
+  const appUrl = isDev 
+    ? "http://localhost:3000" 
+    : (process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online");
+  
   const iframeSrc = isCustomDomain ? `${appUrl}/turnstile` : "/turnstile";
 
   return (
