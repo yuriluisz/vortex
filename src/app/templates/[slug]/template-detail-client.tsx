@@ -114,7 +114,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
               </div>
               <h1 className="text-2xl font-bold tracking-tight">{template.name}</h1>
             </div>
-            <TemplateUseButton templateSlug={template.slug} />
+            <TemplateUseButton templateSlug={template.slug} templateName={template.name} />
           </div>
 
           {/* Descrição */}

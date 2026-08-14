@@ -15,7 +15,9 @@ import {
   Save,
   CheckCircle2,
   Power,
-  PowerOff
+  PowerOff,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { TemplatePicker } from "@/components/templates/template-picker";
 import {
@@ -84,39 +86,54 @@ const DEFAULT_FORM_SCHEMA = JSON.stringify([
   { id: "whatsapp", type: "tel", label: "WhatsApp", placeholder: "(11) 99999-9999", required: true },
 ]);
 
-const PLACEHOLDER_HTML = `<div class="min-h-screen bg-[#050505] text-white selection:bg-amber-500/30 selection:text-amber-200 overflow-hidden font-sans">
+const PLACEHOLDER_HTML = `<div class="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30 selection:text-purple-200 overflow-hidden font-sans">
   <div class="max-w-6xl mx-auto px-6 py-12 md:py-20 lg:py-24 grid lg:grid-cols-2 gap-12 items-center min-h-screen">
     
     <!-- Lado Esquerdo: Copy e Detalhes -->
     <div class="space-y-8 relative z-10">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        Evento 100% Online e Gratuito
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+        <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+        Alta Conversão Automática
       </div>
       
       <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
-        O Segredo dos <br />
-        <span class="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
-          Grandes Players
+        Valide Suas <br />
+        <span class="bg-gradient-to-r from-purple-400 via-fuchsia-400 to-indigo-500 bg-clip-text text-transparent">
+          Ofertas em Tempo Recorde
         </span>
       </h1>
       
       <p class="text-lg md:text-xl text-neutral-400 leading-relaxed max-w-lg">
-        Descubra o método validado que gerou múltiplos sete dígitos no último ano.
+        Construa páginas de alta conversão, capture leads em massa e lote seus grupos de WhatsApp de forma inteligente com o Vórtex.
       </p>
+
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">✓</div>
+          <span class="text-neutral-300">Rotacionador Inteligente de Grupos</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">✓</div>
+          <span class="text-neutral-300">Formulários Otimizados e Rápidos</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">✓</div>
+          <span class="text-neutral-300">Testes e Escala com Pixel Nativo</span>
+        </div>
+      </div>
     </div>
     
     <!-- Lado Direito: Formulário -->
     <div class="relative w-full max-w-md mx-auto lg:ml-auto lg:mr-0">
-      <div class="absolute -inset-1 bg-gradient-to-br from-amber-500/30 to-purple-600/30 rounded-3xl blur-2xl z-0 pointer-events-none"></div>
+      <div class="absolute -inset-1 bg-gradient-to-br from-purple-500/30 to-indigo-600/30 rounded-3xl blur-2xl z-0 pointer-events-none"></div>
       
       <div class="relative z-10 bg-neutral-900/80 backdrop-blur-2xl border border-white/10 p-8 md:p-10 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)]">
         <div class="text-center mb-8">
-          <h3 class="text-2xl font-bold mb-2">Garanta seu Convite</h3>
-          <p class="text-sm text-neutral-400">Preencha os dados para receber o link exclusivo.</p>
+          <h3 class="text-2xl font-bold mb-2">Acesso Exclusivo</h3>
+          <p class="text-sm text-neutral-400">Preencha os dados abaixo para entrar na lista VIP ou receber o link.</p>
         </div>
         
-        <div id="portal-root"></div>
+        {{FORM_SLOT}}
       </div>
     </div>
     
@@ -156,8 +173,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
   const [previewHtml, setPreviewHtml] = useState(campaign?.rawHtml || PLACEHOLDER_HTML);
 
   // ── UI State ──
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(mode === "create");
   const [showPicker, setShowPicker] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<"code" | "preview" | "split">("split");
   const [isMobile, setIsMobile] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -350,14 +368,16 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
   }, [campaign?.id, controls.protected, controls.accessCode, router, startTransition]);
 
   const handleDelete = useCallback(() => {
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
     if (!campaign?.id) return;
-    if (!window.confirm("Tem certeza que deseja excluir esta campanha? Esta ação é irreversível.")) {
-      return;
-    }
     startTransition(async () => {
       await deleteCampaignAction(campaign.id);
+      router.push("/admin/campaigns");
     });
-  }, [campaign?.id, startTransition]);
+  }, [campaign?.id, router, startTransition]);
 
   const handleCheckDomainStatus = useCallback(async () => {
     if (!controls.customDomain) return null;
@@ -372,8 +392,8 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
           return {
             defaultCaptureUrl: `${baseUrl}/${campaign.slug}`,
             defaultRedirectUrl: `${baseUrl}/${campaign.slug}/redirect`,
-            protectedCaptureUrl: controls.accessCode ? `${baseUrl}/c/${controls.accessCode}` : null,
-            protectedRedirectUrl: controls.accessCode ? `${baseUrl}/c/${controls.accessCode}/redirect` : null,
+            protectedCaptureUrl: (controls.protected && controls.accessCode) ? `${baseUrl}/c/${controls.accessCode}` : null,
+            protectedRedirectUrl: (controls.protected && controls.accessCode) ? `${baseUrl}/c/${controls.accessCode}/redirect` : null,
             customCaptureUrl: controls.customDomain ? `https://${controls.customDomain}` : null,
             customRedirectUrl: controls.customDomain ? `https://${controls.customDomain}/redirect` : null,
           };
@@ -607,6 +627,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
                 campaignId={campaign?.id || "preview"}
                 slug={campaign?.slug || "preview"}
                 formSchema={parsedFormSchema}
+                isPreview={true}
               />,
               iframePortalRoot
             )}
@@ -652,6 +673,63 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
         groups={campaign?.groups}
         tenantMaxGroups={tenantMaxGroups}
       />
+
+      {/* Delete Campaign Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isPending) {
+              setShowDeleteConfirm(false);
+            }
+          }}
+        >
+          <div className="bg-neutral-900 border border-destructive/30 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-destructive/10 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className="h-12 w-12 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center shrink-0 border border-destructive/20 shadow-inner">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Excluir Campanha?</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Esta ação é permanente e irreversível</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-neutral-300 leading-relaxed mb-6">
+              Tem certeza que deseja excluir a campanha <strong className="text-white font-semibold">{settings.name || campaign?.name || "esta campanha"}</strong>? Todos os dados, leads, grupos e links de redirecionamento associados serão permanentemente desativados.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isPending}
+                className="px-4 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isPending}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-destructive/20"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Sim, Excluir Campanha
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

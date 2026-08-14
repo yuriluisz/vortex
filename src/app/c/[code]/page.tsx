@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     where: { accessCode: code, active: true },
     include: { tenant: true },
   });
-  if (!campaign || !campaign.tenant) return {};
+  if (!campaign || !campaign.tenant || !campaign.protected) return {};
   return buildCampaignMetadata(campaign);
 }
 
@@ -31,7 +31,7 @@ export default async function ProtectedCampaignPage({ params }: PageProps) {
     include: { tenant: true },
   });
 
-  if (!campaign || !campaign.tenant) {
+  if (!campaign || !campaign.tenant || !campaign.protected) {
     notFound();
   }
 

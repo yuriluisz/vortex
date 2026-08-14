@@ -27,6 +27,7 @@ interface HtmlRendererProps {
   tenantSlug?: string;
   showVortexFooter?: boolean;
   isCustomDomain?: boolean;
+  isPreview?: boolean;
 }
 
 /**
@@ -197,15 +198,16 @@ export default function HtmlRenderer({
   tenantSlug,
   showVortexFooter = false,
   isCustomDomain = false,
+  isPreview = false,
 }: HtmlRendererProps) {
   const tracked = useRef(false);
 
   useEffect(() => {
-    if (!tracked.current) {
+    if (!tracked.current && !isPreview) {
       tracked.current = true;
       trackCampaignViewAction(campaignId);
     }
-  }, [campaignId]);
+  }, [campaignId, isPreview]);
 
   const sanitizedHtml = extractBodyContent(rawHtml);
   const headAssets = extractHeadAssets(rawHtml);

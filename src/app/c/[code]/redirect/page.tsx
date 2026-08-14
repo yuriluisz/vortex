@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     where: { accessCode: code, active: true },
     include: { tenant: true },
   });
-  if (!campaign || !campaign.tenant) return {};
+  if (!campaign || !campaign.tenant || !campaign.protected) return {};
   return buildCampaignMetadata(campaign);
 }
 
@@ -32,10 +32,10 @@ export default async function ProtectedRedirectPage({ params }: PageProps) {
   // Buscar campanha pelo accessCode
   const campaign = await prisma.campaign.findFirst({
     where: { accessCode: code, active: true },
-    select: { id: true, pixelId: true, tenantId: true, slug: true },
+    select: { id: true, pixelId: true, tenantId: true, slug: true, protected: true },
   });
 
-  if (!campaign) {
+  if (!campaign || !campaign.protected) {
     notFound();
   }
 
