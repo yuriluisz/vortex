@@ -103,6 +103,8 @@ model User {
 
   // Bloqueio administrativo (super admin)
   blocked      Boolean      @default(false)
+  // Bloqueio específico de envio de templates
+  templateBlocked Boolean   @default(false)
 
   // Relações
   auditLogs    AuditLog[]
@@ -166,6 +168,9 @@ model Template {
   status        TemplateStatus @default(DRAFT)
   isFeatured    Boolean        @default(false)
   rejectionReason String?       @db.Text
+  moderationNote  String?       @db.Text
+  moderatedBy     String?
+  moderatedAt     DateTime?
 
   // Contadores
   viewCount     Int  @default(0)
@@ -353,6 +358,12 @@ model Campaign {
   groupSupportPhones String[] // Array de telefones (ex: ["5511999999999"])
   groupDescription   String?  @db.Text
   groupImageUrl      String?
+
+  // Identidade do Link (PRO/ULTRA) — branding do cliente no preview do link
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  ogImageUrl      String?
+  faviconUrl      String?
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   groups        Group[]

@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { sanitizeForPreview } from "@/lib/template-sanitizer";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/session";
+import { rateLimit } from "@/lib/rate-limit";
 
 const COOKIE_NAME = "vortex_admin_session";
+const SLUG_REGEX = /^[a-z0-9-]{1,100}$/;
 
 /**
  * GET /api/templates/[slug]/admin-preview
@@ -18,6 +20,11 @@ export async function GET(
 ) {
   const { slug } = await params;
 
+  // Validação de slug
+  if (!SLUG_REGEX.test(slug)) {
+    return NextResponse.json({ error: "Template não encontrado" }, { status: 404 });
+  }
+
   // Verificar sessão de super admin
   const cookieStore = await cookies();
   const cookie = cookieStore.get(COOKIE_NAME)?.value;
@@ -27,12 +34,23 @@ export async function GET(
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
+  // Rate limit por admin
+  const rl = await rateLimit(`template:admin-preview:${session.email}`, {
+    windowSeconds: 60,
+    maxRequests: 60,
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Muitas requisições. Tente novamente em instantes." },
+      { status: 429, headers: { "Retry-After": String(rl.resetIn) } }
+    );
+  }
+
   try {
     const template = await prisma.template.findUnique({
       where: { slug },
       include: {
         versions: {
-          where: { status: "PENDING_REVIEW" },
           orderBy: { version: "desc" },
           take: 1,
         },
@@ -48,7 +66,7 @@ export async function GET(
 
     const pendingVersion = template.versions[0];
     if (!pendingVersion) {
-      return NextResponse.json({ error: "Template sem versão pendente" }, { status: 404 });
+      return NextResponse.json({ error: "Template sem versão disponível" }, { status: 404 });
     }
 
     // Sanitizar para preview
@@ -63,7 +81,6 @@ export async function GET(
     const cardBg = isDarkTheme ? "rgba(255,255,255,0.05)" : "#ffffff";
     const cardBorder = isDarkTheme ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
     const labelColor = isDarkTheme ? "#e2e8f0" : "#1a1a1a";
-    const placeholderColor = isDarkTheme ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)";
 
     // Substituir {{FORM_SLOT}} por um formulário que herda o estilo do template
     const staticForm = `

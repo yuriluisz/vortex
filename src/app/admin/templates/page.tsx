@@ -60,6 +60,11 @@ export default async function MyTemplatesPage() {
       orderBy: { createdAt: "desc" },
       include: {
         _count: { select: { likes: true, usages: true } },
+        versions: {
+          orderBy: { version: "desc" },
+          take: 1,
+          select: { rawHtml: true },
+        },
       },
     }),
     prisma.campaign.findMany({
@@ -143,7 +148,19 @@ export default async function MyTemplatesPage() {
                       {status.icon}
                       {status.label}
                     </span>
-                    <TemplateActionsMenu templateId={template.id} status={template.status} />
+                    <TemplateActionsMenu
+                      templateId={template.id}
+                      status={template.status}
+                      template={{
+                        id: template.id,
+                        name: template.name,
+                        description: template.description,
+                        category: template.category,
+                        theme: template.theme,
+                        tags: template.tags,
+                        rawHtml: template.versions[0]?.rawHtml ?? "",
+                      }}
+                    />
                   </div>
                 </div>
 

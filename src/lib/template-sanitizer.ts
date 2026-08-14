@@ -9,14 +9,14 @@ import DOMPurify from "isomorphic-dompurify";
  * Regras:
  * - Remove completamente scripts, handlers de eventos, objetos, embeds, forms
  * - Bloqueia URLs perigosas (javascript:, data:, vbscript:)
- * - Filtra CSS ofensivo (expression, @import, behavior)
+ * - Filtra CSS ofensivo (expression, @import, behavior, -moz-binding)
  * - Remove referências a dados sensíveis (pixel IDs, domínios, telefones hardcoded)
  * - iframe só entra via whitelist (YouTube, Vimeo)
  * - MANTÉM {{FORM_SLOT}} intacto
- *
- * NOTA: DOMPurify em Node.js (isomorphic-dompurify) não preserva conteúdo
- * de <style> e <link> mesmo quando em ALLOWED_TAGS. Por isso, fazemos
- * pre-extração desses elementos antes da sanitização.
+ * - <style> e <link rel="stylesheet"> são EXTRAÍDOS, sanitizados e REINSERIDOS:
+ *   o conteúdo CSS é limpo de vetores de exfiltração (@import, expression,
+ *   url(javascript:), url(data:)) e <link> só é permitido com rel="stylesheet"
+ *   e href http:// ou https:// (qualquer host — suporta MinIO/VPS sem https).
  */
 
 const ALLOWED_TAGS = [
@@ -97,12 +97,29 @@ const SENSITIVE_DATA_PATTERNS: RegExp[] = [
 const STYLE_LINK_REGEX = /<(style|link)[^>]*>[\s\S]*?<\/\1\s*>|<link[^>]*\/?>/gi;
 
 /**
+ * Padrões de CSS perigoso a remover do conteúdo de <style>.
+ * Neutraliza vetores de exfiltração e execução via CSS.
+ */
+const DANGEROUS_CSS_PATTERNS: RegExp[] = [
+  /@import[^;]*;?/gi,
+  /expression\s*\(/gi,
+  /behavior\s*:/gi,
+  /-moz-binding\s*:/gi,
+  /url\s*\(\s*['"]?\s*javascript:/gi,
+  /url\s*\(\s*['"]?\s*data:/gi,
+  /url\s*\(\s*['"]?\s*vbscript:/gi,
+  /url\s*\(\s*['"]?\s*file:/gi,
+];
+
+/**
  * Verifica se uma URL de iframe é permitida pela whitelist.
  */
 function isIframeUrlAllowed(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return IFRAME_ALLOWLIST.some((allowed) => parsed.hostname.endsWith(allowed));
+    return IFRAME_ALLOWLIST.some(
+      (allowed) => parsed.hostname === allowed || parsed.hostname.endsWith(`.${allowed}`)
+    );
   } catch {
     return false;
   }
@@ -117,6 +134,61 @@ function stripSensitiveData(html: string): string {
     cleaned = cleaned.replace(pattern, "[REDACTED]");
   }
   return cleaned;
+}
+
+/**
+ * Sanitiza o conteúdo de um bloco <style>, removendo vetores de exfiltração
+ * e execução via CSS. Mantém o restante do CSS intacto.
+ */
+function sanitizeCssContent(css: string): string {
+  let cleaned = css;
+  for (const pattern of DANGEROUS_CSS_PATTERNS) {
+    cleaned = cleaned.replace(pattern, "");
+  }
+  return cleaned;
+}
+
+/**
+ * Sanitiza uma tag <link>, permitindo apenas rel="stylesheet" com href
+ * http:// ou https:// (qualquer host). Retorna a tag original se válida,
+ * ou string vazia se não for um stylesheet seguro.
+ */
+function sanitizeLinkTag(linkTag: string): string {
+  const relMatch = linkTag.match(/\brel\s*=\s*["']?stylesheet["']?/i);
+  if (!relMatch) return "";
+
+  const hrefMatch = linkTag.match(/\bhref\s*=\s*["']([^"']+)["']/i);
+  if (!hrefMatch) return "";
+
+  const href = hrefMatch[1].trim();
+  if (!/^https?:\/\//i.test(href)) return "";
+
+  // Reconstruir a tag apenas com rel e href (descarta outros atributos)
+  return `<link rel="stylesheet" href="${href}">`;
+}
+
+/**
+ * Extrai <style> e <link rel="stylesheet"> do HTML, sanitiza cada um e
+ * retorna a lista de assets seguros para reinserção.
+ */
+function extractAndSanitizeAssets(html: string): string[] {
+  const assets: string[] = [];
+  const matches = html.match(STYLE_LINK_REGEX) || [];
+
+  for (const match of matches) {
+    if (/^<style/i.test(match)) {
+      const content = match.replace(/^<style[^>]*>/i, "").replace(/<\/style>$/i, "");
+      const cleaned = sanitizeCssContent(content).trim();
+      if (cleaned) {
+        assets.push(`<style>${cleaned}</style>`);
+      }
+    } else if (/^<link/i.test(match)) {
+      const safe = sanitizeLinkTag(match);
+      if (safe) assets.push(safe);
+    }
+  }
+
+  return assets;
 }
 
 /**
@@ -181,15 +253,15 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
     );
   }
 
-  // Pré-extrair <style> e <link> pois DOMPurify em Node.js os remove
-  const extractedAssets: string[] = [];
-  const htmlWithoutAssets = rawHtml.replace(STYLE_LINK_REGEX, (match) => {
-    extractedAssets.push(match);
-    return "";
-  });
+  // Extrair e sanitizar <style> e <link rel="stylesheet"> ANTES do DOMPurify.
+  // O DOMPurify remove style/link crus (FORBID_TAGS), então os assets seguros
+  // são reinseridos no final.
+  const safeAssets = extractAndSanitizeAssets(rawHtml);
 
-  // Primeira passada: DOMPurify com regras estritas
-  let sanitized = DOMPurify.sanitize(htmlWithoutAssets, {
+  // Primeira passada: DOMPurify com regras estritas.
+  // <style> e <link> estão em FORBID_TAGS — qualquer estilo não extraído
+  // (ou malformado) é descartado.
+  let sanitized = DOMPurify.sanitize(rawHtml, {
     ALLOWED_TAGS,
     ALLOWED_ATTR: ALLOWED_ATTRS,
     ALLOW_DATA_ATTR: true,
@@ -224,16 +296,12 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
     ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp|mailto|tel|sms):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
   });
 
-  // Re-inserir os assets extraídos no início do body
-  if (extractedAssets.length > 0) {
-    const assetsHtml = extractedAssets.join("\n");
-    sanitized = assetsHtml + "\n" + sanitized;
-  }
-
-  // Segunda passada: remover iframes com URLs não permitidas
+  // Segunda passada: remover iframes com URLs não permitidas.
+  // Cobre aspas duplas, simples e sem aspas.
   sanitized = sanitized.replace(
-    /<iframe\s[^>]*src\s*=\s*"([^"]*)"[^>]*>/gi,
-    (match, src) => {
+    /<iframe\b[^>]*\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>/gi,
+    (match, dq, sq, unquoted) => {
+      const src = dq || sq || unquoted || "";
       if (isIframeUrlAllowed(src)) {
         return match;
       }
@@ -247,7 +315,12 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
   // Quarta passada: marcar forms customizados (remover action/method, adicionar data-vortex-custom-form)
   sanitized = markCustomForms(sanitized);
 
-  // Quinta passada: verificar que pelo menos um mecanismo de form sobreviveu
+  // Quinta passada: reinserir os assets de estilo seguros no início do body
+  if (safeAssets.length > 0) {
+    sanitized = safeAssets.join("\n") + "\n" + sanitized;
+  }
+
+  // Sexta passada: verificar que pelo menos um mecanismo de form sobreviveu
   if (!hasFormSlot(sanitized) && !hasCustomForm(sanitized)) {
     throw new Error(
       "A sanitização removeu o formulário do template. Verifique se ele está em um contexto válido."
@@ -264,33 +337,50 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
 export function sanitizeForPreview(rawHtml: string): string {
   if (!rawHtml) return "";
 
-  // Também pré-extrai style/link para preview
-  const extractedAssets: string[] = [];
-  const htmlWithoutAssets = rawHtml.replace(STYLE_LINK_REGEX, (match) => {
-    extractedAssets.push(match);
-    return "";
-  });
+  // Extrair e sanitizar <style> e <link rel="stylesheet"> ANTES do DOMPurify.
+  const safeAssets = extractAndSanitizeAssets(rawHtml);
 
-  const sanitized = DOMPurify.sanitize(htmlWithoutAssets, {
-    ALLOWED_TAGS: ALLOWED_TAGS.concat(["script"]),
+  // Sanitização estrita para preview: remove <script> e <style>/<link> crus,
+  // mas NÃO exige {{FORM_SLOT}}/<form> (o preview pode ser de um rascunho
+  // ainda sem formulário). O preview é renderizado via iframe sandbox.
+  let sanitized = DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS,
     ALLOWED_ATTR: ALLOWED_ATTRS,
+    ALLOW_DATA_ATTR: true,
+    ADD_ATTR: ["target", "rel"],
     FORBID_TAGS: [
-      "object", "embed", "applet",
+      "script", "noscript", "object", "embed", "applet",
       "datalist", "keygen", "output", "progress",
       "meter", "details", "summary", "dialog", "menu", "menuitem",
       "style", "link",
     ],
-    // Script está em ALLOWED_TAGS, precisa ser removido de FORBID_TAGS
-    // para que o conteúdo seja preservado no preview
-    ADD_TAGS: ["script"],
     FORBID_ATTR: [
-      "onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur",
-      "onsubmit", "onchange", "onkeydown", "onkeyup",
+      "onerror", "onload", "onclick", "ondblclick", "onmousedown",
+      "onmouseup", "onmouseover", "onmousemove", "onmouseout",
+      "onfocus", "onblur", "onkeydown", "onkeypress", "onkeyup",
+      "onsubmit", "onreset", "onchange", "onselect", "oninput",
+      "onscroll", "onwheel", "ondrag", "ondrop", "oncopy", "oncut",
+      "onpaste", "onabort", "oncanplay", "oncanplaythrough",
+      "ondurationchange", "onemptied", "onended",
+      "onloadeddata", "onloadedmetadata", "onloadstart",
+      "onpause", "onplay", "onplaying", "onprogress", "onratechange",
+      "onseeked", "onseeking", "onstalled", "onsuspend", "ontimeupdate",
+      "onvolumechange", "onwaiting", "onanimationend", "onanimationiteration",
+      "onanimationstart", "ontransitionend", "onbeforeunload",
+      "onhashchange", "onmessage", "onoffline", "ononline", "onpagehide",
+      "onpageshow", "onpopstate", "onresize", "onstorage",
+      "onafterprint", "onbeforeprint",
+      "expression", "behavior", "-moz-binding",
+      "action", "method", "enctype", "formaction", "formmethod",
+      "formtarget", "formnovalidate", "formenctype",
     ],
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp|mailto|tel|sms):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
   });
 
-  if (extractedAssets.length > 0) {
-    return extractedAssets.join("\n") + "\n" + sanitized;
+  // Reinserir os assets de estilo seguros
+  if (safeAssets.length > 0) {
+    sanitized = safeAssets.join("\n") + "\n" + sanitized;
   }
+
   return sanitized;
 }

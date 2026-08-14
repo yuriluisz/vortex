@@ -1,77 +1,230 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useTransition, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import Editor, { OnMount } from "@monaco-editor/react";
-import { Maximize2, Minimize2, Settings, Eye, Code, Loader2 } from "lucide-react";
+import HtmlRenderer from "@/app/[slug]/HtmlRenderer";
+import {
+  Settings,
+  Eye,
+  Code,
+  Loader2,
+  ArrowLeft,
+  Columns2,
+  Save,
+  CheckCircle2,
+  Power,
+  PowerOff
+} from "lucide-react";
 import { TemplatePicker } from "@/components/templates/template-picker";
-import { CampaignSettingsDrawer } from "./campaign-settings-drawer";
+import {
+  CampaignSettingsModal,
+  type CampaignSettings,
+  type CampaignLinks,
+  type CampaignControlsState,
+} from "./campaign-settings-modal";
+import {
+  saveCampaignAction,
+  toggleCampaignStatusAction,
+  toggleCampaignProtectionAction,
+  deleteCampaignAction,
+  checkCustomHostnameStatusAction,
+} from "@/app/admin/actions";
+import Link from "next/link";
 
-interface CampaignEditorProps {
-  initialHtml: string;
-  initialFormSchema: unknown;
-  campaignId: string;
-  tenantId: string;
-  onSave: (html: string, formSchema: unknown) => Promise<void>;
+// ============================================================================
+// Types
+// ============================================================================
+
+interface CampaignData {
+  id: string;
+  name: string;
+  slug: string;
+  rawHtml: string;
+  formSchema: unknown;
+  pixelId: string | null;
+  customDomain: string | null;
+  active: boolean;
+  protected: boolean;
+  accessCode: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  ogImageUrl: string | null;
+  faviconUrl: string | null;
+  groupMaxCapacity: number;
+  groupSupportPhones: string[];
+  groupDescription: string | null;
+  groupImageUrl: string | null;
+  groups?: Array<{
+    id: string;
+    name: string;
+    url: string;
+    currentCount: number;
+    maxCapacity: number;
+    active: boolean;
+  }>;
 }
 
+interface CampaignEditorProps {
+  mode: "create" | "edit";
+  plan: string;
+  campaign?: CampaignData;
+  tenantId?: string;
+  tenantMaxGroups?: number;
+}
+
+// ============================================================================
+// Constants
+// ============================================================================
+
 const DEBOUNCE_MS = 400;
-const PLACEHOLDER_HTML = `<!DOCTYPE html>
-<html lang="pt-BR">
+const DEFAULT_FORM_SCHEMA = JSON.stringify([
+  { id: "name", type: "text", label: "Nome Completo", placeholder: "Seu nome", required: true },
+  { id: "whatsapp", type: "tel", label: "WhatsApp", placeholder: "(11) 99999-9999", required: true },
+]);
+
+const PLACEHOLDER_HTML = `<div class="min-h-screen bg-[#050505] text-white selection:bg-amber-500/30 selection:text-amber-200 overflow-hidden font-sans">
+  <div class="max-w-6xl mx-auto px-6 py-12 md:py-20 lg:py-24 grid lg:grid-cols-2 gap-12 items-center min-h-screen">
+    
+    <!-- Lado Esquerdo: Copy e Detalhes -->
+    <div class="space-y-8 relative z-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        Evento 100% Online e Gratuito
+      </div>
+      
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+        O Segredo dos <br />
+        <span class="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
+          Grandes Players
+        </span>
+      </h1>
+      
+      <p class="text-lg md:text-xl text-neutral-400 leading-relaxed max-w-lg">
+        Descubra o método validado que gerou múltiplos sete dígitos no último ano.
+      </p>
+    </div>
+    
+    <!-- Lado Direito: Formulário -->
+    <div class="relative w-full max-w-md mx-auto lg:ml-auto lg:mr-0">
+      <div class="absolute -inset-1 bg-gradient-to-br from-amber-500/30 to-purple-600/30 rounded-3xl blur-2xl z-0 pointer-events-none"></div>
+      
+      <div class="relative z-10 bg-neutral-900/80 backdrop-blur-2xl border border-white/10 p-8 md:p-10 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold mb-2">Garanta seu Convite</h3>
+          <p class="text-sm text-neutral-400">Preencha os dados para receber o link exclusivo.</p>
+        </div>
+        
+        <div id="portal-root"></div>
+      </div>
+    </div>
+    
+  </div>
+</div>`;
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+const PREVIEW_BASE_DOCUMENT = `<!DOCTYPE html>
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minha Landing Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; }
-    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
-    h1 { font-size: 3rem; margin-bottom: 1rem; }
-    p { font-size: 1.25rem; color: #666; max-width: 600px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;font-family:system-ui,-apple-system,sans-serif;color-scheme:dark}
+    /* Ensure forms inherit color for dark themes */
+    input,select,textarea,button{font-family:inherit;color:inherit}
   </style>
 </head>
-<body>
-  <div class="hero">
-    <div>
-      <h1>Sua Landing Page</h1>
-      <p>Use esta página como ponto de partida. Edite o HTML ao lado para personalizar.</p>
-      {{FORM_SLOT}}
-    </div>
-  </div>
-</body>
+<body><div id="portal-root"></div></body>
 </html>`;
 
-export function CampaignEditor({
-  initialHtml,
-  initialFormSchema,
-  campaignId,
-  tenantId,
-  onSave,
-}: CampaignEditorProps) {
-  const [html, setHtml] = useState(initialHtml || PLACEHOLDER_HTML);
-  const [previewHtml, setPreviewHtml] = useState(initialHtml || PLACEHOLDER_HTML);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+// ============================================================================
+// Component
+// ============================================================================
+
+export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups }: CampaignEditorProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // ── HTML State ──
+  const [html, setHtml] = useState(campaign?.rawHtml || PLACEHOLDER_HTML);
+  const [previewHtml, setPreviewHtml] = useState(campaign?.rawHtml || PLACEHOLDER_HTML);
+
+  // ── UI State ──
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"code" | "preview" | "split">("split");
-  const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Detectar mobile
+  // ── Settings State (controlled) ──
+  const [settings, setSettings] = useState<CampaignSettings>({
+    name: campaign?.name || "",
+    slug: campaign?.slug || "",
+    pixelId: campaign?.pixelId || "",
+    customDomain: campaign?.customDomain || "",
+    formSchema: campaign?.formSchema ? JSON.stringify(campaign.formSchema) : DEFAULT_FORM_SCHEMA,
+    metaTitle: campaign?.metaTitle || "",
+    metaDescription: campaign?.metaDescription || "",
+    ogImageUrl: campaign?.ogImageUrl || "",
+    faviconUrl: campaign?.faviconUrl || "",
+    groupMaxCapacity: campaign?.groupMaxCapacity || 1000,
+    groupSupportPhones: campaign?.groupSupportPhones?.join(", ") || "",
+    groupDescription: campaign?.groupDescription || "",
+    groupImageUrl: campaign?.groupImageUrl || "",
+  });
+
+  // ── Controls State (edit only) ──
+  const [controls, setControls] = useState<CampaignControlsState>({
+    active: campaign?.active ?? true,
+    protected: campaign?.protected ?? false,
+    accessCode: campaign?.accessCode || null,
+    customDomain: campaign?.customDomain || null,
+  });
+
+  // ── Refs ──
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Mobile detection ──
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile) setActiveTab("code");
+      if (mobile && activeTab === "split") setActiveTab("code");
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, [activeTab]);
+
+  // ── Iframe Mount State ──
+  const [iframePortalRoot, setIframePortalRoot] = useState<HTMLElement | null>(null);
+
+  const handleIframeLoad = useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    const doc = e.currentTarget.contentDocument;
+    if (doc) {
+      const root = doc.getElementById("portal-root");
+      if (root) setIframePortalRoot(root);
+    }
   }, []);
 
-  // Atualizar preview com debounce
+  // ── FormSchema Parser ──
+  const parsedFormSchema = useMemo(() => {
+    try {
+      return JSON.parse(settings.formSchema);
+    } catch {
+      return [];
+    }
+  }, [settings.formSchema]);
+
+  // ── Preview update with debounce ──
   const updatePreview = useCallback((newHtml: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -79,7 +232,7 @@ export function CampaignEditor({
     }, DEBOUNCE_MS);
   }, []);
 
-  // Handler do Monaco
+  // ── Monaco change handler ──
   const handleEditorChange = useCallback(
     (value: string | undefined) => {
       if (value === undefined) return;
@@ -89,105 +242,323 @@ export function CampaignEditor({
     [updatePreview]
   );
 
-  // Atualizar iframe quando o HTML do preview mudar
-  useEffect(() => {
-    if (iframeRef.current && previewHtml) {
-      const iframe = iframeRef.current;
-      iframe.srcdoc = previewHtml;
-    }
-  }, [previewHtml]);
 
+  // ── Monaco mount ──
   const handleEditorMount: OnMount = useCallback((editor) => {
     editorRef.current = editor;
     editor.focus();
   }, []);
 
-  const handleSave = useCallback(async () => {
-    setIsSaving(true);
-    try {
-      await onSave(html, {});
-    } finally {
-      setIsSaving(false);
-    }
-  }, [html, onSave]);
-
-  const handleTemplateSelect = useCallback((templateHtml: string) => {
-    setHtml(templateHtml);
-    setPreviewHtml(templateHtml);
-    setShowPicker(false);
+  // ── Settings change ──
+  const handleSettingsChange = useCallback((partial: Partial<CampaignSettings>) => {
+    setSettings((prev) => ({ ...prev, ...partial }));
   }, []);
 
+  // ── Template select ──
+  const handleTemplateSelect = useCallback(
+    (templateHtml: string) => {
+      setHtml(templateHtml);
+      setPreviewHtml(templateHtml);
+      setShowPicker(false);
+      if (editorRef.current) {
+        editorRef.current.setValue(templateHtml);
+      }
+    },
+    []
+  );
+
+  // ── Save ──
+  const handleSave = useCallback(() => {
+    if (!settings.name.trim()) {
+      setSaveError("Preencha o nome da campanha nas Configurações.");
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 4000);
+      return;
+    }
+    if (!settings.slug.trim()) {
+      setSaveError("Preencha o slug da campanha nas Configurações.");
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 4000);
+      return;
+    }
+    if (!html.trim()) {
+      setSaveError("O HTML não pode estar vazio.");
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 4000);
+      return;
+    }
+
+    setSaveStatus("saving");
+    setSaveError(null);
+
+    startTransition(async () => {
+      const result = await saveCampaignAction(
+        mode === "edit" ? campaign?.id || null : null,
+        {
+          name: settings.name,
+          slug: settings.slug,
+          rawHtml: html,
+          formSchema: settings.formSchema,
+          pixelId: settings.pixelId || undefined,
+          customDomain: settings.customDomain || undefined,
+          metaTitle: settings.metaTitle || undefined,
+          metaDescription: settings.metaDescription || undefined,
+          ogImageUrl: settings.ogImageUrl || undefined,
+          faviconUrl: settings.faviconUrl || undefined,
+          groupMaxCapacity: settings.groupMaxCapacity,
+          groupSupportPhones: settings.groupSupportPhones || undefined,
+          groupDescription: settings.groupDescription || undefined,
+          groupImageUrl: settings.groupImageUrl || undefined,
+        }
+      );
+
+      if (result?.error) {
+        setSaveError(result.error);
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus("idle"), 4000);
+      } else if (result?.success) {
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    });
+  }, [html, settings, mode, campaign?.id, startTransition]);
+
+  // ── Controls handlers (edit only) ──
+  const handleToggleActive = useCallback(() => {
+    if (!campaign?.id) return;
+    const newActive = !controls.active;
+    setControls((prev) => ({ ...prev, active: newActive }));
+    startTransition(async () => {
+      await toggleCampaignStatusAction(campaign.id, newActive);
+      router.refresh();
+    });
+  }, [campaign?.id, controls.active, router, startTransition]);
+
+  const handleToggleProtection = useCallback(() => {
+    if (!campaign?.id) return;
+    const newProtected = !controls.protected;
+    const newAccessCode = newProtected && !controls.accessCode ? crypto.randomUUID() : controls.accessCode;
+    setControls((prev) => ({
+      ...prev,
+      protected: newProtected,
+      accessCode: newAccessCode,
+    }));
+    startTransition(async () => {
+      await toggleCampaignProtectionAction(campaign.id, newProtected);
+      router.refresh();
+    });
+  }, [campaign?.id, controls.protected, controls.accessCode, router, startTransition]);
+
+  const handleDelete = useCallback(() => {
+    if (!campaign?.id) return;
+    if (!window.confirm("Tem certeza que deseja excluir esta campanha? Esta ação é irreversível.")) {
+      return;
+    }
+    startTransition(async () => {
+      await deleteCampaignAction(campaign.id);
+    });
+  }, [campaign?.id, startTransition]);
+
+  const handleCheckDomainStatus = useCallback(async () => {
+    if (!controls.customDomain) return null;
+    return await checkCustomHostnameStatusAction(controls.customDomain);
+  }, [controls.customDomain]);
+
+  // ── Build links for edit mode ──
+  const campaignLinks: CampaignLinks | undefined =
+    mode === "edit" && campaign
+      ? (() => {
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
+          return {
+            defaultCaptureUrl: `${baseUrl}/${campaign.slug}`,
+            defaultRedirectUrl: `${baseUrl}/${campaign.slug}/redirect`,
+            protectedCaptureUrl: controls.accessCode ? `${baseUrl}/c/${controls.accessCode}` : null,
+            protectedRedirectUrl: controls.accessCode ? `${baseUrl}/c/${controls.accessCode}/redirect` : null,
+            customCaptureUrl: controls.customDomain ? `https://${controls.customDomain}` : null,
+            customRedirectUrl: controls.customDomain ? `https://${controls.customDomain}/redirect` : null,
+          };
+        })()
+      : undefined;
+
+  // ── Keyboard shortcut (Ctrl+S) ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleSave]);
+
   return (
-    <div className={`flex flex-col ${isFullscreen ? "fixed inset-0 z-50 bg-background" : "h-[calc(100vh-8rem)]"}`}>
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-muted/30 shrink-0">
-        <div className="flex items-center gap-2">
-          {isMobile && (
-            <div className="flex rounded-md border border-border overflow-hidden">
-              <button
-                onClick={() => setActiveTab("code")}
-                className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors ${
-                  activeTab === "code" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+    <div className="flex flex-col h-full w-full">
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* TOOLBAR                                                           */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-background/60 backdrop-blur-xl shrink-0 gap-2 relative z-20 shadow-sm">
+        {/* Left side */}
+        <div className="flex items-center gap-2 min-w-0">
+          <Link
+            href="/admin/campaigns"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+            title="Voltar para Campanhas"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+
+          {/* Campaign name */}
+          <div className="hidden sm:flex items-center gap-2 min-w-0">
+            <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
+              {settings.name || (mode === "create" ? "Nova Campanha" : "Sem nome")}
+            </span>
+            {mode === "edit" && controls && (
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  controls.active
+                    ? "bg-emerald-500/10 text-emerald-500"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
-                <Code className="w-3.5 h-3.5" />
-                Código
-              </button>
+                {controls.active ? "Ativa" : "Pausada"}
+              </span>
+            )}
+          </div>
+
+          <div className="w-px h-5 bg-border/40 mx-1 hidden sm:block" />
+
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-white/10 bg-black/40 p-0.5 overflow-hidden backdrop-blur-md shadow-inner">
+            <button
+              onClick={() => setActiveTab("code")}
+              className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all duration-200 rounded-md ${
+                activeTab === "code" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
+              }`}
+              title="Código"
+            >
+              <Code className="w-3.5 h-3.5" />
+              {!isMobile && <span className="hidden lg:inline">Código</span>}
+            </button>
+            {!isMobile && (
               <button
-                onClick={() => setActiveTab("preview")}
-                className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors ${
-                  activeTab === "preview" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                onClick={() => setActiveTab("split")}
+                className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all duration-200 rounded-md ${
+                  activeTab === "split" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
+                title="Split"
               >
-                <Eye className="w-3.5 h-3.5" />
-                Preview
+                <Columns2 className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline">Split</span>
               </button>
-            </div>
+            )}
+            <button
+              onClick={() => setActiveTab("preview")}
+              className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all duration-200 rounded-md ${
+                activeTab === "preview" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
+              }`}
+              title="Preview"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              {!isMobile && <span className="hidden lg:inline">Preview</span>}
+            </button>
+          </div>
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Save status */}
+          {saveStatus === "error" && saveError && (
+            <span className="text-xs text-destructive font-medium max-w-[200px] truncate hidden sm:inline">
+              {saveError}
+            </span>
           )}
+          {saveStatus === "saved" && (
+            <span className="text-xs text-emerald-500 font-medium flex items-center gap-1 hidden sm:flex">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Salvo
+            </span>
+          )}
+
+          {mode === "edit" && campaign && (
+            <>
+              <Link
+                href={`/admin/campaigns/${campaign.id}/leads`}
+                className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+              >
+                Leads
+              </Link>
+              <Link
+                href={`/admin/campaigns/${campaign.id}/groups`}
+                className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+              >
+                Grupos
+              </Link>
+            </>
+          )}
+
           <button
             onClick={() => setShowPicker(true)}
-            className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted transition-colors"
+            className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
           >
             Templates
           </button>
-        </div>
 
-        <div className="flex items-center gap-2">
           <button
             onClick={() => setSettingsOpen(true)}
-            className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted transition-colors"
+            className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
           >
-            <Settings className="w-3.5 h-3.5 mr-1" />
-            Configurações
+            <Settings className="w-3.5 h-3.5 mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <span className="hidden sm:inline">Configurações</span>
           </button>
-          <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border hover:bg-muted transition-colors"
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
+
+          {mode === "edit" && controls && (
+            <button
+              onClick={handleToggleActive}
+              className={`inline-flex items-center px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 shadow-sm hover:shadow active:scale-95 ${
+                controls.active
+                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20"
+                  : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10"
+              }`}
+              title={controls.active ? "Desativar Campanha" : "Ativar Campanha"}
+            >
+              {controls.active ? (
+                <Power className="w-3.5 h-3.5 mr-1.5" />
+              ) : (
+                <PowerOff className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              <span className="hidden sm:inline">{controls.active ? "Ativa" : "Pausada"}</span>
+            </button>
+          )}
+
           <button
             onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            disabled={isPending || saveStatus === "saving"}
+            className="relative inline-flex items-center px-4 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground font-semibold gap-1.5 overflow-hidden transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed hover:bg-primary/90 active:scale-95 hover:shadow-[0_0_20px_rgba(147,51,234,0.4)]"
           >
-            {isSaving ? (
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] animate-shimmer" />
+            {saveStatus === "saving" || isPending ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-                Salvando
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span className="hidden sm:inline">Salvando...</span>
               </>
             ) : (
-              "Salvar"
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{mode === "create" ? "Criar" : "Salvar"}</span>
+              </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Editor + Preview */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* EDITOR + PREVIEW                                                  */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Code Editor (Monaco) */}
         {(activeTab === "code" || activeTab === "split") && (
-          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} border-r border-border/40 min-w-0`}>
+          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} border-r border-white/5 min-w-0 bg-[#1e1e1e] relative z-10 shadow-[4px_0_24px_rgba(0,0,0,0.5)]`}>
             <Editor
               height="100%"
               defaultLanguage="html"
@@ -209,6 +580,7 @@ export function CampaignEditor({
                 folding: true,
                 renderWhitespace: "selection",
                 bracketPairColorization: { enabled: true },
+                padding: { top: 12 },
               }}
               loading={
                 <div className="flex items-center justify-center h-full bg-muted/50">
@@ -221,18 +593,40 @@ export function CampaignEditor({
 
         {/* Preview */}
         {(activeTab === "preview" || activeTab === "split") && (
-          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} bg-white min-w-0`}>
+          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} bg-neutral-100 min-w-0 relative z-0`}>
             <iframe
-              ref={iframeRef}
+              srcDoc={PREVIEW_BASE_DOCUMENT}
+              onLoad={handleIframeLoad}
               title="Preview"
-              className="w-full h-full"
-              sandbox="allow-scripts"
+              className="w-full h-full bg-white shadow-inner"
+              sandbox="allow-scripts allow-same-origin allow-forms"
             />
+            {iframePortalRoot && createPortal(
+              <HtmlRenderer
+                rawHtml={previewHtml}
+                campaignId={campaign?.id || "preview"}
+                slug={campaign?.slug || "preview"}
+                formSchema={parsedFormSchema}
+              />,
+              iframePortalRoot
+            )}
+            {/* Preview label */}
+            <div className="absolute top-3 right-3 flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/80 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full font-semibold border border-white/10 shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Live Preview
+            </div>
           </div>
         )}
       </div>
 
-      {/* Template Picker Modal */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* MODALS                                                            */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+
+      {/* Template Picker */}
       {showPicker && (
         <TemplatePicker
           onSelect={handleTemplateSelect}
@@ -240,12 +634,23 @@ export function CampaignEditor({
         />
       )}
 
-      {/* Settings Drawer */}
-      <CampaignSettingsDrawer
+      {/* Settings Modal */}
+      <CampaignSettingsModal
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
-        campaignId={campaignId}
-        tenantId={tenantId}
+        mode={mode}
+        plan={plan}
+        settings={settings}
+        onSettingsChange={handleSettingsChange}
+        campaignId={campaign?.id}
+        controls={mode === "edit" ? controls : undefined}
+        links={campaignLinks}
+        onToggleActive={handleToggleActive}
+        onToggleProtection={handleToggleProtection}
+        onDelete={handleDelete}
+        onCheckDomainStatus={handleCheckDomainStatus}
+        groups={campaign?.groups}
+        tenantMaxGroups={tenantMaxGroups}
       />
     </div>
   );

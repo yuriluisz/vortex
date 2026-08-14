@@ -38,6 +38,11 @@ interface SettingsTabsProps {
   billingInfo: BillingInfo;
   subscriptionInfo: SubscriptionInfo;
   usage: UsageStats;
+  displayName?: string | null;
+  handle?: string | null;
+  bio?: string | null;
+  publicProfile?: boolean;
+  profileLinks?: Record<string, string> | null;
 }
 
 type Tab = "profile" | "subscription";
@@ -55,6 +60,11 @@ export function SettingsTabs({
   billingInfo,
   subscriptionInfo,
   usage,
+  displayName,
+  handle,
+  bio,
+  publicProfile,
+  profileLinks,
 }: SettingsTabsProps) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -93,6 +103,11 @@ export function SettingsTabs({
           userName={userName}
           email={email}
           billingInfo={billingInfo}
+          displayName={displayName}
+          handle={handle}
+          bio={bio}
+          publicProfile={publicProfile}
+          profileLinks={profileLinks}
         />
       ) : (
         <PlanSelector

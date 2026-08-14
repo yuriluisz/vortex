@@ -69,7 +69,19 @@ async function main() {
   const vortexAdminPasswordHash = await bcrypt.hash("Vortex123!", 12);
   const vortexAdmin = await prisma.user.upsert({
     where: { email: "yulusica@gmail.com" },
-    update: {},
+    update: {
+      name: "VortexPages",
+      displayName: "VortexPages",
+      handle: "vortexpages",
+      bio: "Criador de templates e landing pages de alta conversão. Explore nossos templates gratuitos e eleve seus projetos.",
+      publicProfile: true,
+      profileLinks: JSON.stringify({
+        website: "https://vortexpages.online",
+        instagram: "https://instagram.com/vortexpages",
+        youtube: "https://youtube.com/@vortexpages",
+        whatsapp: "https://wa.me/5511999999999",
+      }),
+    },
     create: {
       email: "yulusica@gmail.com",
       name: "VortexPages",

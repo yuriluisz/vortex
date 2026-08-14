@@ -21,6 +21,7 @@ interface TemplateDetailClientProps {
       id: string;
       handle: string | null;
       displayName: string | null;
+      name: string | null;
       avatarUrl: string | null;
     } | null;
     _count: {
@@ -132,7 +133,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
                   {template.author.displayName?.[0] ?? "?"}
                 </div>
                 <div>
-                  <div className="text-sm font-medium">{template.author.displayName ?? "Autor anônimo"}</div>
+                  <div className="text-sm font-medium">{template.author.displayName ?? template.author.name ?? "Autor anônimo"}</div>
                   {template.author.handle && (
                     <Link
                       href={`/community/${template.author.handle}`}

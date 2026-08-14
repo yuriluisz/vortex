@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import type { TemplateStatus } from "@prisma/client";
 import { LayoutTemplate, ExternalLink, Eye, Repeat, Heart } from "lucide-react";
 import Link from "next/link";
-import { ModerateTemplateButton } from "./moderate-button";
 import { ReviewButton } from "./review-button";
+import { TemplateActions } from "./template-actions";
 
 export const metadata = {
   title: "Moderação de Templates — Vórtex+",
@@ -69,10 +69,9 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
       orderBy: { createdAt: "desc" },
       include: {
         author: {
-          select: { id: true, email: true, displayName: true, handle: true },
+          select: { id: true, email: true, displayName: true, handle: true, templateBlocked: true },
         },
         versions: {
-          where: { status: status === "PUBLISHED" ? "PUBLISHED" : "PENDING_REVIEW" },
           orderBy: { version: "desc" },
           take: 1,
         },
@@ -143,7 +142,7 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
       {templates.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">
-            Nenhum template com status "{STATUS_LABELS[status]}".
+            Nenhum template com status {"\u201C"}{STATUS_LABELS[status]}{"\u201D"}.
           </p>
         </div>
       ) : (
@@ -217,9 +216,14 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
                       Preview
                     </a>
                   )}
-                  {template.status === "PENDING_REVIEW" && (
-                    <ModerateTemplateButton templateId={template.id} />
-                  )}
+                  <TemplateActions
+                    templateId={template.id}
+                    authorId={template.author.id}
+                    authorEmail={template.author.email}
+                    authorName={template.author.displayName || template.author.email}
+                    status={template.status}
+                    isAuthorBlocked={template.author.templateBlocked}
+                  />
                 </div>
               </div>
             </div>

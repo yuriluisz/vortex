@@ -1,18 +1,30 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical, EyeOff, RefreshCw, Trash2, Loader2 } from "lucide-react";
+import { MoreVertical, EyeOff, RefreshCw, Trash2, Loader2, Pencil } from "lucide-react";
 import { hideTemplateAction, republishTemplateAction, deleteTemplateAction } from "./actions";
+import { EditTemplateModal } from "./edit-template-modal";
+import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 
 interface TemplateActionsMenuProps {
   templateId: string;
   status: string;
+  template: {
+    id: string;
+    name: string;
+    description: string | null;
+    category: TemplateCategory;
+    theme: TemplateTheme;
+    tags: string[];
+    rawHtml: string;
+  };
 }
 
-export function TemplateActionsMenu({ templateId, status }: TemplateActionsMenuProps) {
+export function TemplateActionsMenu({ templateId, status, template }: TemplateActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [showEdit, setShowEdit] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Fechar ao clicar fora
@@ -58,6 +70,17 @@ export function TemplateActionsMenu({ templateId, status }: TemplateActionsMenuP
 
       {open && (
         <div className="absolute right-0 top-full mt-1 z-50 w-56 rounded-xl border border-border bg-card shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150 origin-top-right">
+          <button
+            onClick={() => {
+              setShowEdit(true);
+              setOpen(false);
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground/80 hover:bg-muted transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+            Editar
+          </button>
+
           {status === "PUBLISHED" && (
             <button
               onClick={() => handleAction("hide")}
@@ -94,6 +117,8 @@ export function TemplateActionsMenu({ templateId, status }: TemplateActionsMenuP
           )}
         </div>
       )}
+
+      {showEdit && <EditTemplateModal template={template} onClose={() => setShowEdit(false)} />}
     </div>
   );
 }

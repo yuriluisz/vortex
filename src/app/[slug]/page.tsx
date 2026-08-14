@@ -1,13 +1,25 @@
 import { notFound, redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HtmlRenderer from "./HtmlRenderer";
 import MetaPixel from "@/components/MetaPixel";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
+import { buildCampaignMetadata } from "@/lib/campaign-meta";
 
 export const revalidate = 60; // 60 segundos (Edge Cache para CDN)
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const campaign = await prisma.campaign.findFirst({
+    where: { slug, active: true },
+    include: { tenant: true },
+  });
+  if (!campaign || !campaign.tenant) return {};
+  return buildCampaignMetadata(campaign);
 }
 
 export default async function CampaignPage({ params }: PageProps) {

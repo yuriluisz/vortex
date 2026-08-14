@@ -474,8 +474,8 @@ export default function AdminDocsPage() {
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
                 Para criar uma nova campanha, clique no botão{" "}
-                <strong>&quot;Nova Campanha&quot;</strong> e siga o assistente
-                de 3 etapas:
+                <strong>"Nova Campanha"</strong> e siga o assistente
+                de 4 etapas:
               </p>
 
               <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
@@ -583,7 +583,7 @@ export default function AdminDocsPage() {
                     Se sua página for de vendas diretas e não de captura de leads, você não precisa usar a tag FORM_SLOT. Apenas insira links normais para o seu checkout (Hotmart, Kiwify, Eduzz, etc).
                   </p>
                   <div className="bg-background rounded p-2 text-xs font-mono overflow-x-auto border border-border">
-                    {`<a href="https://pay.kiwify.com.br/xxxxx" class="botao-comprar" target="_blank">Quero Comprar Agora</a>`}
+                    {`<a href="https://pay.kiwify.com.br/xxxxx" class="botao-comprar" target="_blank" rel="noopener noreferrer">Quero Comprar Agora</a>`}
                   </div>
                 </div>
 
@@ -598,7 +598,7 @@ export default function AdminDocsPage() {
                     <li>Hospede suas imagens em CDNs como Cloudflare R2, MinIO ou Imgur.</li>
                     <li>Sempre converta suas imagens para <strong>WebP</strong> ou <strong>AVIF</strong> antes de usar.</li>
                     <li>Use ferramentas como TinyPNG ou Squoosh para comprimir.</li>
-                    <li>Sempre defina os atributos <code className="font-mono text-[10px]">width</code> e <code className="font-mono text-[10px]">height</code> no HTML para evitar <a href="https://web.dev/cls/" target="_blank" className="text-primary hover:underline">Cumulative Layout Shift (CLS)</a>, garantindo uma boa nota no Google Lighthouse.</li>
+                    <li>Sempre defina os atributos <code className="font-mono text-[10px]">width</code> e <code className="font-mono text-[10px]">height</code> no HTML para evitar <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cumulative Layout Shift (CLS)</a>, garantindo uma boa nota no Google Lighthouse.</li>
                     <li>Use <code className="font-mono text-[10px]">loading="lazy"</code> para imagens que ficam abaixo da dobra.</li>
                   </ul>
                 </div>
@@ -644,7 +644,7 @@ export default function AdminDocsPage() {
 
               <div id="wizard-etapa-grupo" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
-                  Etapa 3 — Grupo WhatsApp
+                  Etapa 4 — Grupo WhatsApp
                 </h3>
                 <p className="text-sm">
                   Nesta etapa você pode criar um grupo inicial para a campanha:

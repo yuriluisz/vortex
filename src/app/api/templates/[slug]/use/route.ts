@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { hasFeature } from "@/lib/plans";
 import { logAudit } from "@/lib/audit";
+import { rateLimit } from "@/lib/rate-limit";
+
+const SLUG_REGEX = /^[a-z0-9-]{1,100}$/;
 
 /**
  * POST /api/templates/[slug]/use
@@ -16,6 +19,11 @@ export async function POST(
 ) {
   const { slug } = await params;
 
+  // Validação de slug
+  if (!SLUG_REGEX.test(slug)) {
+    return NextResponse.json({ error: "Template não encontrado." }, { status: 404 });
+  }
+
   try {
     // 1. Autenticar
     const session = await getSession();
@@ -24,6 +32,18 @@ export async function POST(
     }
 
     const { userId, tenantId } = session;
+
+    // Rate limit por tenant (autenticado)
+    const rl = await rateLimit(`template:use:${tenantId}`, {
+      windowSeconds: 60,
+      maxRequests: 10,
+    });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente em instantes." },
+        { status: 429, headers: { "Retry-After": String(rl.resetIn) } }
+      );
+    }
 
     // 2. Buscar tenant para checar plano
     const tenant = await prisma.tenant.findUnique({

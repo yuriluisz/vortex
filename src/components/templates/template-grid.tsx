@@ -21,6 +21,7 @@ interface TemplateGridProps {
       id: string;
       handle: string | null;
       displayName: string | null;
+      name: string | null;
       avatarUrl: string | null;
     } | null;
     _count: {
@@ -145,7 +146,7 @@ export function TemplateGrid({ templates, total, page, totalPages }: TemplateGri
                     {template.author?.displayName?.[0] ?? "?"}
                   </div>
                   <span className="truncate max-w-[80px]">
-                    {template.author?.displayName ?? "Anônimo"}
+                    {template.author?.displayName ?? template.author?.name ?? "Anônimo"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">

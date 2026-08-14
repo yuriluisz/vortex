@@ -20,6 +20,7 @@ import {
 } from "@/services/asaas.service";
 import { PLAN_LIMITS } from "@/lib/plans";
 import type { Plan } from "@/lib/prisma-types";
+import { Prisma } from "@prisma/client";
 import type { Plan as PrismaPlan } from "@prisma/client";
 
 // ============================================================================
@@ -182,6 +183,11 @@ export async function updateCombinedSettingsAction(
     return profileResult;
   }
 
+  const publicProfileResult = await updatePublicProfileAction(state, formData);
+  if (publicProfileResult?.error || publicProfileResult?.fieldErrors) {
+    return publicProfileResult;
+  }
+
   const billingResult = await saveBillingInfoAction(state, formData);
   if (billingResult?.error || billingResult?.fieldErrors) {
     return billingResult;
@@ -218,7 +224,7 @@ export async function updateUserNameAction(
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { name: parsed.data.userName },
+      data: { name: parsed.data.userName, displayName: parsed.data.userName },
     });
   } catch (error) {
     console.error(error);
@@ -226,6 +232,90 @@ export async function updateUserNameAction(
   }
 
   revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+// ============================================================================
+// ATUALIZAR PERFIL PÚBLICO (comunidade)
+// ============================================================================
+
+const PublicProfileSchema = z.object({
+  displayName: z.string().min(1, "O nome de exibição é obrigatório").max(60),
+  handle: z
+    .string()
+    .min(1, "O handle é obrigatório")
+    .max(40)
+    .transform((val) => val.toLowerCase().replace(/^@/, "").replace(/\s+/g, "-"))
+    .refine((val) => /^[a-z0-9-]+$/.test(val), "O handle deve conter apenas letras minúsculas, números e hífens"),
+  bio: z.string().max(500).optional(),
+  publicProfile: z.boolean().optional(),
+  profileWebsite: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileInstagram: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileYoutube: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileWhatsapp: z.string().url("URL inválida").optional().or(z.literal("")),
+});
+
+export async function updatePublicProfileAction(
+  state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const { userId } = await requireAuth();
+
+  const parsed = PublicProfileSchema.safeParse({
+    displayName: formData.get("displayName"),
+    handle: formData.get("handle"),
+    bio: formData.get("bio") || undefined,
+    publicProfile: formData.get("publicProfile") === "on",
+    profileWebsite: formData.get("profileWebsite") || "",
+    profileInstagram: formData.get("profileInstagram") || "",
+    profileYoutube: formData.get("profileYoutube") || "",
+    profileWhatsapp: formData.get("profileWhatsapp") || "",
+  });
+
+  if (!parsed.success) {
+    return {
+      error: "Verifique os erros no formulário.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const { displayName, handle, bio, publicProfile, ...links } = parsed.data;
+
+  // Verificar unicidade do handle (excluindo o próprio usuário)
+  const existing = await prisma.user.findFirst({
+    where: { handle, id: { not: userId } },
+    select: { id: true },
+  });
+  if (existing) {
+    return { error: "Este handle já está em uso. Escolha outro." };
+  }
+
+  const profileLinks: Record<string, string> = {};
+  if (links.profileWebsite) profileLinks.website = links.profileWebsite;
+  if (links.profileInstagram) profileLinks.instagram = links.profileInstagram;
+  if (links.profileYoutube) profileLinks.youtube = links.profileYoutube;
+  if (links.profileWhatsapp) profileLinks.whatsapp = links.profileWhatsapp;
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        displayName,
+        handle,
+        bio: bio || null,
+        publicProfile,
+        profileLinks: Object.keys(profileLinks).length > 0 ? profileLinks : Prisma.JsonNull,
+      },
+    });
+
+    await logAudit("PROFILE_UPDATED", { handle, publicProfile }, userId);
+  } catch (error) {
+    console.error(error);
+    return { error: "Erro ao atualizar perfil público." };
+  }
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/community/[handle]", "page");
   return { success: true };
 }
 

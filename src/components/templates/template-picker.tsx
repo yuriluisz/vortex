@@ -79,9 +79,9 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-card rounded-xl shadow-2xl w-[95vw] max-w-6xl max-h-[90vh] flex flex-col border border-border animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-card rounded-xl shadow-2xl w-[98vw] max-w-[1400px] h-[95vh] flex flex-col border border-border animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
           <h2 className="text-lg font-semibold text-card-foreground">Escolher Template</h2>
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg transition-colors" aria-label="Fechar">
             <X className="w-5 h-5" />

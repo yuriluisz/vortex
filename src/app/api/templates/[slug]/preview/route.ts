@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sanitizeForPreview } from "@/lib/template-sanitizer";
+import { rateLimit } from "@/lib/rate-limit";
+
+const SLUG_REGEX = /^[a-z0-9-]{1,100}$/;
 
 /**
  * GET /api/templates/[slug]/preview
@@ -9,14 +12,32 @@ import { sanitizeForPreview } from "@/lib/template-sanitizer";
  * Usa sanitizeForPreview (mais leve) porque o iframe já tem sandbox.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
 
+  // Rate limit por IP (rota pública)
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = await rateLimit(`template:preview:${ip}`, {
+    windowSeconds: 60,
+    maxRequests: 120,
+  });
+  if (!rl.allowed) {
+    return new NextResponse("Muitas requisições. Tente novamente em instantes.", {
+      status: 429,
+      headers: { "Retry-After": String(rl.resetIn) },
+    });
+  }
+
+  // Validação de slug
+  if (!SLUG_REGEX.test(slug)) {
+    return new NextResponse("Template não encontrado", { status: 404 });
+  }
+
   try {
     const template = await prisma.template.findUnique({
-      where: { slug },
+      where: { slug, status: "PUBLISHED" },
       include: {
         versions: {
           where: { status: "PUBLISHED" },

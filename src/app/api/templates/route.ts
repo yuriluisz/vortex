@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
+import { TemplateCategory, TemplateTheme } from "@prisma/client";
+
+const ListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(10000).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  category: z.nativeEnum(TemplateCategory).optional(),
+  theme: z.nativeEnum(TemplateTheme).optional(),
+  search: z.string().trim().max(100).optional(),
+});
 
 /**
  * GET /api/templates
@@ -8,12 +19,36 @@ import { prisma } from "@/lib/prisma";
  * Retorna dados resumidos (sem HTML).
  */
 export async function GET(request: Request) {
+  // Rate limit por IP (rota pública)
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = await rateLimit(`template:list:${ip}`, {
+    windowSeconds: 60,
+    maxRequests: 120,
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Muitas requisições. Tente novamente em instantes." },
+      { status: 429, headers: { "Retry-After": String(rl.resetIn) } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
-  const pageSize = Math.min(parseInt(searchParams.get("pageSize") ?? "20"), 100);
-  const page = Math.max(parseInt(searchParams.get("page") ?? "1"), 1);
-  const category = searchParams.get("category");
-  const theme = searchParams.get("theme");
-  const search = searchParams.get("search");
+  const parsed = ListQuerySchema.safeParse({
+    page: searchParams.get("page") ?? undefined,
+    pageSize: searchParams.get("pageSize") ?? undefined,
+    category: searchParams.get("category") ?? undefined,
+    theme: searchParams.get("theme") ?? undefined,
+    search: searchParams.get("search") ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Parâmetros de consulta inválidos.", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  const { page, pageSize, category, theme, search } = parsed.data;
 
   const where: Record<string, unknown> = {
     status: "PUBLISHED",

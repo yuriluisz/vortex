@@ -282,6 +282,154 @@ export async function moderateTemplateAction(
 }
 
 // ============================================================================
+// ENVIAR EMAIL PARA O AUTOR DO TEMPLATE
+// ============================================================================
+export async function sendTemplateAuthorEmailAction(
+  templateId: string,
+  subject: string,
+  message: string
+) {
+  const session = await requireSuperAdmin();
+
+  if (!subject.trim() || !message.trim()) {
+    throw new Error("Assunto e mensagem são obrigatórios.");
+  }
+
+  const template = await prisma.template.findUnique({
+    where: { id: templateId },
+    include: {
+      author: { select: { email: true, name: true } },
+    },
+  });
+
+  if (!template) {
+    throw new Error("Template não encontrado.");
+  }
+
+  const result = await sendEmail({
+    to: template.author.email,
+    subject: `[Vórtex+] ${subject}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
+        <h1 style="font-size: 20px; font-weight: 700; color: #ffffff;">Vórtex+ — Moderação de Template</h1>
+        <p>Olá <strong>${template.author.name || "usuário"}</strong>,</p>
+        <p>Em relação ao seu template <strong>${template.name}</strong>:</p>
+        <p style="background: #171717; border: 1px solid #262626; border-radius: 8px; padding: 16px; white-space: pre-wrap;">${message}</p>
+        <hr style="border: none; border-top: 1px solid #262626; margin: 24px 0;" />
+        <p style="font-size: 12px; color: #525252;">
+          Esta é uma mensagem administrativa do Vórtex+.
+        </p>
+      </div>
+    `,
+  });
+
+  await logAudit(
+    "TEMPLATE_REPORTED",
+    { templateId, subject, action: "email_sent_to_author" },
+    session.userId,
+    template.tenantId ?? undefined
+  );
+
+  if (!result.success) {
+    throw new Error(result.error || "Falha ao enviar email.");
+  }
+}
+
+// ============================================================================
+// REMOVER/RESTAURAR VISIBILIDADE DO TEMPLATE (TAKEN_DOWN ↔ PUBLISHED)
+// ============================================================================
+export async function toggleTemplateVisibilityAction(
+  templateId: string,
+  visible: boolean
+) {
+  const session = await requireSuperAdmin();
+
+  const template = await prisma.template.findUnique({
+    where: { id: templateId },
+    select: { id: true, name: true, slug: true, tenantId: true },
+  });
+
+  if (!template) {
+    throw new Error("Template não encontrado.");
+  }
+
+  const newStatus = visible ? "PUBLISHED" : "TAKEN_DOWN";
+
+  await updateTemplateStatus(
+    templateId,
+    newStatus,
+    session.userId,
+    visible ? undefined : "Visibilidade removida pelo super admin."
+  );
+
+  await logAudit(
+    visible ? "TEMPLATE_APPROVED" : "TEMPLATE_TAKEN_DOWN",
+    { templateId, name: template.name, slug: template.slug, visible, action: "visibility_toggled" },
+    session.userId,
+    template.tenantId ?? undefined
+  );
+  revalidatePath("/admin/super/templates");
+}
+
+// ============================================================================
+// EXCLUIR TEMPLATE (definitivo)
+// ============================================================================
+export async function deleteTemplateAction(templateId: string) {
+  const session = await requireSuperAdmin();
+
+  const template = await prisma.template.findUnique({
+    where: { id: templateId },
+    select: { id: true, name: true, slug: true, tenantId: true },
+  });
+
+  if (!template) {
+    throw new Error("Template não encontrado.");
+  }
+
+  await prisma.template.delete({ where: { id: templateId } });
+
+  await logAudit(
+    "TEMPLATE_TAKEN_DOWN",
+    { templateId, name: template.name, slug: template.slug, action: "deleted_by_super_admin" },
+    session.userId,
+    template.tenantId ?? undefined
+  );
+  revalidatePath("/admin/super/templates");
+}
+
+// ============================================================================
+// BLOQUEAR/DESBLOQUEAR AUTOR DE ENVIAR TEMPLATES
+// ============================================================================
+export async function toggleTemplateAuthorBlockAction(
+  authorId: string,
+  blocked: boolean
+) {
+  const session = await requireSuperAdmin();
+
+  const author = await prisma.user.findUnique({
+    where: { id: authorId },
+    select: { id: true, email: true, name: true },
+  });
+
+  if (!author) {
+    throw new Error("Usuário não encontrado.");
+  }
+
+  await prisma.user.update({
+    where: { id: authorId },
+    data: { templateBlocked: blocked },
+  });
+
+  await logAudit(
+    "TEMPLATE_REPORTED",
+    { authorId, email: author.email, blocked, action: "template_author_block_toggled" },
+    session.userId,
+    undefined
+  );
+  revalidatePath("/admin/super/templates");
+}
+
+// ============================================================================
 // Schema de validação para edição de campanha
 // ============================================================================
 const CampaignEditSchema = z.object({

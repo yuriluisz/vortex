@@ -68,6 +68,15 @@ export async function publishTemplate(
   tenantId: string,
   input: PublishTemplateInput
 ) {
+  // 0. Verificar se o autor está bloqueado de enviar templates
+  const author = await prisma.user.findUnique({
+    where: { id: authorId },
+    select: { templateBlocked: true },
+  });
+  if (author?.templateBlocked) {
+    throw new Error("Você foi bloqueado de enviar templates. Contate o suporte.");
+  }
+
   // 1. Sanitizar o HTML
   const sanitizedHtml = sanitizeTemplateHtml(input.rawHtml);
 
@@ -235,6 +244,15 @@ export async function updateTemplateVersion(
     throw new Error("Você não é o autor deste template.");
   }
 
+  // Verificar se o autor está bloqueado de enviar templates
+  const author = await prisma.user.findUnique({
+    where: { id: authorId },
+    select: { templateBlocked: true },
+  });
+  if (author?.templateBlocked) {
+    throw new Error("Você foi bloqueado de enviar templates. Contate o suporte.");
+  }
+
   // Sanitizar
   const sanitizedHtml = sanitizeTemplateHtml(rawHtml);
 
@@ -328,6 +346,7 @@ export async function getPublishedTemplates(params: {
             id: true,
             handle: true,
             displayName: true,
+            name: true,
             avatarUrl: true,
           },
         },
@@ -356,7 +375,7 @@ export async function getPublishedTemplates(params: {
  */
 export async function getTemplateWithActiveVersion(slug: string) {
   const template = await prisma.template.findUnique({
-    where: { slug },
+    where: { slug, status: "PUBLISHED" },
     include: {
       versions: {
         where: { status: "PUBLISHED" },
@@ -368,6 +387,7 @@ export async function getTemplateWithActiveVersion(slug: string) {
           id: true,
           handle: true,
           displayName: true,
+          name: true,
           avatarUrl: true,
           bio: true,
         },
@@ -433,6 +453,8 @@ export async function updateTemplateStatus(
     data: {
       status,
       ...(reason ? { rejectionReason: reason } : {}),
+      moderatedBy: adminUserId,
+      moderatedAt: new Date(),
     },
   });
 
@@ -455,6 +477,19 @@ export async function updateTemplateStatus(
         },
       });
     }
+  }
+
+  // Se foi removido (TAKEN_DOWN), atualizar também as versões publicadas
+  if (status === "TAKEN_DOWN") {
+    await prisma.templateVersion.updateMany({
+      where: {
+        templateId,
+        status: "PUBLISHED",
+      },
+      data: {
+        status: "TAKEN_DOWN",
+      },
+    });
   }
 
   // Notificar o autor por email (aprovado, rejeitado ou removido)

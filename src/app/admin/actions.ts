@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { canCreateResource } from "@/lib/plans";
 import { logAudit } from "@/lib/audit";
 import { requireTenantOwnership } from "@/lib/tenant-guard";
+import { canCustomizeLink } from "@/lib/campaign-meta";
 import type { Plan } from "@/lib/prisma-types";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { addCustomHostname, removeCustomHostname, getCustomHostnameStatus } from "@/services/cloudflare.service";
@@ -78,6 +79,20 @@ const CampaignSchema = z.object({
   groupSupportPhones: z.string().optional().transform((val) => val ? val.split(",").map((s) => s.trim().replace(/\D/g, "")).filter(Boolean) : []),
   groupDescription: z.string().optional(),
   groupImageUrl: z.string().url("A imagem precisa ser uma URL válida").optional().or(z.literal("")),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  ogImageUrl: z
+    .string()
+    .url("A imagem precisa ser uma URL válida")
+    .refine((v) => /^https?:\/\//i.test(v), "A imagem deve começar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
+  faviconUrl: z
+    .string()
+    .url("O favicon precisa ser uma URL válida")
+    .refine((v) => /^https?:\/\//i.test(v), "O favicon deve começar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type ActionState = {
@@ -103,6 +118,10 @@ export async function createCampaignAction(
     groupSupportPhones: formData.get("groupSupportPhones") || undefined,
     groupDescription: formData.get("groupDescription") || undefined,
     groupImageUrl: formData.get("groupImageUrl") || undefined,
+    metaTitle: formData.get("metaTitle") || undefined,
+    metaDescription: formData.get("metaDescription") || undefined,
+    ogImageUrl: formData.get("ogImageUrl") || undefined,
+    faviconUrl: formData.get("faviconUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -112,9 +131,14 @@ export async function createCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl } = parsed.data;
+  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl, metaTitle, metaDescription, ogImageUrl, faviconUrl } = parsed.data;
 
   const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
+  const canCustomize = canCustomizeLink(plan);
+  const finalMetaTitle = canCustomize ? (metaTitle || null) : null;
+  const finalMetaDescription = canCustomize ? (metaDescription || null) : null;
+  const finalOgImageUrl = canCustomize ? (ogImageUrl || null) : null;
+  const finalFaviconUrl = canCustomize ? (faviconUrl || null) : null;
 
   // Verificar limite do plano
   if (plan) {
@@ -148,6 +172,10 @@ export async function createCampaignAction(
         groupSupportPhones,
         groupDescription,
         groupImageUrl,
+        metaTitle: finalMetaTitle,
+        metaDescription: finalMetaDescription,
+        ogImageUrl: finalOgImageUrl,
+        faviconUrl: finalFaviconUrl,
         tenantId,
         accessCode: crypto.randomUUID(),
       },
@@ -250,6 +278,10 @@ export async function updateCampaignAction(
     groupSupportPhones: formData.get("groupSupportPhones") || undefined,
     groupDescription: formData.get("groupDescription") || undefined,
     groupImageUrl: formData.get("groupImageUrl") || undefined,
+    metaTitle: formData.get("metaTitle") || undefined,
+    metaDescription: formData.get("metaDescription") || undefined,
+    ogImageUrl: formData.get("ogImageUrl") || undefined,
+    faviconUrl: formData.get("faviconUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -259,7 +291,12 @@ export async function updateCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl } = parsed.data;
+  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl, metaTitle, metaDescription, ogImageUrl, faviconUrl } = parsed.data;
+  const canCustomize = canCustomizeLink(plan);
+  const finalMetaTitle = canCustomize ? (metaTitle || null) : null;
+  const finalMetaDescription = canCustomize ? (metaDescription || null) : null;
+  const finalOgImageUrl = canCustomize ? (ogImageUrl || null) : null;
+  const finalFaviconUrl = canCustomize ? (faviconUrl || null) : null;
 
   // Check unique slug if it changed
   const existing = await prisma.campaign.findUnique({
@@ -298,6 +335,10 @@ export async function updateCampaignAction(
         groupSupportPhones,
         groupDescription,
         groupImageUrl,
+        metaTitle: finalMetaTitle,
+        metaDescription: finalMetaDescription,
+        ogImageUrl: finalOgImageUrl,
+        faviconUrl: finalFaviconUrl,
       },
     });
 
@@ -321,6 +362,26 @@ export async function updateCampaignAction(
 
   revalidatePath("/admin/campaigns");
   revalidatePath(`/admin/campaigns/${campaignId}`);
+
+  // Revalidar rotas públicas para o metadata (título/descrição/imagem/favicon)
+  // atualizar imediatamente, sem esperar o cache de 60s expirar.
+  const publicCampaign = await prisma.campaign.findUnique({
+    where: { id: campaignId },
+    select: { slug: true, accessCode: true, customDomain: true },
+  });
+  if (publicCampaign?.slug) {
+    revalidatePath(`/${publicCampaign.slug}`);
+    revalidatePath(`/${publicCampaign.slug}/redirect`);
+  }
+  if (publicCampaign?.accessCode) {
+    revalidatePath(`/c/${publicCampaign.accessCode}`);
+    revalidatePath(`/c/${publicCampaign.accessCode}/redirect`);
+  }
+  if (publicCampaign?.customDomain) {
+    revalidatePath(`/custom-domain/${publicCampaign.customDomain}`);
+    revalidatePath(`/custom-domain/${publicCampaign.customDomain}/redirect`);
+  }
+
   return { success: true };
 }
 
@@ -706,3 +767,210 @@ export async function checkCustomHostnameStatusAction(hostname: string) {
   return await getCustomHostnameStatus(hostname);
 }
 
+// ---------------------------------------------------------------------------
+// SAVE CAMPAIGN (unified create/update via JSON)
+// ---------------------------------------------------------------------------
+
+const SaveCampaignSchema = z.object({
+  name: z.string().min(1, "O nome da campanha é obrigatório"),
+  slug: z
+    .string()
+    .min(1, "O slug é obrigatório")
+    .transform((val) => val.toLowerCase().replace(/\s+/g, "-"))
+    .refine(
+      (val) => /^[a-z0-9-]+$/.test(val),
+      "O slug deve conter apenas letras minúsculas, números e hífens"
+    ),
+  rawHtml: z
+    .string()
+    .min(
+      1,
+      "O HTML base é obrigatório. (Use {{FORM_SLOT}} onde o form deve aparecer)"
+    ),
+  formSchema: z.string().refine(
+    (val) => {
+      try {
+        JSON.parse(val);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    "Formato JSON inválido para o Schema do formulário"
+  ),
+  pixelId: z.string().optional(),
+  customDomain: z.string().optional(),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  ogImageUrl: z
+    .string()
+    .url("A imagem precisa ser uma URL válida")
+    .refine((v) => /^https?:\/\//i.test(v), "A imagem deve começar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
+  faviconUrl: z
+    .string()
+    .url("O favicon precisa ser uma URL válida")
+    .refine((v) => /^https?:\/\//i.test(v), "O favicon deve começar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
+  groupMaxCapacity: z.coerce.number().min(1).max(1024).default(1000),
+  groupSupportPhones: z.string().optional().transform((val) => val ? val.split(",").map((s) => s.trim().replace(/\D/g, "")).filter(Boolean) : []),
+  groupDescription: z.string().optional(),
+  groupImageUrl: z.string().url("A imagem precisa ser uma URL válida").optional().or(z.literal("")),
+});
+
+export async function saveCampaignAction(
+  campaignId: string | null,
+  data: Record<string, unknown>
+): Promise<ActionState> {
+  const { userId, tenantId, plan } = await requireAuth();
+
+  const parsed = SaveCampaignSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return {
+      error: "Verifique os erros no formulário.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const {
+    name, slug, rawHtml, formSchema, pixelId, customDomain,
+    metaTitle, metaDescription, ogImageUrl, faviconUrl,
+    groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl,
+  } = parsed.data;
+
+  const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
+  const canCustomize = canCustomizeLink(plan);
+  const finalMetaTitle = canCustomize ? (metaTitle || null) : null;
+  const finalMetaDescription = canCustomize ? (metaDescription || null) : null;
+  const finalOgImageUrl = canCustomize ? (ogImageUrl || null) : null;
+  const finalFaviconUrl = canCustomize ? (faviconUrl || null) : null;
+
+  const campaignData = {
+    name,
+    slug,
+    pixelId: pixelId || null,
+    customDomain: finalCustomDomain,
+    rawHtml,
+    formSchema: JSON.parse(formSchema),
+    groupMaxCapacity,
+    groupSupportPhones,
+    groupDescription: groupDescription || null,
+    groupImageUrl: groupImageUrl || null,
+    metaTitle: finalMetaTitle,
+    metaDescription: finalMetaDescription,
+    ogImageUrl: finalOgImageUrl,
+    faviconUrl: finalFaviconUrl,
+  };
+
+  // ── CREATE ──
+  if (!campaignId) {
+    // Verificar limite do plano
+    const currentCount = await prisma.campaign.count({ where: { tenantId } });
+    const limitCheck = canCreateResource(plan, "campaigns", currentCount);
+    if (!limitCheck.allowed) {
+      return { error: limitCheck.reason };
+    }
+
+    // Verificar slug único
+    const existing = await prisma.campaign.findUnique({
+      where: { tenantId_slug: { tenantId, slug } },
+    });
+    if (existing) {
+      return { error: "Já existe uma campanha com este slug neste tenant." };
+    }
+
+    try {
+      await prisma.campaign.create({
+        data: {
+          ...campaignData,
+          tenantId,
+          accessCode: crypto.randomUUID(),
+        },
+      });
+
+      if (finalCustomDomain) {
+        await addCustomHostname(finalCustomDomain);
+      }
+
+      await logAudit("CAMPAIGN_CREATED", { slug, name }, userId, tenantId);
+    } catch (error) {
+      console.error(error);
+      return { error: "Erro interno ao criar campanha." };
+    }
+
+    revalidatePath("/admin/campaigns");
+    redirect("/admin/campaigns");
+  }
+
+  // ── UPDATE ──
+  const ownership = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
+  if (ownership.error) return ownership.error;
+
+  // Check unique slug
+  const existing = await prisma.campaign.findUnique({
+    where: { tenantId_slug: { tenantId, slug } },
+  });
+  if (existing && existing.id !== campaignId) {
+    return { error: "Já existe outra campanha com este slug neste tenant." };
+  }
+
+  try {
+    const oldCampaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { customDomain: true },
+    });
+
+    // Check unique customDomain
+    if (finalCustomDomain) {
+      const existingDomain = await prisma.campaign.findUnique({
+        where: { customDomain: finalCustomDomain },
+      });
+      if (existingDomain && existingDomain.id !== campaignId) {
+        return { error: "Este domínio customizado já está sendo usado por outra campanha." };
+      }
+    }
+
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: campaignData,
+    });
+
+    if (oldCampaign?.customDomain && oldCampaign.customDomain !== finalCustomDomain) {
+      await removeCustomHostname(oldCampaign.customDomain);
+    }
+    if (finalCustomDomain && oldCampaign?.customDomain !== finalCustomDomain) {
+      await addCustomHostname(finalCustomDomain);
+    }
+
+    await logAudit("CAMPAIGN_UPDATED", { campaignId, slug, name }, userId, tenantId);
+  } catch (error) {
+    console.error(error);
+    return { error: "Erro interno ao atualizar campanha." };
+  }
+
+  revalidatePath("/admin/campaigns");
+  revalidatePath(`/admin/campaigns/${campaignId}`);
+
+  // Revalidar rotas públicas
+  const publicCampaign = await prisma.campaign.findUnique({
+    where: { id: campaignId },
+    select: { slug: true, accessCode: true, customDomain: true },
+  });
+  if (publicCampaign?.slug) {
+    revalidatePath(`/${publicCampaign.slug}`);
+    revalidatePath(`/${publicCampaign.slug}/redirect`);
+  }
+  if (publicCampaign?.accessCode) {
+    revalidatePath(`/c/${publicCampaign.accessCode}`);
+    revalidatePath(`/c/${publicCampaign.accessCode}/redirect`);
+  }
+  if (publicCampaign?.customDomain) {
+    revalidatePath(`/custom-domain/${publicCampaign.customDomain}`);
+    revalidatePath(`/custom-domain/${publicCampaign.customDomain}/redirect`);
+  }
+
+  return { success: true };
+}

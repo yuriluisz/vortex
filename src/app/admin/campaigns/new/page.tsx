@@ -1,7 +1,7 @@
-import { CampaignWizard } from "@/components/admin/campaign-wizard";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/session";
 import { getUserTenant } from "@/lib/auth";
+import { CampaignEditor } from "@/components/admin/campaign-editor";
 
 export default async function NewCampaignPage() {
   const cookieStore = await cookies();
@@ -16,5 +16,5 @@ export default async function NewCampaignPage() {
     }
   }
 
-  return <CampaignWizard plan={plan} />;
+  return <CampaignEditor mode="create" plan={plan} />;
 }
