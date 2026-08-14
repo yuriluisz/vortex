@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader2, Upload } from "lucide-react";
 import { publishTemplateAction } from "./actions";
+import { FieldTooltip } from "@/components/admin/field-tooltip";
 
 interface PublishModalProps {
   campaigns: { id: string; name: string }[];
@@ -70,8 +71,9 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Campanha origem */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
               Campanha de origem *
+              <FieldTooltip tooltip="O HTML desta campanha será copiado e usado como conteúdo do template. Escolha a campanha com o design que deseja compartilhar." docsAnchor="templates-publicar" />
             </label>
             <select
               value={sourceCampaignId}
@@ -91,8 +93,9 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
 
           {/* Nome */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
               Nome do template *
+              <FieldTooltip tooltip="Um nome claro e atrativo para o seu template. Até 120 caracteres." docsAnchor="templates-publicar" />
             </label>
             <input
               type="text"
@@ -106,8 +109,9 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
 
           {/* Descrição */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
               Descrição
+              <FieldTooltip tooltip="Explique para que tipo de campanha este template é ideal. Até 1000 caracteres. Opcional." docsAnchor="templates-publicar" />
             </label>
             <textarea
               value={description}
@@ -121,7 +125,10 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
           {/* Categoria + Tema */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1.5">Categoria</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+                Categoria
+                <FieldTooltip tooltip="Escolha a categoria que melhor descreve o uso deste template: Landing Page, Squeeze, Webinar, etc." docsAnchor="templates-publicar" />
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -133,7 +140,10 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1.5">Tema</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+                Tema
+                <FieldTooltip tooltip="O estilo visual predominante: Escuro, Claro ou Colorido. Ajuda outros usuários a filtrar." docsAnchor="templates-publicar" />
+              </label>
               <select
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
@@ -148,8 +158,9 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
               Tags (separadas por vírgula)
+              <FieldTooltip tooltip="Palavras-chave para facilitar a busca. Até 20 tags, separadas por vírgula." docsAnchor="templates-publicar" />
             </label>
             <input
               type="text"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Loader2, Save, Code2 } from "lucide-react";
 import { saveTemplateEditAction } from "./actions";
+import { FieldTooltip } from "@/components/admin/field-tooltip";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 
 const CATEGORIES: { value: TemplateCategory; label: string }[] = [
@@ -82,23 +83,35 @@ export function EditTemplateModal({ template, onClose }: Props) {
           {/* Metadados */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Nome *</label>
+              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+                Nome *
+                <FieldTooltip tooltip="Nome atrativo para o template. Até 120 caracteres." docsAnchor="templates-editar" />
+              </label>
               <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} className={inputCls} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Tags (separadas por vírgula)</label>
+              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+                Tags (separadas por vírgula)
+                <FieldTooltip tooltip="Palavras-chave para facilitar a busca. Até 20 tags, separadas por vírgula." docsAnchor="templates-editar" />
+              </label>
               <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="landing, vendas, imobiliário" className={inputCls} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+              Descrição
+              <FieldTooltip tooltip="Explique para que tipo de campanha este template é ideal. Até 1000 caracteres." docsAnchor="templates-editar" />
+            </label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputCls} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Categoria</label>
+              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+                Categoria
+                <FieldTooltip tooltip="Escolha a categoria que melhor descreve o uso deste template." docsAnchor="templates-editar" />
+              </label>
               <select value={category} onChange={(e) => setCategory(e.target.value as TemplateCategory)} className={inputCls}>
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -106,7 +119,10 @@ export function EditTemplateModal({ template, onClose }: Props) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Tema</label>
+              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+                Tema
+                <FieldTooltip tooltip="Estilo visual predominante: Escuro, Claro ou Colorido." docsAnchor="templates-editar" />
+              </label>
               <select value={theme} onChange={(e) => setTheme(e.target.value as TemplateTheme)} className={inputCls}>
                 {THEMES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
@@ -123,6 +139,7 @@ export function EditTemplateModal({ template, onClose }: Props) {
               <span className="text-xs text-muted-foreground font-normal">
                 (alterações geram nova versão para análise)
               </span>
+              <FieldTooltip tooltip="Alterações no HTML criam uma nova versão e o template volta para 'Em análise'. Metadados são salvos imediatamente." docsAnchor="templates-editar" />
             </label>
             <textarea
               value={html}

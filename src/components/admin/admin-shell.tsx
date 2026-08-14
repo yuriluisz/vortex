@@ -226,15 +226,25 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
           <div className="my-2 border-t border-border/50" />
 
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive/80 transition-colors hover:bg-destructive/15 hover:text-destructive"
+          {tenantInfo ? (
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive/80 transition-colors hover:bg-destructive/15 hover:text-destructive"
+              >
+                <LogOut className="h-5 w-5" />
+                Sair da conta
+              </button>
+            </form>
+          ) : (
+            <Link
+              href="/admin/login"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
             >
-              <LogOut className="h-5 w-5" />
-              Sair da conta
-            </button>
-          </form>
+              <LogOut className="h-5 w-5 rotate-180" />
+              Fazer login
+            </Link>
+          )}
         </div>
       </aside>
 

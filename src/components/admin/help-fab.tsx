@@ -57,7 +57,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Como criar uma nova campanha?",
         answer:
-          'Clique no botão "Nova Campanha" no topo da página. Você será guiado por um assistente de 3 etapas: Configuração, Conteúdo e Grupo.',
+          'Clique no botão "Nova Campanha" no topo da página. Você será levado ao Editor Visual com código, preview ao vivo e painel de configurações completo.',
         docsAnchor: "criar-campanha",
       },
       {
@@ -102,10 +102,16 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         docsAnchor: "tag-form-slot",
       },
       {
-        question: "Posso pular a etapa de grupo?",
+        question: "Posso usar templates prontos?",
         answer:
-          "Sim! A etapa 3 de Grupo WhatsApp é opcional. Você pode criar a campanha sem grupo e adicionar grupos depois na aba de Grupos.",
-        docsAnchor: "wizard-etapa-grupo",
+          'Sim! Clique no botão "Templates" no topo do editor para escolher um template pronto da comunidade. Basta selecionar e personalizar o código.',
+        docsAnchor: "templates-visao",
+      },
+      {
+        question: "Como configuro o SEO do link?",
+        answer:
+          'Na aba Geral do painel de configurações, role até "Identidade Visual do Link (SEO)" para definir título, descrição, imagem e favicon. Recurso exclusivo dos planos Pro e Ultra.',
+        docsAnchor: "campo-seo",
       },
     ],
   },
@@ -142,6 +148,12 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         answer:
           "Sim, mas é irreversível. Ao excluir, a campanha, seus grupos e todos os leads associados serão removidos permanentemente.",
         docsAnchor: "campanha-excluir",
+      },
+      {
+        question: "Como configuro o SEO do link?",
+        answer:
+          'Clique no ícone ⚙ para abrir as configurações. Na aba Geral, role até "Identidade Visual do Link (SEO)" para definir título, descrição, imagem e favicon que aparecem ao compartilhar.',
+        docsAnchor: "campo-seo",
       },
     ],
   },
@@ -182,7 +194,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Como exportar meus leads?",
         answer:
-          "A funcionalidade de exportar para CSV está em desenvolvimento e será liberada em breve.",
+          'Clique em "Exportar CSV" no topo da tabela de leads para baixar um arquivo com todas as respostas do formulário, metadados de acesso e status de grupo.',
         docsAnchor: "leads-exportar",
       },
       {
@@ -291,6 +303,41 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       },
     ],
   },
+  "/admin/templates": {
+    title: "Meus Templates",
+    items: [
+      {
+        question: "Como publicar um template?",
+        answer:
+          'Clique em "Publicar novo template", selecione uma campanha como fonte, preencha nome, categoria e tema, e envie para análise.',
+        docsAnchor: "templates-publicar",
+      },
+      {
+        question: "O que significa 'Em análise'?",
+        answer:
+          "Seu template está aguardando revisão da equipe Vórtex+. Verificamos conteúdo malicioso e qualidade mínima antes de disponibilizar na loja.",
+        docsAnchor: "templates-aprovacao",
+      },
+      {
+        question: "Meu template foi rejeitado, o que fazer?",
+        answer:
+          "O motivo da rejeição aparece no card do template. Corrija o problema apontado e clique em 'Reenviar para análise'.",
+        docsAnchor: "templates-aprovacao",
+      },
+      {
+        question: "Posso editar um template publicado?",
+        answer:
+          "Sim! Use o menu de ações (⋮) no card. Alterações nos metadados são salvas imediatamente. Alterações no HTML criam nova versão e passam por análise.",
+        docsAnchor: "templates-editar",
+      },
+      {
+        question: "Como excluir um template?",
+        answer:
+          "No menu de ações (⋮), clique em 'Excluir'. Templates em uso por outros usuários não podem ser excluídos — use 'Ocultar' neste caso.",
+        docsAnchor: "templates-editar",
+      },
+    ],
+  },
 };
 
 // ============================================================================
@@ -310,6 +357,8 @@ function getFAQForPath(pathname: string): PageFAQ {
     return FAQ_DATA["campaign-details"];
   if (/^\/admin\/campaigns\/[^/]+/.test(pathname))
     return FAQ_DATA["campaign-details"];
+  if (/^\/admin\/templates/.test(pathname))
+    return FAQ_DATA["/admin/templates"] ?? { title: "Templates", items: [] };
 
   // Fallback
   return {

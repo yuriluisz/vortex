@@ -28,6 +28,19 @@ import {
   Smartphone,
   Wifi,
   RefreshCw,
+  LayoutTemplate,
+  FileCheck,
+  Pencil,
+  PackageOpen,
+  Tag,
+  Palette,
+  Globe2,
+  Settings2,
+  FileText,
+  Columns2,
+  Code,
+  Image as ImageIcon,
+  Share2,
 } from "lucide-react";
 
 // ============================================================================
@@ -46,6 +59,7 @@ const PARTS = [
   { id: "parte-2", label: "Campanhas" },
   { id: "parte-3", label: "WhatsApp" },
   { id: "parte-4", label: "Configurações" },
+  { id: "parte-5", label: "Templates" },
 ];
 
 const CHAPTERS: Chapter[] = [
@@ -63,6 +77,10 @@ const CHAPTERS: Chapter[] = [
   { id: "cobranca", title: "Dados de Cobrança", icon: CreditCard, part: "parte-4" },
   { id: "conta", title: "Conta e Segurança", icon: User, part: "parte-4" },
   { id: "planos", title: "Planos e Assinatura", icon: Shield, part: "parte-4" },
+  { id: "templates-visao", title: "Meus Templates", icon: LayoutTemplate, part: "parte-5" },
+  { id: "templates-publicar", title: "Publicando um Template", icon: PackageOpen, part: "parte-5" },
+  { id: "templates-aprovacao", title: "Fluxo de Aprovação", icon: FileCheck, part: "parte-5" },
+  { id: "templates-editar", title: "Editando Templates", icon: Pencil, part: "parte-5" },
 ];
 
 // ============================================================================
@@ -474,70 +492,167 @@ export default function AdminDocsPage() {
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
                 Para criar uma nova campanha, clique no botão{" "}
-                <strong>"Nova Campanha"</strong> e siga o assistente
-                de 4 etapas:
+                <strong>&quot;Nova Campanha&quot;</strong> na página de Campanhas.
+                Você será levado ao <strong>Editor Visual</strong>, que combina um editor de código
+                profissional com preview ao vivo e um painel de configurações completo.
               </p>
 
               <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
-                <h3 className="text-foreground font-medium">
-                  Etapa 1 — Configuração
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Columns2 className="h-4 w-4" />
+                  O Editor Visual
                 </h3>
+                <p className="text-sm">
+                  O editor é dividido em duas áreas que trabalham juntas:
+                </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm">
-                  <li id="campo-nome">
-                    <strong className="text-foreground">
-                      Nome da Campanha
-                    </strong>{" "}
-                    — Um nome claro para identificar sua campanha (ex:
-                    &quot;Lançamento Mentoria 2026&quot;)
+                  <li>
+                    <strong className="text-foreground">Editor de Código (Monaco)</strong>{" "}
+                    — à esquerda, um editor profissional com syntax highlighting, autocompletar e numeração de linhas. Cole ou escreva seu HTML aqui.
                   </li>
-                  <li id="campo-slug">
-                    <strong className="text-foreground">Slug (URL)</strong> — O
-                    endereço público da sua página de captura. Use apenas
-                    letras minúsculas, números e hífens. Aparecerá como{" "}
-                    <code className="font-mono text-xs text-primary bg-primary/10 px-1 py-0.5 rounded">
-                      vortexpages.online/seu-slug
-                    </code>
-                  </li>
-                  <li id="campo-dominio" className="space-y-3">
-                    <strong className="text-foreground flex items-center gap-2">
-                      <PlanBadge plan='ULTRA' /> Domínio Customizado
-                    </strong>
-                    <p>
-                      Permite utilizar seu próprio domínio (ex: <code className="font-mono text-xs">campanha.meudominio.com.br</code>) em vez do slug da Vórtex.
-                    </p>
-                    <div className="bg-muted/50 p-4 rounded-lg space-y-3 border border-border">
-                      <p className="font-medium text-foreground">Como configurar e fazer funcionar:</p>
-                      <ol className="list-decimal pl-5 space-y-2 text-sm">
-                        <li>Acesse o painel do seu provedor de domínio (Cloudflare, HostGator, Registro.br, etc).</li>
-                        <li>Crie um novo registro de DNS do tipo <strong>CNAME</strong>.</li>
-                        <li>No campo "Nome" ou "Host", coloque o subdomínio (ex: <code>campanha</code>).</li>
-                        <li>No campo "Destino" ou "Alvo", aponte para <code>vortexpages.online</code>.</li>
-                        <li>Volte ao Vórtex+ e digite o domínio completo (ex: <code>campanha.meudominio.com.br</code>) no campo de Domínio Customizado.</li>
-                      </ol>
-                    </div>
-                    <Warning>
-                      <strong>Importante:</strong> Sempre que o domínio customizado for ativado, o <strong>domínio padrão e o domínio protegido (seguro) são desativados automaticamente</strong>. 
-                      Isso torna a sua página muito <strong>mais segura</strong>, pois garante exclusividade total ao seu funil, evitando qualquer vazamento dos links originais da plataforma. Seus leads só poderão acessar a página usando a sua própria marca, passando muito mais profissionalismo.
-                    </Warning>
-                  </li>
-                  <li id="campo-pixel">
-                    <strong className="text-foreground">
-                      Meta Pixel ID
-                    </strong>{" "}
-                    Opcional — Se você utiliza anúncios no Facebook ou
-                    Instagram, insira o ID do seu pixel. O Vórtex+ disparará
-                    eventos de conversão automaticamente quando um lead se
-                    cadastrar.
+                  <li>
+                    <strong className="text-foreground">Preview ao Vivo</strong>{" "}
+                    — à direita, uma prévia em tempo real da sua página. Cada alteração no código é refletida automaticamente após uma breve pausa.
                   </li>
                 </ul>
+                <p className="text-sm">
+                  Use os botões no topo para alternar entre os modos de visualização:
+                  <strong> Código</strong> (somente editor),
+                  <strong> Preview</strong> (somente visualização) ou
+                  <strong> Split</strong> (ambos lado a lado, padrão).
+                </p>
                 <Tip>
-                  Dica: Fique atento aos <strong>ícones de ajuda (?)</strong> ao lado de cada campo! Eles abrem dicas rápidas (Tooltips) para explicar cada configuração, além de links diretos para esta documentação.
+                  No mobile, o modo Split não está disponível. Alterne entre Código e Preview usando os botões no topo.
                 </Tip>
               </div>
 
               <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
-                <h3 className="text-foreground font-medium">
-                  Etapa 2 — Conteúdo
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Settings2 className="h-4 w-4" />
+                  Painel de Configurações (⚙)
+                </h3>
+                <p className="text-sm">
+                  Ao criar uma campanha, o painel de configurações abre automaticamente. Ele possui <strong>3 abas</strong> que organizam todas as opções:
+                </p>
+
+                <div className="space-y-4 mt-4">
+                  <div className="pl-4 border-l-2 border-primary/30 space-y-3">
+                    <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                      <Settings2 className="h-3.5 w-3.5 text-primary" />
+                      Aba Geral
+                    </h4>
+                    <ul className="list-disc pl-5 space-y-2 text-sm">
+                      <li id="campo-nome">
+                        <strong className="text-foreground">Nome da Campanha *</strong>{" "}
+                        — Um nome claro para identificar sua campanha internamente (ex: &quot;Lançamento Mentoria 2026&quot;). Visível apenas no painel.
+                      </li>
+                      <li id="campo-slug">
+                        <strong className="text-foreground">Slug (URL) *</strong>{" "}
+                        — O endereço público da sua página. Use apenas letras minúsculas, números e hífens. Aparecerá como{" "}
+                        <code className="font-mono text-xs text-primary bg-primary/10 px-1 py-0.5 rounded">
+                          vortexpages.online/seu-slug
+                        </code>
+                      </li>
+                      <li id="campo-dominio" className="space-y-3">
+                        <strong className="text-foreground flex items-center gap-2">
+                          <PlanBadge plan='ULTRA' /> Domínio Customizado
+                        </strong>
+                        <p>
+                          Permite utilizar seu próprio domínio (ex: <code className="font-mono text-xs">campanha.meudominio.com.br</code>) em vez do slug da Vórtex.
+                        </p>
+                        <div className="bg-muted/50 p-4 rounded-lg space-y-3 border border-border">
+                          <p className="font-medium text-foreground">Como configurar e fazer funcionar:</p>
+                          <ol className="list-decimal pl-5 space-y-2 text-sm">
+                            <li>Acesse o painel do seu provedor de domínio (Cloudflare, HostGator, Registro.br, etc).</li>
+                            <li>Crie um novo registro de DNS do tipo <strong>CNAME</strong>.</li>
+                            <li>No campo &quot;Nome&quot; ou &quot;Host&quot;, coloque o subdomínio (ex: <code>campanha</code>).</li>
+                            <li>No campo &quot;Destino&quot; ou &quot;Alvo&quot;, aponte para <code>vortexpages.online</code>.</li>
+                            <li>Volte ao Vórtex+ e digite o domínio completo (ex: <code>campanha.meudominio.com.br</code>) no campo de Domínio Customizado.</li>
+                          </ol>
+                        </div>
+                        <Warning>
+                          <strong>Importante:</strong> Sempre que o domínio customizado for ativado, o <strong>domínio padrão e o domínio protegido (seguro) são desativados automaticamente</strong>. 
+                          Isso torna a sua página muito <strong>mais segura</strong>, pois garante exclusividade total ao seu funil, evitando qualquer vazamento dos links originais da plataforma.
+                        </Warning>
+                      </li>
+                      <li id="campo-pixel">
+                        <strong className="text-foreground">Meta Pixel ID</strong>{" "}
+                        — Opcional. Se você utiliza anúncios no Facebook ou Instagram, insira o ID do seu pixel. O Vórtex+ disparará eventos de conversão automaticamente quando um lead se cadastrar.
+                      </li>
+                    </ul>
+
+                    {/* SEO Section */}
+                    <div id="campo-seo" className="mt-4 pt-4 border-t border-border space-y-3">
+                      <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                        <Share2 className="h-3.5 w-3.5" />
+                        Identidade Visual do Link (SEO)
+                      </h4>
+                      <p className="text-sm">
+                        Personalize como sua página aparece ao compartilhar no WhatsApp, redes sociais e na aba do navegador.
+                        Recurso exclusivo dos planos <strong>Pro</strong> e <strong>Ultra</strong>.
+                      </p>
+                      <ul className="list-disc pl-5 space-y-2 text-sm">
+                        <li id="campo-meta-titulo">
+                          <strong className="text-foreground">Título do Link</strong>{" "}
+                          — O título exibido no card de preview ao compartilhar a URL (ex: no WhatsApp, Facebook, Twitter). Aparece em destaque como o nome da página.
+                        </li>
+                        <li id="campo-meta-descricao">
+                          <strong className="text-foreground">Descrição do Link</strong>{" "}
+                          — O texto descritivo que aparece abaixo do título no card de compartilhamento. Use-o para resumir a oferta e incentivar o clique.
+                        </li>
+                        <li id="campo-meta-imagem">
+                          <strong className="text-foreground">Imagem do Card (URL)</strong>{" "}
+                          — A imagem de capa do card ao compartilhar. Tamanho recomendado: <strong>1200×630 pixels</strong>. Use uma URL pública (hospede no Cloudflare R2, Imgur, etc).
+                        </li>
+                        <li id="campo-meta-favicon">
+                          <strong className="text-foreground">Favicon (URL)</strong>{" "}
+                          — O ícone pequeno que aparece na aba do navegador. Use uma imagem quadrada de <strong>32×32</strong> ou <strong>64×64 pixels</strong> (PNG ou ICO).
+                        </li>
+                      </ul>
+                      <Tip>
+                        O painel mostra um <strong>preview do card</strong> em tempo real conforme você preenche os campos de SEO. Assim você visualiza exatamente como seu link vai aparecer ao ser compartilhado.
+                      </Tip>
+                    </div>
+                  </div>
+
+                  <div className="pl-4 border-l-2 border-primary/30 space-y-3">
+                    <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                      <FileText className="h-3.5 w-3.5 text-primary" />
+                      Aba Formulário
+                    </h4>
+                    <div id="campo-formulario" className="space-y-2">
+                      <p className="text-sm">
+                        Configure as perguntas que aparecem na página de captura. O campo <strong>WhatsApp</strong> é obrigatório e já vem configurado.
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        <li>Tipos de campo disponíveis: <strong>texto</strong>, <strong>email</strong>, <strong>telefone</strong> e <strong>número</strong>.</li>
+                        <li>Defina se cada campo é <strong>obrigatório ou opcional</strong>.</li>
+                        <li>Use os <strong>botões rápidos</strong> para adicionar campos comuns (Nome, Email, WhatsApp) com um clique.</li>
+                        <li>Arraste os campos para reordenar a sequência que o lead verá.</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="pl-4 border-l-2 border-muted space-y-3">
+                    <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                      <LinkIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                      Aba Links e Acesso <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-normal ml-1">somente na edição</span>
+                    </h4>
+                    <p className="text-sm">
+                      Disponível somente ao editar uma campanha existente. Mostra as URLs de acesso e os controles de proteção. Veja a seção <strong>&quot;5. Detalhes da Campanha&quot;</strong> para mais informações.
+                    </p>
+                  </div>
+                </div>
+
+                <Tip>
+                  Fique atento aos <strong>ícones de ajuda (?)</strong> ao lado de cada campo! Eles abrem dicas rápidas (Tooltips) para explicar cada configuração, além de links diretos para esta documentação.
+                </Tip>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Conteúdo HTML
                 </h3>
 
                 <div id="campo-html" className="space-y-2">
@@ -545,7 +660,7 @@ export default function AdminDocsPage() {
                     HTML Customizado
                   </h4>
                   <p className="text-sm">
-                    Cole aqui o HTML completo da sua landing page. O Vórtex+ permite que você crie sua página em qualquer ferramenta (Webflow, Figma, Framer, IA como Bolt/v0, ou codificação manual) e hospede diretamente conosco.
+                    Cole ou escreva o HTML da sua landing page diretamente no editor de código. O Vórtex+ permite que você crie sua página em qualquer ferramenta (Webflow, Figma, Framer, IAs como Bolt/v0, ou código puro) e hospede diretamente conosco.
                   </p>
                 </div>
 
@@ -558,16 +673,16 @@ export default function AdminDocsPage() {
                     <code className="font-mono text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                       {`{{FORM_SLOT}}`}
                     </code>{" "}
-                    no local exato do seu HTML onde o formulário deve aparecer. O Vórtex+ substituirá essa tag pelo formulário dinâmico.
+                    no local exato do seu HTML onde o formulário deve aparecer. O Vórtex+ substituirá essa tag pelo formulário dinâmico configurado na aba Formulário.
                   </p>
                 </div>
                 
                 <div id="html-videos" className="space-y-2 mt-4 border-l-2 border-border pl-4">
-                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                  <h4 className="text-foreground text-sm font-medium">
                     Vídeos (Vturb, YouTube, Vimeo)
                   </h4>
                   <p className="text-sm">
-                    Para inserir vídeos de vendas (VSL), você deve utilizar a tag <code className="font-mono text-xs text-primary">{"<iframe>"}</code>. Scripts de players externos são bloqueados por segurança.
+                    Para inserir vídeos de vendas (VSL), utilize a tag <code className="font-mono text-xs text-primary">{"<iframe>"}</code>. Scripts de players externos são bloqueados por segurança.
                   </p>
                   <p className="text-sm font-semibold mt-2">Exemplo Vturb:</p>
                   <div className="bg-background rounded p-2 text-xs font-mono overflow-x-auto border border-border">
@@ -576,11 +691,11 @@ export default function AdminDocsPage() {
                 </div>
 
                 <div id="html-checkout" className="space-y-2 mt-4 border-l-2 border-border pl-4">
-                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                  <h4 className="text-foreground text-sm font-medium">
                     Botões de Checkout
                   </h4>
                   <p className="text-sm">
-                    Se sua página for de vendas diretas e não de captura de leads, você não precisa usar a tag FORM_SLOT. Apenas insira links normais para o seu checkout (Hotmart, Kiwify, Eduzz, etc).
+                    Se sua página for de vendas diretas, você não precisa da tag FORM_SLOT. Insira links normais para o seu checkout (Hotmart, Kiwify, Eduzz, etc).
                   </p>
                   <div className="bg-background rounded p-2 text-xs font-mono overflow-x-auto border border-border">
                     {`<a href="https://pay.kiwify.com.br/xxxxx" class="botao-comprar" target="_blank" rel="noopener noreferrer">Quero Comprar Agora</a>`}
@@ -588,34 +703,34 @@ export default function AdminDocsPage() {
                 </div>
 
                 <div id="html-imagens" className="space-y-2 mt-4 border-l-2 border-border pl-4">
-                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                  <h4 className="text-foreground text-sm font-medium">
                     Imagens via URL e Performance
                   </h4>
                   <p className="text-sm">
-                    O Vórtex+ hospeda seu código, mas não arquivos de mídia. Todas as imagens devem ser inseridas através de links (URLs).
+                    O Vórtex+ hospeda seu código, mas não arquivos de mídia. Todas as imagens devem ser inseridas através de URLs externas.
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm mt-2">
                     <li>Hospede suas imagens em CDNs como Cloudflare R2, MinIO ou Imgur.</li>
-                    <li>Sempre converta suas imagens para <strong>WebP</strong> ou <strong>AVIF</strong> antes de usar.</li>
+                    <li>Converta para <strong>WebP</strong> ou <strong>AVIF</strong> para melhor performance.</li>
                     <li>Use ferramentas como TinyPNG ou Squoosh para comprimir.</li>
-                    <li>Sempre defina os atributos <code className="font-mono text-[10px]">width</code> e <code className="font-mono text-[10px]">height</code> no HTML para evitar <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cumulative Layout Shift (CLS)</a>, garantindo uma boa nota no Google Lighthouse.</li>
-                    <li>Use <code className="font-mono text-[10px]">loading="lazy"</code> para imagens que ficam abaixo da dobra.</li>
+                    <li>Defina <code className="font-mono text-[10px]">width</code> e <code className="font-mono text-[10px]">height</code> no HTML para evitar <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">CLS</a>.</li>
+                    <li>Use <code className="font-mono text-[10px]">loading=&quot;lazy&quot;</code> para imagens abaixo da dobra.</li>
                   </ul>
                 </div>
 
                 <div id="html-bloqueado" className="space-y-2 mt-4 border-l-2 border-destructive/50 pl-4">
-                  <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
+                  <h4 className="text-foreground text-sm font-medium">
                     O que é Bloqueado?
                   </h4>
                   <p className="text-sm">
-                    Para garantir que nenhuma campanha maliciosa derrube o servidor (XSS), o Vórtex+ utiliza sanitização rigorosa (DOMPurify).
+                    Para segurança contra XSS, o Vórtex+ utiliza sanitização rigorosa (DOMPurify).
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm mt-2 text-muted-foreground">
                     <li>A tag <code className="font-mono text-[10px]">{"<script>"}</code> é totalmente removida.</li>
-                    <li>Eventos inline (como <code className="font-mono text-[10px]">onclick</code>, <code className="font-mono text-[10px]">onload</code>, <code className="font-mono text-[10px]">onerror</code>) são removidos.</li>
-                    <li>Tags como <code className="font-mono text-[10px]">{"<object>"}</code> e <code className="font-mono text-[10px]">{"<embed>"}</code> são removidas.</li>
+                    <li>Eventos inline (<code className="font-mono text-[10px]">onclick</code>, <code className="font-mono text-[10px]">onload</code>, <code className="font-mono text-[10px]">onerror</code>) são removidos.</li>
+                    <li>Tags <code className="font-mono text-[10px]">{"<object>"}</code> e <code className="font-mono text-[10px]">{"<embed>"}</code> são removidas.</li>
                   </ul>
-                  <p className="text-xs font-semibold text-foreground mt-2">Dica: Todo o estilo CSS deve ser inserido na tag <code className="font-mono text-[10px]">{"<style>"}</code>. O formulário injetado pode ser estilizado usando a classe pai <code className="font-mono text-[10px]">.vortex-form</code>.</p>
+                  <p className="text-xs font-semibold text-foreground mt-2">Dica: Estilos CSS devem ir na tag <code className="font-mono text-[10px]">{"<style>"}</code>. O formulário pode ser estilizado via classe <code className="font-mono text-[10px]">.vortex-form</code>.</p>
                 </div>
 
                 <div className="space-y-2 mt-6">
@@ -623,50 +738,21 @@ export default function AdminDocsPage() {
                     Templates Prontos
                   </h4>
                   <p className="text-sm">
-                    Se você não tem HTML próprio, utilize os templates prontos disponíveis no seletor. Basta escolher um e personalizar.
+                    Não tem HTML? Clique no botão <strong>&quot;Templates&quot;</strong> no topo do editor para escolher um template pronto da comunidade. Basta selecionar e personalizar o código.
                   </p>
-                </div>
-
-                <div id="campo-formulario" className="space-y-2 mt-4">
-                  <h4 className="text-foreground text-sm font-medium">
-                    Construtor de Formulário
-                  </h4>
-                  <p className="text-sm">
-                    Se for capturar leads, monte as perguntas no construtor dinâmico:
-                  </p>
-                  <ul className="list-disc pl-5 space-y-1 text-sm">
-                    <li>Tipos de campo: texto, email, número.</li>
-                    <li>Defina se cada campo é <strong>obrigatório ou opcional</strong>.</li>
-                    <li>Use os <strong>botões rápidos</strong> para adicionar campos comuns com um clique.</li>
-                  </ul>
                 </div>
               </div>
 
               <div id="wizard-etapa-grupo" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium">
-                  Etapa 4 — Grupo WhatsApp
+                  Salvando a Campanha
                 </h3>
                 <p className="text-sm">
-                  Nesta etapa você pode criar um grupo inicial para a campanha:
+                  Após configurar tudo, clique no botão <strong>&quot;Salvar&quot;</strong> no canto superior direito do editor. A campanha será criada e você será redirecionado para a página de detalhes, onde poderá adicionar grupos de WhatsApp.
                 </p>
-                <ul className="list-disc pl-5 space-y-1 text-sm">
-                  <li>
-                    <strong>Nome do Grupo</strong> — o nome que aparecerá na
-                    lista de grupos
-                  </li>
-                  <li>
-                    <strong>Link do Grupo</strong> — link de convite do
-                    WhatsApp no formato chat.whatsapp.com
-                  </li>
-                  <li id="campo-lotacao">
-                    <strong>Capacidade Máxima</strong> — quando o grupo atingir
-                    essa quantidade de pessoas, os próximos leads serão
-                    redirecionados para o próximo grupo
-                  </li>
-                </ul>
                 <Tip>
-                  Você pode pular esta etapa e adicionar grupos depois na aba
-                  &quot;Grupos WhatsApp&quot; dentro dos detalhes da campanha.
+                  Você pode adicionar grupos de WhatsApp depois na aba
+                  &quot;Grupos WhatsApp&quot; dentro dos detalhes da campanha. Não precisa configurar tudo agora.
                 </Tip>
               </div>
             </div>
@@ -683,40 +769,77 @@ export default function AdminDocsPage() {
 
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                Ao clicar em uma campanha, você acessa a página de detalhes com
-                três abas: <strong>Detalhes</strong>,{" "}
-                <strong>Grupos WhatsApp</strong> e{" "}
-                <strong>Leads Capturados</strong>.
+                Ao clicar em uma campanha na lista, você acessa o <strong>Editor Visual</strong> em modo de edição.
+                A interface é a mesma do editor de criação (código + preview), mas com a aba adicional de <strong>Links e Acesso</strong> nas configurações e os controles da campanha.
               </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Editando HTML e Preview
+                </h3>
+                <p className="text-sm">
+                  O editor de código (Monaco) carrega o HTML atual da campanha. Edite diretamente e veja as mudanças no preview ao vivo. Ao terminar, clique em <strong>&quot;Salvar&quot;</strong> para aplicar.
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-sm">
+                  <li>Mude o HTML e o preview se atualiza em tempo real</li>
+                  <li>Use o seletor de templates para trocar completamente o design</li>
+                  <li>Alterne entre modos <strong>Código</strong>, <strong>Preview</strong> ou <strong>Split</strong></li>
+                </ul>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Settings2 className="h-4 w-4" />
+                  Configurações (⚙)
+                </h3>
+                <p className="text-sm">
+                  Clique no ícone de engrenagem (⚙) no topo do editor para abrir o painel de configurações. No modo de edição, você terá as <strong>3 abas</strong> completas:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                  <li>
+                    <strong className="text-foreground">Aba Geral</strong>{" "}
+                    — Edite nome, slug, domínio customizado, Meta Pixel ID e todos os campos de SEO (Título, Descrição, Imagem e Favicon).
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Aba Formulário</strong>{" "}
+                    — Adicione, remova ou reordene as perguntas do formulário de captura.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Aba Links e Acesso</strong>{" "}
+                    — Visualize e copie as URLs da campanha e controle a proteção.
+                  </li>
+                </ul>
+              </div>
 
               <div id="campanha-links" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <LinkIcon className="h-4 w-4" />
                   Links de Acesso
                 </h3>
-                <p className="text-sm">O painel centraliza todos os acessos em três blocos, dependendo de quais configurações você ativou:</p>
+                <p className="text-sm">Na aba Links e Acesso, o painel centraliza todos os acessos em três blocos, dependendo de quais configurações você ativou:</p>
                 <ul className="list-disc pl-5 space-y-2 text-sm">
                   <li>
                     <strong className="text-foreground">
                       Domínio Padrão
                     </strong>{" "}
-                    — O link clássico usando o seu slug como vortexpages.online/slug. Sempre visível, mas fica bloqueado se você configurar um domínio customizado.
+                    — O link usando o seu slug (vortexpages.online/slug). Sempre visível, mas fica desativado ao configurar um domínio customizado.
                   </li>
                   <li>
                     <strong className="text-foreground">
                       Domínio Protegido
                     </strong>{" "}
-                    — Aparece ao ativar a proteção da campanha. Substitui seu slug por um código único UUID para esconder sua página de concorrentes e curiosos.
+                    — Aparece ao ativar a proteção. Substitui o slug por um UUID único para esconder sua página de curiosos e concorrentes.
                   </li>
                   <li>
                     <strong className="text-foreground flex items-center gap-2 mb-1">
                       <PlanBadge plan='ULTRA' /> Domínio Customizado
                     </strong>{" "}
-                    — Aparece se você configurou o seu domínio próprio na campanha. Quando o domínio customizado é ativado, ele <strong>desativa o domínio seguro e o domínio padrão</strong>. Isso torna o seu funil muito mais seguro, pois isola o acesso 100% na sua marca, bloqueando curiosos que tentarem descobrir a URL original da Vórtex.
+                    — Aparece se você configurou seu domínio próprio. Quando ativado, <strong>desativa o domínio padrão e o protegido</strong>, isolando o acesso 100% na sua marca.
                   </li>
                 </ul>
                 <p className="text-sm">
-                  Cada bloco possui o link de <strong>Captura</strong> para divulgar nos anúncios e o de <strong>Redirecionamento</strong> para onde o lead vai após cadastrar para ativar o Meta Pixel. Use o botão de copiar para pegar a URL exata!
+                  Cada bloco mostra o link de <strong>Captura</strong> (para os anúncios) e de <strong>Redirecionamento</strong> (para onde o lead vai após cadastrar). Use os botões de copiar e abrir em nova aba!
                 </p>
               </div>
 
@@ -730,50 +853,24 @@ export default function AdminDocsPage() {
                     <strong className="text-foreground flex items-center gap-1">
                       <Power className="h-3 w-3" /> Ativar / Pausar
                     </strong>{" "}
-                    — campanhas pausadas param de aceitar novos leads. Os dados
-                    existentes são preservados.
+                    — No topo do editor, alterne o status da campanha. Campanhas pausadas param de aceitar novos leads. Os dados existentes são preservados.
                   </li>
                   <li id="campanha-proteger">
                     <strong className="text-foreground flex items-center gap-1">
                       <Shield className="h-3 w-3" /> Proteger Campanha
                     </strong>{" "}
-                    — ao ativar a proteção, a URL pública é substituída por um
-                    código UUID único. Isso dificulta que pessoas copiem ou
-                    façam scraping do seu funil.
+                    — Na aba Links e Acesso, use o toggle de proteção. Ao ativar, a URL pública é substituída por um código UUID único, dificultando scraping.
                   </li>
                   <li id="campanha-excluir">
                     <strong className="text-foreground flex items-center gap-1">
                       <Trash2 className="h-3 w-3" /> Excluir Campanha
                     </strong>{" "}
-                    — remove a campanha, todos os grupos e leads associados.
+                    — Na aba Geral, seção &quot;Zona de Perigo&quot;. Remove a campanha, grupos e leads.
                     <Warning>
-                      Esta ação é <strong>irreversível</strong>. Exporte seus
-                      dados antes de excluir.
+                      Esta ação é <strong>irreversível</strong>. Exporte seus dados antes de excluir.
                     </Warning>
                   </li>
                 </ul>
-              </div>
-
-              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
-                <h3 className="text-foreground font-medium">
-                  Editando a Campanha
-                </h3>
-                <p className="text-sm">
-                  Na seção de edição, você pode alterar a qualquer momento:
-                </p>
-                <ul className="list-disc pl-5 space-y-1 text-sm">
-                  <li>Nome da campanha</li>
-                  <li>Slug da URL pública</li>
-                  <li>Meta Pixel ID</li>
-                  <li>HTML da página de captura</li>
-                  <li>
-                    Campos do formulário
-                  </li>
-                </ul>
-                <p className="text-sm">
-                  Após editar, clique em{" "}
-                  <strong>&quot;Salvar Alterações&quot;</strong> para aplicar.
-                </p>
               </div>
             </div>
           </section>
@@ -1256,6 +1353,7 @@ export default function AdminDocsPage() {
               </p>
 
               <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
+                <h3 className="text-foreground font-medium mb-2">Dados da Empresa</h3>
                 <ul className="list-disc pl-5 space-y-2">
                   <li id="perfil-nome">
                     <strong className="text-foreground">
@@ -1272,6 +1370,36 @@ export default function AdminDocsPage() {
                     ). Use apenas letras minúsculas, números e hífens.
                   </li>
                 </ul>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
+                <h3 className="text-foreground font-medium mb-2">Perfil Público e Comunidade</h3>
+                <p className="mb-2">
+                  Estes campos configuram seu perfil visível na comunidade e na loja de templates:
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li id="perfil-nome-exibicao">
+                    <strong className="text-foreground">Nome de Exibição</strong>{" "}
+                    — Seu nome público que aparece no perfil e nos templates que você publicar na comunidade.
+                  </li>
+                  <li id="perfil-handle">
+                    <strong className="text-foreground">Handle (@handle)</strong>{" "}
+                    — Seu identificador único na comunidade. Aparece na URL do seu perfil público (ex:{" "}
+                    <code className="font-mono text-xs">/community/seu-handle</code>
+                    ). Use apenas letras minúsculas, números e hífens.
+                  </li>
+                  <li id="perfil-bio">
+                    <strong className="text-foreground">Bio</strong>{" "}
+                    — Uma descrição curta sobre você ou sua empresa (até 200 caracteres). Visível no perfil público da comunidade.
+                  </li>
+                  <li id="perfil-links">
+                    <strong className="text-foreground">Links Sociais</strong>{" "}
+                    — Adicione links do seu website e redes sociais (Instagram, Twitter/X, YouTube). Todos ficam visíveis no seu perfil público para que outros usuários possam conhecer seu trabalho.
+                  </li>
+                </ul>
+                <Tip>
+                  Um perfil completo aumenta a credibilidade dos seus templates na loja da comunidade. Preencha todos os campos para que outros usuários confiem no seu trabalho.
+                </Tip>
               </div>
             </div>
           </section>
@@ -1557,6 +1685,220 @@ export default function AdminDocsPage() {
                   para que o sistema consulte o status atualizado junto ao
                   provedor de pagamento.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <SectionDivider />
+
+          {/* ================================================================ */}
+          {/* PARTE V — TEMPLATES */}
+          {/* ================================================================ */}
+
+          <div className="mb-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">
+              Parte V
+            </span>
+            <h2 className="text-lg font-bold text-foreground">
+              Templates
+            </h2>
+          </div>
+
+          {/* Cap 15: Meus Templates */}
+          <section id="templates-visao" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <LayoutTemplate className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">
+                15. Meus Templates
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                A seção <strong>&quot;Meus Templates&quot;</strong> permite que você compartilhe suas landing pages com a comunidade do Vórtex+. Quando você publica um template, outros usuários podem usá-lo como ponto de partida para suas próprias campanhas.
+              </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Dashboard de Templates</h3>
+                <p className="text-sm">
+                  No topo da página, três KPIs mostram o status dos seus templates:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                  <div className="rounded-lg bg-chart-1/5 border border-chart-1/20 p-3">
+                    <p className="font-medium text-chart-1">Publicados</p>
+                    <p className="text-xs mt-1">Templates aprovados e visíveis na loja pública</p>
+                  </div>
+                  <div className="rounded-lg bg-chart-2/5 border border-chart-2/20 p-3">
+                    <p className="font-medium text-chart-2">Em análise</p>
+                    <p className="text-xs mt-1">Aguardando revisão da equipe Vórtex+</p>
+                  </div>
+                  <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3">
+                    <p className="font-medium text-destructive">Rejeitados</p>
+                    <p className="text-xs mt-1">Não aprovados — verifique o motivo e corrija</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Cards de Templates</h3>
+                <p className="text-sm">
+                  Cada template aparece como um card com:
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-sm">
+                  <li><strong className="text-foreground">Nome e data</strong> — título e quando foi criado</li>
+                  <li><strong className="text-foreground">Status</strong> — badge colorido indicando o estado atual (Publicado, Em análise, Rejeitado, Removido)</li>
+                  <li><strong className="text-foreground">Métricas</strong> — visualizações, usos por outros usuários e curtidas</li>
+                  <li><strong className="text-foreground">Motivo de rejeição</strong> — quando rejeitado, a explicação é exibida no card</li>
+                  <li><strong className="text-foreground">Menu de ações (⋮)</strong> — editar, ocultar, republicar ou excluir</li>
+                </ul>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Loja Pública de Templates</h3>
+                <p className="text-sm">
+                  Clique em <strong>&quot;Explorar Templates&quot;</strong> para acessar a loja pública, onde você pode ver todos os templates publicados pela comunidade, filtrar por categoria e tema, curtir, e usar em suas campanhas.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Cap 16: Publicando um Template */}
+          <section id="templates-publicar" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <PackageOpen className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">
+                16. Publicando um Template
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                Para publicar um template, você precisa ter ao menos <strong>uma campanha criada</strong>. O HTML da campanha selecionada será copiado e usado como base do template.
+              </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Passo a Passo</h3>
+                <ol className="list-decimal pl-5 space-y-2 text-sm">
+                  <li>Na página <strong>Meus Templates</strong>, clique em <strong>&quot;Publicar novo template&quot;</strong></li>
+                  <li>Selecione a <strong>campanha fonte</strong> — o HTML dela será usado como conteúdo do template</li>
+                  <li>Preencha os metadados:
+                    <ul className="list-disc pl-5 space-y-1 mt-1">
+                      <li id="templates-campo-nome"><strong className="text-foreground">Nome</strong> — um título atrativo para o template (até 120 caracteres)</li>
+                      <li id="templates-campo-descricao"><strong className="text-foreground">Descrição</strong> — opcional, explique para que tipo de campanha o template é ideal (até 1000 caracteres)</li>
+                      <li id="templates-campo-categoria"><strong className="text-foreground">Categoria</strong> — Landing Page, Squeeze Page, Webinar, E-commerce, Infoproduto, Portfólio, Evento ou Outro</li>
+                      <li id="templates-campo-tema"><strong className="text-foreground">Tema Visual</strong> — Escuro, Claro ou Colorido</li>
+                      <li id="templates-campo-tags"><strong className="text-foreground">Tags</strong> — palavras-chave separadas por vírgula para facilitar a busca (até 20 tags)</li>
+                    </ul>
+                  </li>
+                  <li>Clique em <strong>&quot;Publicar&quot;</strong> para enviar para análise</li>
+                </ol>
+              </div>
+
+              <Tip>
+                O HTML do template é <strong>sanitizado automaticamente</strong> (scripts e eventos perigosos são removidos) para garantir a segurança de todos os usuários da plataforma.
+              </Tip>
+            </div>
+          </section>
+
+          {/* Cap 17: Fluxo de Aprovação */}
+          <section id="templates-aprovacao" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <FileCheck className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">
+                17. Fluxo de Aprovação
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                Todo template publicado passa por um processo de revisão antes de ficar disponível na loja pública.
+              </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Ciclo de Vida do Template</h3>
+                <div className="flex flex-wrap items-center gap-2 text-xs font-mono mt-2">
+                  <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-3 py-1.5 rounded-full">Em análise</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex flex-col gap-2">
+                    <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-3 py-1.5 rounded-full">✅ Publicado</span>
+                    <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1.5 rounded-full">❌ Rejeitado</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">O que a equipe analisa</h3>
+                <ul className="list-disc pl-5 space-y-1 text-sm">
+                  <li>Conteúdo <strong>malicioso ou perigoso</strong> — tentativas de injeção, phishing ou malware</li>
+                  <li><strong>Qualidade mínima</strong> — templates em branco, com conteúdo aleatório ou sem utilidade</li>
+                  <li>Conteúdo que <strong>viola os termos</strong> — conteúdo ilegal, ofensivo ou que viole direitos autorais</li>
+                </ul>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Template Rejeitado</h3>
+                <p className="text-sm">
+                  Quando um template é rejeitado, o <strong>motivo</strong> é exibido no card do template. Você pode:
+                </p>
+                <ol className="list-decimal pl-5 space-y-1 text-sm">
+                  <li>Editar o template para corrigir o problema (veja seção 18)</li>
+                  <li>Clicar em <strong>&quot;Reenviar para análise&quot;</strong> para submeter novamente</li>
+                </ol>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Status: Removido (TAKEN_DOWN)</h3>
+                <p className="text-sm">
+                  Você pode <strong>ocultar voluntariamente</strong> um template publicado usando o menu de ações. Ele deixa de aparecer na loja, mas os dados são preservados. Para torná-lo público novamente, use <strong>&quot;Republicar&quot;</strong> (passa por nova análise).
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Cap 18: Editando Templates */}
+          <section id="templates-editar" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <Pencil className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">
+                18. Editando Templates
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                Após publicar, você pode editar seus templates a qualquer momento usando o menu de ações (⋮) no card do template.
+              </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">O que pode ser editado</h3>
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                  <li>
+                    <strong className="text-foreground">Metadados</strong> (nome, descrição, categoria, tema, tags){" "}
+                    — alterações são <strong>salvas imediatamente</strong> e <strong>não</strong> necessitam de nova análise.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">HTML do template</strong>{" "}
+                    — ao alterar o código HTML, uma <strong>nova versão</strong> é criada automaticamente e o template volta para <strong>&quot;Em análise&quot;</strong> até ser aprovado novamente.
+                  </li>
+                </ul>
+                <Warning>
+                  <strong>Atenção:</strong> Enquanto o HTML editado estiver em análise, a versão anterior (já aprovada) continua visível na loja. Assim seus usuários não ficam sem acesso.
+                </Warning>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Menu de Ações (⋮)</h3>
+                <p className="text-sm">As ações disponíveis variam conforme o status do template:</p>
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                  <li><strong className="text-foreground">Editar</strong> — abre o modal de edição com metadados e código HTML</li>
+                  <li><strong className="text-foreground">Ocultar</strong> — remove da loja pública (somente templates publicados)</li>
+                  <li><strong className="text-foreground">Republicar</strong> — reenvia para análise (somente templates removidos)</li>
+                  <li><strong className="text-foreground">Reenviar para análise</strong> — reenvia templates rejeitados</li>
+                  <li><strong className="text-foreground">Excluir</strong> — remove permanentemente o template</li>
+                </ul>
+                <Warning>
+                  Templates que já foram <strong>usados por outros usuários</strong> não podem ser excluídos. Use &quot;Ocultar&quot; para removê-los da loja sem afetar quem já está usando.
+                </Warning>
               </div>
             </div>
           </section>
