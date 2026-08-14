@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import {
   LayoutTemplate,
   Eye,
@@ -11,6 +12,7 @@ import {
   XCircle,
   Ban,
   ExternalLink,
+  Store,
 } from "lucide-react";
 import { ResubmitButton } from "./resubmit-button";
 import { TemplateActionsMenu } from "./template-actions-menu";
@@ -91,7 +93,16 @@ export default async function MyTemplatesPage() {
             Acompanhe o status de publicação dos seus templates
           </p>
         </div>
-        <PublishButton campaigns={campaigns} />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/templates"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Store className="w-4 h-4" />
+            Explorar Templates
+          </Link>
+          <PublishButton campaigns={campaigns} />
+        </div>
       </div>
 
       {/* Stats — stagger fade-in */}
