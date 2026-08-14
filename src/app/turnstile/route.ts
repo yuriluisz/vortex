@@ -52,7 +52,6 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "X-Robots-Tag": "noindex, nofollow",
-      "Content-Security-Policy": "frame-ancestors *",
     },
   });
 }

@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/((?!turnstile).*)",
+        source: "/(.*)",
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "X-Content-Type-Options", value: "nosniff" },
