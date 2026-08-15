@@ -2,10 +2,6 @@
   <img src="https://prod-minio.aifsu7.easypanel.host/img/Vortex%20Padr%C3%A3o.svg" alt="Vórtex+" height="64">
 </p>
 
-<h1 align="center">
-  Vórtex+ 🌪️
-</h1>
-
 <p align="center">
   <b>A infraestrutura blindada para validação de ofertas, captação de leads e escala no WhatsApp.</b><br>
   Hospede landing pages de alta conversão, injete formulários com <code>{{FORM_SLOT}}</code>, rotacione grupos de WhatsApp automaticamente e escale operações de tráfego direto.
