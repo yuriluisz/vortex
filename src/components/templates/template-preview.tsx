@@ -12,7 +12,7 @@ interface TemplatePreviewProps {
  * Componente de preview de template em iframe sandbox.
  * Renderiza o HTML em um iframe isolado para segurança.
  */
-export function TemplatePreview({ templateId, slug, name }: TemplatePreviewProps) {
+export function TemplatePreview({ templateId: _templateId, slug, name }: TemplatePreviewProps) {
   const [html, setHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);

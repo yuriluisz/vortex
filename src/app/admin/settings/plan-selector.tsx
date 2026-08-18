@@ -14,7 +14,7 @@ import {
   XCircle,
   RefreshCw,
 } from "lucide-react";
-import { changePlanCheckoutAction, cancelSubscriptionAction, reactivateSubscriptionAction, verifyPaymentAction } from "./actions";
+import { changePlanCheckoutAction, reactivateSubscriptionAction, verifyPaymentAction } from "./actions";
 import { CancelDialog } from "./cancel-dialog";
 import { BillingModal } from "./billing-modal";
 import type { Plan } from "@prisma/client";
@@ -165,7 +165,6 @@ export function PlanSelector({
   const [verifySuccess, setVerifySuccess] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<string | null>(null);
   const redirectingRef = useRef(false);
-  const formRef = useRef<HTMLFormElement>(null);
 
   // Redirect para checkout ASAAS
   useEffect(() => {

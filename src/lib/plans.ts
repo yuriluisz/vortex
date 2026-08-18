@@ -34,7 +34,7 @@ export const PLAN_LIMITS: Record<
     maxCampaigns: 10,
     maxGroups: 50,
     maxLeads: 10_000,
-    customDomain: true,
+    customDomain: false,
     removeBranding: true,
     prioritySupport: false,
     whatsappIntegration: false,

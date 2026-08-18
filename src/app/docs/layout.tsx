@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Sparkles, Store } from "lucide-react";
+import { ArrowRight, BookOpen, Store } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Documentação Oficial — Vórtex+",

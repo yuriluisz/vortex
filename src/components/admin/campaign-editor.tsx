@@ -164,7 +164,7 @@ const PREVIEW_BASE_DOCUMENT = `<!DOCTYPE html>
 // Component
 // ============================================================================
 
-export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups }: CampaignEditorProps) {
+export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tenantMaxGroups }: CampaignEditorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -336,10 +336,18 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
         setTimeout(() => setSaveStatus("idle"), 4000);
       } else if (result?.success) {
         setSaveStatus("saved");
+        const cleanDomain = settings.customDomain
+          ? settings.customDomain.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/+$/, "")
+          : null;
+        setControls((prev) => ({
+          ...prev,
+          customDomain: cleanDomain || null,
+        }));
+        router.refresh();
         setTimeout(() => setSaveStatus("idle"), 3000);
       }
     });
-  }, [html, settings, mode, campaign?.id, startTransition]);
+  }, [html, settings, mode, campaign?.id, router, startTransition]);
 
   // ── Controls handlers (edit only) ──
   const handleToggleActive = useCallback(() => {
@@ -389,9 +397,10 @@ export function CampaignEditor({ mode, plan, campaign, tenantId, tenantMaxGroups
     mode === "edit" && campaign
       ? (() => {
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vortexpages.online";
+          const currentSlug = settings.slug || campaign.slug;
           return {
-            defaultCaptureUrl: `${baseUrl}/${campaign.slug}`,
-            defaultRedirectUrl: `${baseUrl}/${campaign.slug}/redirect`,
+            defaultCaptureUrl: `${baseUrl}/${currentSlug}`,
+            defaultRedirectUrl: `${baseUrl}/${currentSlug}/redirect`,
             protectedCaptureUrl: (controls.protected && controls.accessCode) ? `${baseUrl}/c/${controls.accessCode}` : null,
             protectedRedirectUrl: (controls.protected && controls.accessCode) ? `${baseUrl}/c/${controls.accessCode}/redirect` : null,
             customCaptureUrl: controls.customDomain ? `https://${controls.customDomain}` : null,

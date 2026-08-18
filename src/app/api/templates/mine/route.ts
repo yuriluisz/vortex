@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { rateLimit } from "@/lib/rate-limit";
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   const session = await getSession();
   if (!session?.email || !session.userId) {
     return NextResponse.json({ templates: [] }, { status: 401 });

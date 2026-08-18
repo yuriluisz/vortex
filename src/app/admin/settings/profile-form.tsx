@@ -39,7 +39,7 @@ export function ProfileForm({
   companyName,
   userName,
   email,
-  billingInfo,
+  billingInfo: _billingInfo,
   displayName,
   handle,
   bio,
@@ -307,7 +307,7 @@ export function ProfileForm({
 // ALTERAÇÃO DE EMAIL (com OTP) — Componente reutilizável
 // ============================================================================
 
-function EmailChangeSection({ currentEmail }: { currentEmail: string }) {
+function EmailChangeSection({ currentEmail: _currentEmail }: { currentEmail: string }) {
   const [step, setStep] = useState<"idle" | "verify">("idle");
   const [newEmail, setNewEmail] = useState("");
 

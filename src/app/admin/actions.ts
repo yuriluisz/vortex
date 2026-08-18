@@ -57,7 +57,14 @@ const CampaignSchema = z.object({
       "O slug deve conter apenas letras minúsculas, números e hífens"
     ),
   pixelId: z.string().optional(),
-  customDomain: z.string().optional(),
+  customDomain: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const cleaned = val.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/+$/, "").trim();
+      return cleaned || undefined;
+    }),
   rawHtml: z
     .string()
     .min(
@@ -799,7 +806,14 @@ const SaveCampaignSchema = z.object({
     "Formato JSON inválido para o Schema do formulário"
   ),
   pixelId: z.string().optional(),
-  customDomain: z.string().optional(),
+  customDomain: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const cleaned = val.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/+$/, "").trim();
+      return cleaned || undefined;
+    }),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   ogImageUrl: z

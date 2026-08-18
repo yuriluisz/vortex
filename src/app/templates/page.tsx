@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPublishedTemplates } from "@/services/template.service";
 import { TemplateGrid } from "@/components/templates/template-grid";
 import { TemplateFilters } from "@/components/templates/template-filters";
@@ -85,19 +86,19 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
             Comece grátis ou faça upgrade para publicar seus próprios templates na galeria.
           </p>
           {isLoggedIn ? (
-            <a
+            <Link
               href="/admin/templates"
               className="group mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:scale-105 active:scale-95"
             >
               Meus Templates
-            </a>
+            </Link>
           ) : (
-            <a
+            <Link
               href="/admin/login?mode=register"
               className="group mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:scale-105 active:scale-95"
             >
               Começar grátis
-            </a>
+            </Link>
           )}
         </div>
       </section>

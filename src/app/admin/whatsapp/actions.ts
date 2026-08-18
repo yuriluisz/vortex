@@ -16,7 +16,6 @@ import {
   sendTextMessage,
   createEvolutionGroup,
   fetchInviteCode,
-  extractInviteCode,
   updateGroupSetting,
   updateGroupDescription,
   updateGroupPicture,
@@ -79,7 +78,7 @@ export async function setupWhatsAppAction(
   state: WhatsAppConfigState,
   formData: FormData
 ): Promise<WhatsAppConfigState> {
-  const { userId, tenantId, tenantSlug } = await requireUltra();
+  const { tenantId, tenantSlug } = await requireUltra();
 
   const parsed = PhoneSchema.safeParse({
     phoneNumber: formData.get("phoneNumber"),

@@ -2,7 +2,6 @@
 
 import { PlanBadge } from "@/components/admin/plan-badge";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   BookOpen,
   Megaphone,
@@ -32,14 +31,10 @@ import {
   FileCheck,
   Pencil,
   PackageOpen,
-  Tag,
-  Palette,
-  Globe2,
   Settings2,
   FileText,
   Columns2,
   Code,
-  Image as ImageIcon,
   Share2,
 } from "lucide-react";
 
@@ -162,7 +157,6 @@ function SectionDivider() {
 // ============================================================================
 
 export default function PublicDocsPage() {
-  const router = useRouter();
   const [activeSection, setActiveSection] = useState("bem-vindo");
   const [showScrollTop, setShowScrollTop] = useState(false);
 

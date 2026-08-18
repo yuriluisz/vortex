@@ -54,17 +54,6 @@ const ALLOWED_ATTRS = [
   "data-vortex-custom-form",
 ];
 
-/**
- * Padrões de URL maliciosa para bloquear em atributos src/href.
- */
-const MALICIOUS_URL_PATTERNS = [
-  /^javascript:/i,
-  /^data:/i,
-  /^vbscript:/i,
-  /^file:/i,
-  /^about:/i,
-  /^blob:/i,
-];
 
 /**
  * Lista de domínios de iframe permitidos.

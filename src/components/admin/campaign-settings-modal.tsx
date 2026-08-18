@@ -8,25 +8,14 @@ import {
   Link as LinkIcon,
   Shield,
   ShieldOff,
-  Power,
-  PowerOff,
   Trash2,
-  Globe,
-  Image as ImageIcon,
-  Smartphone,
   Copy,
   Check,
   ExternalLink,
-  Lock,
-  Eye,
-  Layers,
   RefreshCcw,
-  Loader2,
-  Users,
 } from "lucide-react";
 import { CampaignFormBuilder } from "./campaign-form-builder";
 import { FieldTooltip } from "./field-tooltip";
-import Link from "next/link";
 
 // ============================================================================
 // Types
@@ -123,15 +112,15 @@ export function CampaignSettingsModal({
   plan,
   settings,
   onSettingsChange,
-  campaignId,
+  campaignId: _campaignId,
   controls,
   links,
-  onToggleActive,
+  onToggleActive: _onToggleActive,
   onToggleProtection,
   onDelete,
   onCheckDomainStatus,
-  groups,
-  tenantMaxGroups = 3,
+  groups: _groups,
+  tenantMaxGroups: _tenantMaxGroups = 3,
 }: CampaignSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<TabId>("general");
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
@@ -262,7 +251,14 @@ export function CampaignSettingsModal({
                 type="text"
                 value={settings.customDomain}
                 onChange={(e) =>
-                  updateField("customDomain", e.target.value.toLowerCase().replace(/\s+/g, ""))
+                  updateField(
+                    "customDomain",
+                    e.target.value
+                      .toLowerCase()
+                      .replace(/^https?:\/\//i, "")
+                      .replace(/\/+$/, "")
+                      .replace(/\s+/g, "")
+                  )
                 }
                 placeholder={plan === "ULTRA" ? "Ex: campanha.meudominio.com.br" : "Disponível apenas no plano ULTRA"}
                 disabled={plan !== "ULTRA"}
@@ -276,6 +272,11 @@ export function CampaignSettingsModal({
                 </div>
               )}
             </div>
+            {plan === "ULTRA" && (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Apontamento DNS: crie uma entrada <strong>CNAME</strong> no seu provedor apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -567,6 +568,9 @@ export function CampaignSettingsModal({
             </div>
             {renderLinkRow("Sua Página de Captura", links.customCaptureUrl)}
             {renderLinkRow("Seu Redirecionamento", links.customRedirectUrl)}
+            <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-white/5 leading-relaxed">
+              💡 <strong>Dica de Propagação:</strong> Certifique-se de que o CNAME no seu DNS está apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>. A emissão do SSL pela Cloudflare pode levar alguns minutos.
+            </p>
           </div>
         )}
       </div>

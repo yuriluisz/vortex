@@ -26,14 +26,11 @@ export default function MetaPixel({
 }: MetaPixelProps) {
   const eventFired = useRef(false);
 
-  // Se pixelId não for numérico puro, não renderiza nada (segurança XSS)
-  if (!pixelId || !/^\d+$/.test(pixelId)) {
-    return null;
-  }
+  const isValid = Boolean(pixelId && /^\d+$/.test(pixelId));
 
   // Disparar evento extra + redirect no client-side
   useEffect(() => {
-    if (eventFired.current) return;
+    if (!isValid || eventFired.current) return;
     if (!trackEvent && !redirectUrl) return;
 
     eventFired.current = true;
@@ -66,7 +63,11 @@ export default function MetaPixel({
       // Timeout de segurança
       setTimeout(() => clearInterval(interval), 5000);
     }
-  }, [trackEvent, redirectUrl]);
+  }, [isValid, trackEvent, redirectUrl]);
+
+  if (!isValid) {
+    return null;
+  }
 
   return (
     <>

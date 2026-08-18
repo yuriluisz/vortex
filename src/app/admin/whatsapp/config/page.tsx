@@ -150,7 +150,7 @@ function PhoneStep({
 function QRCodeStep({
   qrCode,
   pairingCode,
-  onRefresh,
+  onRefresh: _onRefresh,
   onConnected,
   onBack,
 }: {

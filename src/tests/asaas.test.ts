@@ -25,7 +25,7 @@ describe("Asaas Payment Integration", () => {
       } as Response;
     });
 
-    const result = await createCustomer("John Doe", "john@example.com", "12345678909");
+    const result = await createCustomer("John Doe", "john@example.com", { cpfCnpj: "12345678909" });
 
     expect(result.id).toBe("cus_000005030232");
     expect(fetchMock).toHaveBeenCalledWith(
@@ -77,7 +77,7 @@ describe("Asaas Payment Integration", () => {
       } as Response;
     });
 
-    await expect(createCustomer("John", "j@j.com", "invalid-cpf")).rejects.toThrow(
+    await expect(createCustomer("John", "j@j.com", { cpfCnpj: "invalid-cpf" })).rejects.toThrow(
       "ASAAS: Invalid CPF"
     );
   });

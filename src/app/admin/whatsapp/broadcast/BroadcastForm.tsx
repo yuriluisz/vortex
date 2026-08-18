@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useActionState } from "react";
-import { Send, Loader2, CheckCircle2, XCircle, Clock, ChevronDown } from "lucide-react";
+import { Send, Loader2, ChevronDown } from "lucide-react";
 import { sendBroadcastAction } from "../actions";
 import type { BroadcastState } from "../actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
@@ -25,42 +25,8 @@ interface CampaignInfo {
   groups: GroupInfo[];
 }
 
-interface MessageInfo {
-  id: string;
-  campaignName: string;
-  content: string;
-  targetType: string;
-  groupCount: number;
-  status: string;
-  sentAt: string;
-}
-
 interface BroadcastFormProps {
   campaigns: CampaignInfo[];
-}
-
-// ============================================================================
-// STATUS BADGE
-// ============================================================================
-
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    SENT: { label: "Enviado", className: "bg-chart-1/10 text-chart-1" },
-    PARTIAL: { label: "Parcial", className: "bg-chart-2/10 text-chart-2" },
-    FAILED: { label: "Falhou", className: "bg-destructive/10 text-destructive" },
-    PENDING: { label: "Pendente", className: "bg-muted text-muted-foreground" },
-  };
-
-  const { label, className } = config[status] || config.PENDING;
-
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${className}`}>
-      {status === "SENT" && <CheckCircle2 className="h-3 w-3" />}
-      {status === "FAILED" && <XCircle className="h-3 w-3" />}
-      {status === "PENDING" && <Clock className="h-3 w-3" />}
-      {label}
-    </span>
-  );
 }
 
 // ============================================================================

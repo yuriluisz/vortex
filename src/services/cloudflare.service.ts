@@ -141,7 +141,7 @@ export async function getCustomHostnameStatus(hostname: string) {
     const target = hostnames.find((h: any) => h.hostname === hostname);
     if (!target) return null;
     return target.status;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
