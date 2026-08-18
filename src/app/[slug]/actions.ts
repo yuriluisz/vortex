@@ -8,6 +8,7 @@ import { logAudit } from "@/lib/audit";
 import { leadsQueue, viewsQueue } from "@/lib/queue";
 import { canCreateResource, getLimitForPlan, isUnlimited } from "@/lib/plans";
 import { getCachedCampaignData, getCachedLeadCount } from "@/lib/campaign-cache";
+import { normalizePhoneNumber } from "@/lib/phone-utils";
 
 const LeadSchema = z.object({
   campaignId: z.string().uuid(),
@@ -168,15 +169,21 @@ export async function submitLeadAction(
   };
 
   try {
+    const rawPhone = parsed.data.whatsapp?.trim();
+    const cleanPhone = rawPhone ? normalizePhoneNumber(rawPhone) : "Não informado";
+
     // Adiciona o lead à fila do BullMQ para processamento em background,
     // liberando o usuário instantaneamente para o redirecionamento.
     await leadsQueue.add("process-lead", {
       campaignId: parsed.data.campaignId,
       tenantId: cachedData.tenantId,
       name: parsed.data.name || null,
-      whatsapp: parsed.data.whatsapp || "Não informado",
+      whatsapp: cleanPhone || rawPhone || "Não informado",
       answers: Object.keys(answers).length > 0 ? answers : undefined,
-      metadata,
+      metadata: {
+        ...metadata,
+        rawWhatsapp: rawPhone || undefined,
+      },
       datadb,
       horadb,
     });

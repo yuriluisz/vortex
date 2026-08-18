@@ -264,56 +264,81 @@ async function processGroupParticipants(payload: any) {
   if (!group) return;
 
   if (action === "add") {
-    // Importar a função de normalização
-    const { normalizePhoneNumber } = await import("../lib/evolution");
+    const { extractPhoneVariants, matchesPhoneNumber, cleanDigits } = await import("../lib/phone-utils");
 
-    for (const participantJid of participants) {
-      const phoneNumber = participantJid.split("@")[0];
-      if (!phoneNumber) continue;
+    for (const participant of participants) {
+      const rawId = typeof participant === "string" ? participant : participant?.id || "";
+      if (!rawId || (rawId.includes("@lid") && !rawId.includes("@s.whatsapp.net"))) {
+        continue;
+      }
 
-      const normalizedPhone = normalizePhoneNumber(phoneNumber);
-      const lead = await prisma.lead.findFirst({
+      const rawPhone = rawId.split("@")[0].split(":")[0];
+      const digits = cleanDigits(rawPhone);
+      if (!digits || digits.length < 8) continue;
+
+      const variants = extractPhoneVariants(rawPhone);
+      const base8 = digits.slice(-8);
+      const last4 = digits.slice(-4);
+
+      const candidateLeads = await prisma.lead.findMany({
         where: {
           tenantId,
           campaignId: group.campaignId,
-          status: "PENDING",
+          status: { in: ["PENDING", "NOT_JOINED"] },
           OR: [
-            { whatsapp: phoneNumber },
-            { whatsapp: normalizedPhone },
-            { whatsapp: { contains: phoneNumber.slice(-8) } },
+            ...variants.map((v) => ({ whatsapp: v })),
+            { whatsapp: { contains: base8 } },
+            { whatsapp: { contains: last4 } },
           ],
         },
         orderBy: { createdAt: "desc" },
+        take: 10,
       });
 
-      if (lead) {
+      const matchedLead = candidateLeads.find((lead) =>
+        matchesPhoneNumber(lead.whatsapp, rawPhone)
+      );
+
+      if (matchedLead) {
         await prisma.lead.update({
-          where: { id: lead.id },
+          where: { id: matchedLead.id },
           data: { status: "JOINED", joinedAt: new Date(), groupId: group.id },
         });
       }
     }
     
-    // Atualizamos a contagem do banco de dados (o redis já foi incrementado pelo Rotacionador)
-    // Opcionalmente podemos sincronizar o valor do banco se ele se perder, mas o Rotacionador 
-    // lida primariamente com o Redis. Apenas incrementamos aqui como backup visual pro dashboard:
+    // Atualizamos a contagem do banco de dados
     await prisma.group.update({
       where: { id: group.id },
       data: { currentCount: { increment: participants.length } },
     });
     
   } else if (action === "remove") {
+    const { extractPhoneVariants, cleanDigits } = await import("../lib/phone-utils");
+
     const newCount = Math.max(0, group.currentCount - participants.length);
     await prisma.group.update({ where: { id: group.id }, data: { currentCount: newCount } });
 
-    for (const participantJid of participants) {
-      const phoneNumber = participantJid.split("@")[0];
-      if (!phoneNumber) continue;
+    for (const participant of participants) {
+      const rawId = typeof participant === "string" ? participant : participant?.id || "";
+      if (!rawId) continue;
+
+      const rawPhone = rawId.split("@")[0].split(":")[0];
+      const digits = cleanDigits(rawPhone);
+      if (!digits || digits.length < 8) continue;
+
+      const variants = extractPhoneVariants(rawPhone);
+      const base8 = digits.slice(-8);
 
       await prisma.lead.updateMany({
         where: {
-          tenantId, groupId: group.id, status: "JOINED",
-          OR: [{ whatsapp: phoneNumber }, { whatsapp: { contains: phoneNumber.slice(-8) } }],
+          tenantId,
+          groupId: group.id,
+          status: "JOINED",
+          OR: [
+            ...variants.map((v) => ({ whatsapp: v })),
+            { whatsapp: { contains: base8 } },
+          ],
         },
         data: { status: "NOT_JOINED" },
       });

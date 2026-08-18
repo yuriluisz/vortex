@@ -432,23 +432,10 @@ export function extractInviteCode(url: string): string | null {
   return match?.[1] || null;
 }
 
-/**
- * Normaliza um número de telefone para o formato da Evolution API.
- * Remove caracteres não numéricos e garante formato internacional.
- */
-export function normalizePhoneNumber(phone: string): string {
-  // Remove tudo que não é número
-  const digits = phone.replace(/\D/g, "");
+export {
+  normalizePhoneNumber,
+  cleanDigits,
+  extractPhoneVariants,
+  matchesPhoneNumber,
+} from "./phone-utils";
 
-  // Se começa com 0, remove (número nacional brasileiro)
-  if (digits.startsWith("0")) {
-    return `55${digits.slice(1)}`;
-  }
-
-  // Se não começa com 55, adiciona DDI brasileiro
-  if (!digits.startsWith("55")) {
-    return `55${digits}`;
-  }
-
-  return digits;
-}

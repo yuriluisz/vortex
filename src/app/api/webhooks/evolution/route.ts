@@ -31,13 +31,18 @@ export async function POST(request: Request) {
     const body = await request.json();
     const event = body.event as string;
 
-    if (!event) {
-      return NextResponse.json({ error: "Missing event" }, { status: 400 });
-    }
+    const normalizedEvent = (event || "").toLowerCase().replace(/[-_.]/g, "");
+    const isGroupParticipants =
+      normalizedEvent === "groupparticipantsupdate" ||
+      normalizedEvent === "groupsparticipantsupdate";
+    const isConnection = normalizedEvent === "connectionupdate";
 
-    if (event === "group-participants.update" || event === "connection.update") {
-      // Joga para processamento em background (Workers)
-      await webhooksQueue.add("evolution-webhook", body);
+    if (isGroupParticipants || isConnection) {
+      // Joga para processamento em background (Workers) padronizado
+      await webhooksQueue.add("evolution-webhook", {
+        ...body,
+        event: isGroupParticipants ? "group-participants.update" : "connection.update",
+      });
     }
 
     return NextResponse.json({ received: true });

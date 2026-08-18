@@ -20,7 +20,7 @@ export async function syncGroupParticipants(
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   const group = await prisma.group.findUnique({
     where: { id: groupId },
-    select: { groupJid: true, url: true },
+    select: { id: true, groupJid: true, url: true, campaignId: true, tenantId: true },
   });
 
   if (!group) {
@@ -63,6 +63,51 @@ export async function syncGroupParticipants(
       where: { id: groupId },
       data: { currentCount: realCount },
     });
+
+    const { extractPhoneVariants, matchesPhoneNumber, cleanDigits } = await import("./phone-utils");
+
+    for (const p of participants) {
+      const rawId = p.id || "";
+      if (!rawId || (rawId.includes("@lid") && !rawId.includes("@s.whatsapp.net"))) continue;
+
+      const rawPhone = rawId.split("@")[0].split(":")[0];
+      const digits = cleanDigits(rawPhone);
+      if (!digits || digits.length < 8) continue;
+
+      const variants = extractPhoneVariants(rawPhone);
+      const base8 = digits.slice(-8);
+      const last4 = digits.slice(-4);
+
+      const candidateLeads = await prisma.lead.findMany({
+        where: {
+          campaignId: group.campaignId,
+          tenantId: group.tenantId,
+          status: { in: ["PENDING", "NOT_JOINED"] },
+          OR: [
+            ...variants.map((v) => ({ whatsapp: v })),
+            { whatsapp: { contains: base8 } },
+            { whatsapp: { contains: last4 } },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      });
+
+      const matchedLead = candidateLeads.find((lead) =>
+        matchesPhoneNumber(lead.whatsapp, rawPhone)
+      );
+
+      if (matchedLead) {
+        await prisma.lead.update({
+          where: { id: matchedLead.id },
+          data: {
+            status: "JOINED",
+            joinedAt: new Date(),
+            groupId: group.id,
+          },
+        });
+      }
+    }
 
     return { success: true, count: realCount };
   } catch (error) {

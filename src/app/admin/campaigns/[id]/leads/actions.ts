@@ -1,8 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { fetchGroupParticipants } from "@/lib/evolution";
-import { normalizePhoneNumber } from "@/lib/evolution";
+import {
+  fetchGroupParticipants,
+  fetchGroupByInviteCode,
+  extractInviteCode,
+  extractPhoneVariants,
+  matchesPhoneNumber,
+  cleanDigits,
+} from "@/lib/evolution";
 
 export async function syncCampaignLeadsAction(campaignId: string, tenantId: string) {
   // 1. Obter a instância da Evolution API do tenant
@@ -14,57 +20,102 @@ export async function syncCampaignLeadsAction(campaignId: string, tenantId: stri
     return { success: false, error: "WhatsApp não está conectado." };
   }
 
-  // 2. Obter todos os grupos ativos da campanha com JID
+  // 2. Obter todos os grupos ativos da campanha
   const groups = await prisma.group.findMany({
-    where: { campaignId, tenantId, active: true, groupJid: { not: null } },
+    where: { campaignId, tenantId, active: true },
   });
 
   if (groups.length === 0) {
-    return { success: false, error: "Nenhum grupo com JID configurado encontrado." };
+    return { success: false, error: "Nenhum grupo ativo encontrado para esta campanha." };
   }
 
   let totalSynced = 0;
 
   for (const group of groups) {
+    let groupJid = group.groupJid;
+
+    // Se o grupo ainda não possui groupJid, tentar resolver via inviteCode da URL
+    if (!groupJid && group.url) {
+      const inviteCode = extractInviteCode(group.url);
+      if (inviteCode) {
+        try {
+          const groupInfo = await fetchGroupByInviteCode(
+            instance.instanceName,
+            inviteCode
+          );
+          if (groupInfo?.id) {
+            groupJid = groupInfo.id;
+            await prisma.group.update({
+              where: { id: group.id },
+              data: { groupJid, inviteCode },
+            });
+          }
+        } catch (err) {
+          console.warn(`[Sync Leads] Não foi possível resolver JID do grupo ${group.name}:`, err);
+        }
+      }
+    }
+
+    if (!groupJid) continue;
+
     try {
       // Buscar participantes reais na API
       const participants = await fetchGroupParticipants(
         instance.instanceName,
-        group.groupJid!
+        groupJid
       );
-      
+
       const realCount = participants.length;
-      
+
       // Atualizar a lotação real do grupo no banco
       await prisma.group.update({
         where: { id: group.id },
         data: { currentCount: realCount },
       });
 
-      // Extrair apenas os números
-      const participantPhones = participants.map((p) => p.id.split("@")[0]).filter(Boolean);
+      // Extrair apenas os identificadores limpos
+      for (const p of participants) {
+        const rawId = p.id || "";
+        // Ignorar LIDs puros do WhatsApp ou IDs sem número
+        if (rawId.includes("@lid") && !rawId.includes("@s.whatsapp.net")) {
+          // Se for LID puro, não temos o telefone direto a menos que a API resolva
+          continue;
+        }
 
-      for (const phone of participantPhones) {
-        const normalized = normalizePhoneNumber(phone);
-        
-        // Tentar encontrar lead PENDING com esse número
-        const lead = await prisma.lead.findFirst({
+        // Remover sufixos (@s.whatsapp.net, :device)
+        const rawPhone = rawId.split("@")[0].split(":")[0];
+        const digits = cleanDigits(rawPhone);
+        if (!digits || digits.length < 8) continue;
+
+        // Gerar todas as variantes possíveis do número para busca eficiente
+        const variants = extractPhoneVariants(rawPhone);
+        const base8 = digits.slice(-8);
+        const last4 = digits.slice(-4);
+
+        // Tentar encontrar lead PENDING ou NOT_JOINED
+        const candidateLeads = await prisma.lead.findMany({
           where: {
             campaignId,
             tenantId,
-            status: "PENDING",
+            status: { in: ["PENDING", "NOT_JOINED"] },
             OR: [
-              { whatsapp: phone },
-              { whatsapp: normalized },
-              { whatsapp: { contains: phone.slice(-8) } },
+              ...variants.map((v) => ({ whatsapp: v })),
+              { whatsapp: { contains: base8 } },
+              { whatsapp: { contains: last4 } },
             ],
           },
           orderBy: { createdAt: "desc" },
+          take: 10,
         });
 
-        if (lead) {
+        // Double check estrito em memória para evitar falsos positivos
+        const matchedLead = candidateLeads.find((lead) =>
+          matchesPhoneNumber(lead.whatsapp, rawPhone)
+        );
+
+        if (matchedLead) {
           await prisma.lead.update({
-            where: { id: lead.id },
+            where: { id: matchedLead.id },
             data: {
               status: "JOINED",
               joinedAt: new Date(),
@@ -75,11 +126,11 @@ export async function syncCampaignLeadsAction(campaignId: string, tenantId: stri
         }
       }
     } catch (err) {
-      console.error(`Erro ao sincronizar grupo ${group.name}:`, err);
+      console.error(`[Sync Leads] Erro ao sincronizar grupo ${group.name}:`, err);
     }
   }
 
-  // 3. Opcional: Marcar leads muito antigos como NOT_JOINED
+  // 3. Marcar leads PENDING com mais de 24h que continuam sem entrar como NOT_JOINED
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   await prisma.lead.updateMany({
     where: {
