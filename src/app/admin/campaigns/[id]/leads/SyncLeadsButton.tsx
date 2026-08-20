@@ -29,7 +29,7 @@ export function SyncLeadsButton({ campaignId, tenantId }: { campaignId: string; 
       } else {
         setToast({ type: "error", message: `Falha ao sincronizar: ${result.error || "Erro inesperado."}` });
       }
-    } catch (err) {
+    } catch {
       setToast({ type: "error", message: "Erro na requisição: Servidor indisponível." });
     } finally {
       setIsSyncing(false);

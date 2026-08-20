@@ -44,7 +44,7 @@ export default function DynamicForm({
 
     // Disparar evento Lead no Pixel da Meta antes de enviar o formulário
     try {
-      const fbq = (window as any).fbq;
+      const fbq = (window as unknown as { fbq?: (action: string, event: string) => void }).fbq;
       if (fbq) {
         fbq("track", "Lead");
       }
@@ -52,21 +52,23 @@ export default function DynamicForm({
       // Silencioso
     }
 
-    if (campaignId !== "preview" && siteKey) {
-      // @ts-ignore
-      if (window.grecaptcha) {
-        // @ts-ignore
-        window.grecaptcha.ready(() => {
-          // @ts-ignore
-          window.grecaptcha.execute(siteKey, { action: 'submit' }).then((token: string) => {
-            formData.set("g-recaptcha-response", token);
-            startTransition(() => {
-              formAction(formData);
-            });
+    const grecaptcha = (window as unknown as {
+      grecaptcha?: {
+        ready: (cb: () => void) => void;
+        execute: (key: string, opts: { action: string }) => Promise<string>;
+      };
+    }).grecaptcha;
+
+    if (campaignId !== "preview" && siteKey && grecaptcha) {
+      grecaptcha.ready(() => {
+        grecaptcha.execute(siteKey, { action: "submit" }).then((token: string) => {
+          formData.set("g-recaptcha-response", token);
+          startTransition(() => {
+            formAction(formData);
           });
         });
-        return;
-      }
+      });
+      return;
     }
 
     // Fallback caso não tenha recaptcha

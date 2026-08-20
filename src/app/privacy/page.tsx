@@ -9,23 +9,23 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
         <Link
           href="/"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="text-sm text-neutral-400 hover:text-white transition-colors"
         >
           ← Voltar para o início
         </Link>
 
-        <h1 className="mt-8 text-3xl sm:text-4xl font-bold tracking-tight">
+        <h1 className="mt-8 text-3xl sm:text-4xl font-bold tracking-tight text-white">
           Política de Privacidade
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-neutral-400">
           Última atualização: 14 de agosto de 2026
         </p>
 
-        <div className="mt-10 space-y-8 text-sm leading-relaxed text-foreground/80">
+        <div className="mt-10 space-y-8 text-sm leading-relaxed text-neutral-300">
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">
               1. Quem somos

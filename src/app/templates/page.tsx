@@ -36,23 +36,35 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white">
       {/* Navbar */}
       <PublicNav isLoggedIn={isLoggedIn} />
 
       {/* Spacer for fixed nav */}
       <div className="h-16" />
 
-      {/* Hero — Minimalista */}
-      <section className="relative overflow-hidden border-b border-border/30">
-        <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 py-20 sm:py-28 lg:py-36">
+      {/* Hero — com background-templates */}
+      <section className="relative overflow-hidden bg-black border-b border-white/10">
+        {/* Background: background-templates.png com horizonte luminoso */}
+        <div className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/background-templates.png"
+            alt=""
+            className="w-full h-full object-cover object-center opacity-75 mix-blend-screen"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#000000_90%)]" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 py-20 sm:py-28 lg:py-36">
           <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-6">
             Galeria
           </span>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.05]">
             Inspire-se.
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-xl">
+          <p className="mt-6 text-lg sm:text-xl text-neutral-300 leading-relaxed max-w-xl">
             Landing pages reais criadas pela comunidade. Escolha uma base e lance sua campanha em minutos.
           </p>
         </div>
@@ -77,12 +89,12 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
       </section>
 
       {/* CTA Final */}
-      <section className="border-t border-border/30 py-16 sm:py-24">
+      <section className="border-t border-white/10 bg-black py-16 sm:py-24">
         <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
             Pronto para criar a sua?
           </h2>
-          <p className="mt-3 text-muted-foreground max-w-md mx-auto">
+          <p className="mt-3 text-neutral-300 max-w-md mx-auto">
             Comece grátis ou faça upgrade para publicar seus próprios templates na galeria.
           </p>
           {isLoggedIn ? (

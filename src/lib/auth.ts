@@ -83,6 +83,8 @@ export async function verifyOTP(
   return true;
 }
 
+import { renderVortexEmail } from "@/lib/email-template";
+
 export async function sendOTPEmail(
   email: string,
   otp: string
@@ -91,22 +93,29 @@ export async function sendOTPEmail(
     const fromEmail =
       process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
 
+    const html = renderVortexEmail({
+      title: "Seu Código de Verificação 2FA",
+      category: "Segurança de Acesso",
+      badgeType: "primary",
+      bodyHtml: `
+        <p style="margin: 0 0 16px; color: #d1d5db;">
+          Utilize o código de segurança abaixo para confirmar sua identidade e acessar o painel administrativo:
+        </p>
+        <div style="background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+          <span class="code-block" style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${otp}</span>
+        </div>
+        <p style="margin: 0; color: #9ca3af; font-size: 14px;">
+          ⏱️ Este código expira em <strong>5 minutos</strong> e é de uso único.
+        </p>
+      `,
+      footerNote: "Nunca compartilhe este código com ninguém. Se você não solicitou este acesso, sua senha pode estar segura, mas recomendamos verificar sua conta.",
+    });
+
     await resend.emails.send({
       from: fromEmail,
       to: email,
       subject: "Seu código de verificação — Vórtex+",
-      html: `
-        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-          <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 8px; color: #ffffff;">Vórtex+</h1>
-          <p style="font-size: 14px; color: #a3a3a3; margin-bottom: 32px;">Painel Administrativo</p>
-          <p style="font-size: 16px; margin-bottom: 24px;">Seu código de verificação 2FA:</p>
-          <div style="background: #171717; border: 1px solid #262626; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 24px;">
-            <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff;">${otp}</span>
-          </div>
-          <p style="font-size: 14px; color: #a3a3a3;">Este código expira em <strong>5 minutos</strong>.</p>
-          <p style="font-size: 12px; color: #525252; margin-top: 32px;">Se você não solicitou este código, ignore este e-mail.</p>
-        </div>
-      `,
+      html,
     });
 
     return { success: true };
@@ -118,3 +127,4 @@ export async function sendOTPEmail(
     };
   }
 }
+

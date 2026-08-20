@@ -42,3 +42,12 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# AI agent skills & configs
+.agents/skills/
+skills/
+.skills/
+skills-lock.json
+.gemini/
+.claude/
+.cursor/

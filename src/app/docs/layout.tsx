@@ -14,9 +14,9 @@ export default function PublicDocsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/30">
+    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-primary/30">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           {/* Logo & Badge */}
           <div className="flex items-center gap-3">
@@ -38,20 +38,20 @@ export default function PublicDocsLayout({
           <nav className="flex items-center gap-4 sm:gap-6">
             <Link
               href="/"
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               Início
             </Link>
             <Link
               href="/templates"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               <Store className="w-3.5 h-3.5" />
               Templates
             </Link>
             <Link
               href="/admin/login"
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               Entrar
             </Link>
@@ -67,38 +67,38 @@ export default function PublicDocsLayout({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 bg-black">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {children}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/60 bg-card/30 py-10 relative z-10">
+      <footer className="border-t border-white/10 bg-black py-10 relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/Vortex Padrão.svg"
               alt="Vórtex+"
-              className="h-5 w-auto invert opacity-40"
+              className="h-5 w-auto invert opacity-50"
             />
           </div>
-          <div className="flex items-center gap-6 text-xs text-muted-foreground">
-            <Link href="/" className="hover:text-foreground transition-colors">
+          <div className="flex items-center gap-6 text-xs text-neutral-400">
+            <Link href="/" className="hover:text-white transition-colors">
               Início
             </Link>
-            <Link href="/templates" className="hover:text-foreground transition-colors">
+            <Link href="/templates" className="hover:text-white transition-colors">
               Templates
             </Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">
+            <Link href="/privacy" className="hover:text-white transition-colors">
               Política de Privacidade
             </Link>
-            <Link href="/admin/login" className="hover:text-foreground transition-colors font-medium text-primary">
+            <Link href="/admin/login" className="hover:text-white transition-colors font-medium text-primary">
               Acessar Painel →
             </Link>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-neutral-500">
             &copy; {new Date().getFullYear()} Vórtex+. Todos os direitos reservados.
           </p>
         </div>

@@ -2,15 +2,8 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import {
-  Megaphone,
-  Users,
-  MessageCircle,
-  Plus,
-  BarChart3,
-} from "lucide-react";
+import { Megaphone, Users, MessageCircle, Plus, BarChart3 } from "lucide-react";
 import { DashboardCharts } from "./dashboard-charts";
-import { DotGrid } from "@/components/ui/dot-grid";
 
 export default async function AdminDashboardPage() {
   const session = await getSession();
@@ -19,17 +12,13 @@ export default async function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
-  const { tenantId, email, userId } = session;
+  const { tenantId } = session;
 
-  const [totalCampaigns, totalLeads, activeGroups, allGroups, campaigns, tenant, totalMessages, totalViews, user] =
+  const [totalCampaigns, totalLeads, activeGroups, campaigns] =
     await Promise.all([
       prisma.campaign.count({ where: { active: true, tenantId } }),
       prisma.lead.count({ where: { tenantId } }),
       prisma.group.count({ where: { active: true, tenantId } }),
-      prisma.group.findMany({
-        where: { active: true, tenantId },
-        select: { currentCount: true, maxCapacity: true },
-      }),
       prisma.campaign.findMany({
         where: { active: true, tenantId },
         select: {
@@ -44,26 +33,6 @@ export default async function AdminDashboardPage() {
           },
         },
         orderBy: { createdAt: "desc" },
-      }),
-      prisma.tenant.findUnique({
-        where: { id: tenantId },
-        select: {
-          name: true,
-          slug: true,
-          plan: true,
-          maxCampaigns: true,
-          maxGroups: true,
-          maxLeads: true,
-        },
-      }),
-      prisma.groupMessage.count({ where: { tenantId } }),
-      prisma.campaign.aggregate({
-        where: { active: true, tenantId },
-        _sum: { views: true },
-      }),
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: { name: true },
       }),
     ]);
 

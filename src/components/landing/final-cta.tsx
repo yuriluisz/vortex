@@ -6,23 +6,29 @@ import { Reveal } from "@/components/ui/reveal";
 
 export function FinalCta() {
   return (
-    <section className="py-24 sm:py-32 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-1/4 top-1/2 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[128px]" />
-        <div className="absolute -right-1/4 bottom-0 h-[500px] w-[500px] rounded-full bg-accent/15 blur-[128px]" />
+    <section className="py-24 sm:py-36 relative overflow-hidden bg-black border-t border-white/10">
+      {/* Background: background-finalcta.png */}
+      <div className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden flex items-center justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/background-finalcta.png"
+          alt=""
+          className="w-full h-full object-cover object-center opacity-75 mix-blend-screen"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#000000_90%)]" />
       </div>
 
       <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 relative z-10">
         <Reveal>
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-6">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1] mb-6">
               Sua próxima oferta pode estar{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
                 no ar em 30 segundos.
               </span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto leading-relaxed">
+            <p className="text-lg text-neutral-300 mb-10 max-w-xl mx-auto leading-relaxed">
               Cada dia sem validar é dinheiro queimado em tráfego. Comece agora,
               é grátis — e descubra se a sua ideia coloca dinheiro no bolso.
             </p>
@@ -37,7 +43,7 @@ export function FinalCta() {
                 <ArrowRight className="relative h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
 
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-neutral-400">
                 <span className="flex items-center gap-1.5">
                   <Zap className="h-3.5 w-3.5 text-primary" />
                   Grátis para começar

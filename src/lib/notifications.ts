@@ -1,5 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
+import { renderVortexEmail } from "@/lib/email-template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
@@ -56,22 +57,31 @@ export async function sendReportEmail({
   const title = isTemplate ? "Template" : "Campanha";
   const subjectLabel = isTemplate ? "Template" : "Campanha";
 
+  const html = renderVortexEmail({
+    title: `Denúncia de Conteúdo: ${title}`,
+    category: "Moderação & Segurança",
+    badgeType: "danger",
+    bodyHtml: `
+      <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 0 0 8px; color: #d1d5db;"><strong>${title}:</strong> ${campaignName} (<code style="color: #818cf8;">${campaignSlug}</code>)</p>
+        <p style="margin: 0 0 8px; color: #d1d5db;"><strong>${isTemplate ? "Criador" : "Tenant"}:</strong> ${tenantSlug}</p>
+        <p style="margin: 0 0 8px; color: #d1d5db;"><strong>Denunciante:</strong> ${reporterEmail}</p>
+        <p style="margin: 0; color: #9ca3af; font-size: 13px;"><strong>Data/Hora:</strong> ${now}</p>
+      </div>
+      <h3 style="font-size: 15px; color: #f3f4f6; margin: 0 0 10px;">Mensagem da Denúncia:</h3>
+      <div style="background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 16px; white-space: pre-wrap; color: #e5e7eb; font-size: 14px;">${message}</div>
+    `,
+    cta: {
+      label: "Abrir Painel do Super Admin",
+      url: "https://app.vortexpages.online/admin/super",
+      variant: "danger",
+    },
+  });
+
   return sendEmail({
     to: "yulusica@gmail.com",
     subject: `[Report] ${subjectLabel}: ${campaignSlug} — ${campaignName}`,
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-        <h1 style="font-size: 20px; font-weight: 700; color: #ffffff;">🚩 Report de ${title}</h1>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 16px 0;" />
-        <p><strong>${title}:</strong> ${campaignName} (${campaignSlug})</p>
-        <p><strong>${isTemplate ? "Criador" : "Tenant"}:</strong> ${tenantSlug}</p>
-        <p><strong>Email do denunciante:</strong> ${reporterEmail}</p>
-        <p><strong>Data/Hora:</strong> ${now}</p>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 16px 0;" />
-        <h2 style="font-size: 16px; color: #ffffff;">Mensagem:</h2>
-        <p style="background: #171717; border: 1px solid #262626; border-radius: 8px; padding: 16px; white-space: pre-wrap;">${message}</p>
-      </div>
-    `,
+    html,
   });
 }
 
@@ -94,23 +104,36 @@ export async function sendGracePeriodWarningEmail({
       ? "ÚLTIMO AVISO: Seu plano será rebaixado amanhã!"
       : `Seu pagamento está vencido — regularize em ${daysRemaining} dias`;
 
+  const html = renderVortexEmail({
+    title: "Aviso de Pagamento Pendente",
+    category: "Assinatura & Faturamento",
+    badgeType: "warning",
+    bodyHtml: `
+      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${tenantName}</strong>,</p>
+      <p style="margin: 0 0 16px; color: #9ca3af;">
+        Identificamos que o pagamento da mensalidade do seu plano <strong>${planName}</strong> está vencido.
+      </p>
+      <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0;">
+        <span style="font-size: 18px; font-weight: 700; color: #facc15;">
+          Você tem ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""} para regularizar antes do rebaixamento.
+        </span>
+      </div>
+      <p style="margin: 0; color: #9ca3af; font-size: 14px;">
+        Após este período, seu plano será rebaixado para <strong>Free</strong> e campanhas/grupos excedentes serão pausados automaticamente para evitar interrupção total.
+      </p>
+    `,
+    cta: {
+      label: "Regularizar Assinatura no Painel",
+      url: "https://app.vortexpages.online/admin/settings",
+      variant: "warning",
+    },
+    footerNote: "Caso já tenha realizado o pagamento via PIX ou Boleto, a compensação pode levar até 1 dia útil.",
+  });
+
   return sendEmail({
     to,
     subject,
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-        <h1 style="font-size: 20px; font-weight: 700; color: #ffffff;">⚠️ Pagamento Vencido</h1>
-        <p>Olá <strong>${tenantName}</strong>,</p>
-        <p>O pagamento do seu plano <strong>${planName}</strong> está vencido.</p>
-        <p style="font-size: 18px; font-weight: 700; color: #fbbf24; text-align: center; margin: 24px 0;">
-          Você tem ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""} para regularizar antes do rebaixamento.
-        </p>
-        <p>Após esse período, seu plano será rebaixado para <strong>Free</strong> e algumas campanhas/grupos serão desativados.</p>
-        <p style="margin-top: 24px;">Acesse o painel para regularizar: <a href="https://app.vortexpages.online/admin" style="color: #818cf8;">app.vortexpages.online/admin</a></p>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 24px 0;" />
-        <p style="font-size: 12px; color: #525252;">Vórtex+ — Gerenciador de Lançamentos</p>
-      </div>
-    `,
+    html,
   });
 }
 
@@ -133,52 +156,59 @@ export async function sendTemplateStatusEmail({
   const config = {
     PUBLISHED: {
       subject: `✅ Seu template "${templateName}" foi publicado!`,
-      emoji: "🎉",
-      title: "Template Publicado",
-      color: "#4ade80",
-      message: `Seu template <strong>${templateName}</strong> foi aprovado e já está disponível na comunidade para outros usuários usarem.`,
+      category: "Comunidade de Templates",
+      badgeType: "success" as const,
+      title: "Template Aprovado & Publicado!",
+      message: `Seu template <strong>${templateName}</strong> foi aprovado e agora está disponível na galeria da comunidade para milhares de criadores.`,
+      ctaVariant: "primary" as const,
     },
     REJECTED: {
-      subject: `❌ Seu template "${templateName}" foi rejeitado`,
-      emoji: "😕",
-      title: "Template Rejeitado",
-      color: "#f87171",
-      message: `Seu template <strong>${templateName}</strong> não passou na revisão. Você pode corrigir e reenviar para uma nova avaliação.`,
+      subject: `❌ Seu template "${templateName}" precisa de ajustes`,
+      category: "Moderação de Templates",
+      badgeType: "danger" as const,
+      title: "Template Não Aprovado",
+      message: `Seu template <strong>${templateName}</strong> não atendeu a todos os critérios de qualidade e segurança da nossa diretriz. Você pode ajustar e reenviar a qualquer momento.`,
+      ctaVariant: "danger" as const,
     },
     TAKEN_DOWN: {
       subject: `⚠️ Seu template "${templateName}" foi removido`,
-      emoji: "🚫",
-      title: "Template Removido",
-      color: "#fbbf24",
-      message: `Seu template <strong>${templateName}</strong> foi removido da comunidade.`,
+      category: "Moderação de Templates",
+      badgeType: "warning" as const,
+      title: "Template Removido da Galeria",
+      message: `Seu template <strong>${templateName}</strong> foi removido da comunidade pública.`,
+      ctaVariant: "warning" as const,
     },
   }[status];
+
+  const html = renderVortexEmail({
+    title: config.title,
+    category: config.category,
+    badgeType: config.badgeType,
+    bodyHtml: `
+      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${authorName}</strong>,</p>
+      <p style="margin: 0 0 16px; color: #9ca3af;">${config.message}</p>
+      ${
+        reason
+          ? `
+        <div style="background: #111827; border: 1px solid #1f2937; border-left: 4px solid #6366f1; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <strong style="color: #f3f4f6; font-size: 14px;">Feedback da Equipe de Moderação:</strong>
+          <p style="margin: 8px 0 0; color: #d1d5db; font-size: 14px; white-space: pre-wrap;">${reason}</p>
+        </div>
+      `
+          : ""
+      }
+    `,
+    cta: {
+      label: "Acompanhar Meus Templates",
+      url: "https://app.vortexpages.online/admin/templates",
+      variant: config.ctaVariant,
+    },
+  });
 
   return sendEmail({
     to,
     subject: config.subject,
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-        <h1 style="font-size: 20px; font-weight: 700; color: ${config.color};">
-          ${config.emoji} ${config.title}
-        </h1>
-        <p>Olá <strong>${authorName}</strong>,</p>
-        <p>${config.message}</p>
-        ${reason ? `
-          <div style="background: #171717; border: 1px solid #262626; border-left: 3px solid ${config.color}; border-radius: 8px; padding: 16px; margin: 16px 0;">
-            <strong style="color: #ffffff;">Motivo:</strong>
-            <p style="margin-top: 8px; white-space: pre-wrap;">${reason}</p>
-          </div>
-        ` : ""}
-        <p style="margin-top: 24px;">
-          <a href="https://app.vortexpages.online/admin/templates" style="display: inline-block; background: #818cf8; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-            Acompanhar no Painel
-          </a>
-        </p>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 24px 0;" />
-        <p style="font-size: 12px; color: #525252;">Vórtex+ — Gerenciador de Lançamentos</p>
-      </div>
-    `,
+    html,
   });
 }
 
@@ -196,32 +226,40 @@ export async function sendDowngradeEmail({
 }): Promise<{ success: boolean; error?: string }> {
   const reasonText =
     reason === "INADIMPLENCIA"
-      ? "falta de pagamento"
-      : "cancelamento da assinatura";
+      ? "falta de compensação do pagamento"
+      : "solicitação de cancelamento da assinatura";
+
+  const html = renderVortexEmail({
+    title: "Plano Alterado para Free",
+    category: "Assinatura & Limites",
+    badgeType: "warning",
+    bodyHtml: `
+      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${tenantName}</strong>,</p>
+      <p style="margin: 0 0 16px; color: #9ca3af;">
+        Seu plano foi rebaixado para <strong>Free</strong> devido a ${reasonText}.
+      </p>
+      <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin: 20px 0;">
+        <h4 style="margin: 0 0 12px; font-size: 14px; color: #f3f4f6;">Seus novos limites ativos:</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #9ca3af; font-size: 14px; line-height: 1.8;">
+          <li>1 campanha ativa (a mais recente criada)</li>
+          <li>3 grupos de WhatsApp com rotação ativa</li>
+          <li>Limite mensal de até 100 leads</li>
+        </ul>
+      </div>
+      <p style="margin: 0; color: #9ca3af; font-size: 14px;">
+        Seus dados e leads anteriores continuam salvos e você pode reativar seu plano PRO ou ULTRA a qualquer momento para desbloquear capacidade ilimitada.
+      </p>
+    `,
+    cta: {
+      label: "Reativar Plano no Painel",
+      url: "https://app.vortexpages.online/admin/settings",
+      variant: "primary",
+    },
+  });
 
   return sendEmail({
     to,
-    subject: "Seu plano foi rebaixado para Free",
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-        <h1 style="font-size: 20px; font-weight: 700; color: #ffffff;">🔻 Plano Rebaixado</h1>
-        <p>Olá <strong>${tenantName}</strong>,</p>
-        <p>Seu plano foi rebaixado para <strong>Free</strong> devido a ${reasonText}.</p>
-        <p>O que mudou:</p>
-        <ul>
-          <li>Apenas 1 campanha permanece ativa (a mais recente)</li>
-          <li>Apenas 3 grupos permanecem ativos (os mais recentes)</li>
-          <li>Novos leads estão bloqueados até o limite de 100</li>
-        </ul>
-        <p>Você pode reativar seu plano a qualquer momento pelo painel.</p>
-        <p style="margin-top: 24px;">
-          <a href="https://app.vortexpages.online/admin" style="display: inline-block; background: #818cf8; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-            Acessar Painel
-          </a>
-        </p>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 24px 0;" />
-        <p style="font-size: 12px; color: #525252;">Vórtex+ — Gerenciador de Lançamentos</p>
-      </div>
-    `,
+    subject: "Seu plano foi rebaixado para Free — Vórtex+",
+    html,
   });
-}
+}

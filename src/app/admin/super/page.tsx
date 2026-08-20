@@ -85,7 +85,8 @@ export default async function SuperAdminPage({ searchParams }: PageProps) {
   const totalLeads = tenants.reduce((acc, t) => acc + t._count.leads, 0);
 
   // Leads nos últimos 30 dias
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const recentLeads = await prisma.lead.count({
     where: { createdAt: { gte: thirtyDaysAgo } },
   });

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import DynamicForm from "./DynamicForm";
 import parse, { Element, HTMLReactParserOptions, domToReact } from "html-react-parser";
@@ -103,7 +102,6 @@ function CustomForm({
   slug: string;
   isCustomDomain: boolean;
 }) {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -124,7 +122,7 @@ function CustomForm({
 
     // Disparar evento Lead no Pixel
     try {
-      const fbq = (window as any).fbq;
+      const fbq = (window as unknown as { fbq?: (action: string, event: string) => void }).fbq;
       if (fbq) fbq("track", "Lead");
     } catch {
       // silencioso
@@ -139,19 +137,21 @@ function CustomForm({
       });
     };
 
-    if (siteKey && campaignId !== "preview") {
-      // @ts-ignore
-      if (window.grecaptcha) {
-        // @ts-ignore
-        window.grecaptcha.ready(() => {
-          // @ts-ignore
-          window.grecaptcha.execute(siteKey, { action: 'submit' }).then((token: string) => {
-            formData.set("g-recaptcha-response", token);
-            executeSubmit();
-          });
+    const grecaptcha = (window as unknown as {
+      grecaptcha?: {
+        ready: (cb: () => void) => void;
+        execute: (key: string, opts: { action: string }) => Promise<string>;
+      };
+    }).grecaptcha;
+
+    if (siteKey && campaignId !== "preview" && grecaptcha) {
+      grecaptcha.ready(() => {
+        grecaptcha.execute(siteKey, { action: "submit" }).then((token: string) => {
+          formData.set("g-recaptcha-response", token);
+          executeSubmit();
         });
-        return;
-      }
+      });
+      return;
     }
 
     executeSubmit();

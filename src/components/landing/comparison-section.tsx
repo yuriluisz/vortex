@@ -46,62 +46,74 @@ const ROWS = [
 function CellValue({ value }: { value: string | boolean }) {
   if (value === true) {
     return (
-      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-chart-2/15 text-chart-2">
+      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-chart-2/20 text-chart-2">
         <Check className="h-3.5 w-3.5" />
       </span>
     );
   }
   if (value === false) {
     return (
-      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-destructive/10 text-destructive">
+      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-destructive/20 text-destructive">
         <X className="h-3.5 w-3.5" />
       </span>
     );
   }
   if (value === "Parcial" || value === "Limitado" || value === "Com delay") {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
         <Minus className="h-3.5 w-3.5" />
         {value}
       </span>
     );
   }
-  return <span className="text-sm text-foreground/80">{value}</span>;
+  return <span className="text-sm text-neutral-200">{value}</span>;
 }
 
 export function ComparisonSection() {
   return (
-    <section className="py-24 sm:py-32 relative overflow-hidden">
-      <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12">
+    <section className="py-24 sm:py-32 relative overflow-hidden bg-black border-y border-white/10">
+      {/* Background: background-beneficios.png */}
+      <div className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden flex items-center justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/background-beneficios.png"
+          alt=""
+          className="w-full h-full object-cover object-center opacity-75 mix-blend-screen"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#000000_90%)]" />
+      </div>
+
+      <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 relative z-10">
         <Reveal>
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
               Comparação
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
               Por que Vórtex+ e não o jeito antigo?
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-neutral-300">
               A diferença entre perder horas e publicar em segundos.
             </p>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
-          <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card/50">
+          <div className="overflow-x-auto border border-white/15 bg-black/70 backdrop-blur-xl shadow-xl">
             <table className="w-full min-w-[640px] text-left">
               <thead>
-                <tr className="border-b border-border/60">
-                  <th className="p-5 text-sm font-semibold text-muted-foreground w-1/4">
+                <tr className="border-b border-white/15">
+                  <th className="p-5 text-sm font-semibold text-neutral-300 w-1/4">
                     Recurso
                   </th>
-                  <th className="p-5 text-sm font-bold text-primary bg-primary/5">
+                  <th className="p-5 text-sm font-bold text-primary bg-primary/10">
                     Vórtex+
                   </th>
-                  <th className="p-5 text-sm font-semibold text-muted-foreground">
+                  <th className="p-5 text-sm font-semibold text-neutral-300">
                     Manual (VPS)
                   </th>
-                  <th className="p-5 text-sm font-semibold text-muted-foreground">
+                  <th className="p-5 text-sm font-semibold text-neutral-300">
                     Outras plataformas
                   </th>
                 </tr>
@@ -110,11 +122,11 @@ export function ComparisonSection() {
                 {ROWS.map((row, i) => (
                   <tr
                     key={row.feature}
-                    className={`border-b border-border/40 last:border-0 ${
-                      i % 2 === 0 ? "bg-background/40" : ""
+                    className={`border-b border-white/10 last:border-0 ${
+                      i % 2 === 0 ? "bg-white/[0.02]" : ""
                     }`}
                   >
-                    <td className="p-5 text-sm font-medium text-foreground">
+                    <td className="p-5 text-sm font-medium text-white">
                       {row.feature}
                     </td>
                     <td className="p-5 bg-primary/5">
@@ -142,7 +154,7 @@ export function ComparisonSection() {
               Parar de perder tempo
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <p className="text-xs text-muted-foreground mt-3">
+            <p className="text-xs text-neutral-400 mt-3">
               Comece grátis · Sem cartão de crédito
             </p>
           </div>

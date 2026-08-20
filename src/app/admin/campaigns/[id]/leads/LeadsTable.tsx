@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { X, User, Phone, MapPin, Smartphone, Calendar, FileJson, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, User, Phone, Smartphone, Calendar, FileJson, ChevronLeft, ChevronRight } from "lucide-react";
 
 export type LeadData = {
   id: string;

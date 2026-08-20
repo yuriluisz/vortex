@@ -183,7 +183,7 @@ export function CampaignSettingsModal({
 
   const isLocked = plan !== "PRO" && plan !== "ULTRA";
   const inputClass =
-    "w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground outline-none transition-all duration-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-black/40 shadow-inner";
+    "w-full rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-sm text-foreground outline-none transition-all duration-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-white/[0.08] shadow-inner";
   const disabledInputClass = `${inputClass} opacity-50 cursor-not-allowed`;
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -589,10 +589,10 @@ export function CampaignSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl">
-      <div className="bg-black/40 border border-white/10 rounded-3xl w-full max-w-5xl h-[90vh] max-h-[900px] flex flex-col shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+      <div className="bg-zinc-950 border border-white/15 rounded-3xl w-full max-w-5xl h-[90vh] max-h-[900px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative">
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-white/10 shrink-0 relative z-10 bg-black/20">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-white/10 shrink-0 relative z-10 bg-black/40">
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-inner">
               <Settings2 className="w-5 h-5 text-primary" />

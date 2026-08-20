@@ -42,17 +42,17 @@ export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="py-24 sm:py-32 bg-secondary/30 border-y border-border/50 relative overflow-hidden">
+    <section className="py-24 sm:py-32 bg-black border-y border-white/10 relative overflow-hidden">
       <div className="mx-auto max-w-[800px] px-6 sm:px-8 lg:px-12 relative z-10">
         <Reveal>
           <div className="text-center mb-16">
             <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
               FAQ
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
               Perguntas frequentes
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-neutral-300">
               Tudo o que você precisa saber antes de começar.
             </p>
           </div>
@@ -63,18 +63,18 @@ export function FaqSection() {
             const isOpen = openIndex === i;
             return (
               <Reveal key={faq.question} delay={i * 50}>
-                <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+                <div className="border border-white/15 bg-black/70 backdrop-blur-xl overflow-hidden transition-colors hover:border-white/25">
                   <button
                     type="button"
                     onClick={() => setOpenIndex(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 p-5 text-left transition-colors duration-200 hover:bg-card/80"
+                    className="w-full flex items-center justify-between gap-4 p-5 text-left transition-colors duration-200 hover:bg-white/[0.04]"
                     aria-expanded={isOpen}
                   >
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-white">
                       {faq.question}
                     </span>
                     <ChevronDown
-                      className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ease-out ${
+                      className={`h-5 w-5 shrink-0 text-neutral-300 transition-transform duration-200 ease-out ${
                         isOpen ? "rotate-180" : ""
                       }`}
                     />
@@ -85,7 +85,7 @@ export function FaqSection() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <p className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">
+                      <p className="px-5 pb-5 text-sm text-neutral-300 leading-relaxed">
                         {faq.answer}
                       </p>
                     </div>
@@ -98,7 +98,7 @@ export function FaqSection() {
 
         <Reveal delay={300}>
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground">
+            <p className="text-neutral-300">
               Ainda com dúvidas?{" "}
               <Link
                 href="/admin/login"

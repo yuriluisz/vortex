@@ -8,7 +8,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
 } from "recharts";
 import { ChevronDown, Filter } from "lucide-react";
 
@@ -220,9 +219,9 @@ export function DashboardCharts() {
                         <stop offset="100%" stopColor="hsl(260, 100%, 70%)" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 18%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 90%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: any) => [v, "Visitas"]} />
+                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 75%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 75%)" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 25%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 98%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: any) => [v, "Visitas"]} />
                     <Area type="monotone" dataKey="views" stroke="hsl(260, 100%, 70%)" strokeWidth={2} fill="url(#viewGradient)" activeDot={{ r: 4, fill: "hsl(260, 100%, 70%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -250,9 +249,9 @@ export function DashboardCharts() {
                         <stop offset="100%" stopColor="hsl(221, 100%, 70%)" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 18%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 90%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: any) => [v, "Leads"]} />
+                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 75%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 75%)" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 25%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 98%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: any) => [v, "Leads"]} />
                     <Area type="monotone" dataKey="count" stroke="hsl(221, 100%, 70%)" strokeWidth={2} fill="url(#leadGradient)" activeDot={{ r: 4, fill: "hsl(221, 100%, 70%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -280,9 +279,9 @@ export function DashboardCharts() {
                         <stop offset="100%" stopColor="hsl(160, 100%, 40%)" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 55%)" }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 18%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 90%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: any) => [`${v}%`, "Conversão"]} />
+                    <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "hsl(0, 0%, 75%)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(0, 0%, 75%)" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 25%)", borderRadius: 8, fontSize: 12, color: "hsl(0, 0%, 98%)" }} labelFormatter={l => typeof l === 'string' ? formatTooltipDate(l) : ''} formatter={(v: any) => [`${v}%`, "Conversão"]} />
                     <Area type="monotone" dataKey="conversion" stroke="hsl(160, 100%, 40%)" strokeWidth={2} fill="url(#convGradient)" activeDot={{ r: 4, fill: "hsl(160, 100%, 40%)", stroke: "hsl(0, 0%, 8%)", strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>

@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import type { AuditAction } from "@/lib/prisma-types";
 
+import type { Prisma } from "@prisma/client";
+
 /**
  * Registra uma ação no audit log.
  *
@@ -28,7 +30,7 @@ export async function logAudit(
     await prisma.auditLog.create({
       data: {
         action,
-        details: details as any,
+        details: (details ?? undefined) as Prisma.InputJsonValue | undefined,
         ip,
         userId: userId ?? null,
         tenantId: tenantId ?? null,

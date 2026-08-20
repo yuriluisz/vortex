@@ -191,7 +191,7 @@ export function PlanSelector({
       // Trigger action
       formAction(formData);
     }
-  }, [checkoutPlanParam, pending, state, formAction]);
+  }, [checkoutPlanParam, pending, state, formAction, router]);
 
   // Detectar needsBilling e abrir modal
   useEffect(() => {

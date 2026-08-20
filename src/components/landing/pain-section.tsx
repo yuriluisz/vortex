@@ -31,8 +31,16 @@ const PAINS = [
 
 export function PainSection() {
   return (
-    <section className="py-24 sm:py-32 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+    <section className="py-24 sm:py-32 relative overflow-hidden bg-black">
+      {/* Background ribbon wave rotacionada horizontalmente e centralizada atrás dos cards */}
+      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center select-none overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/Background-howto.png"
+          alt=""
+          className="h-[900px] sm:h-[1500px] lg:h-[2000px] w-auto max-w-none -rotate-90 object-contain opacity-70"
+        />
+      </div>
 
       <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 relative z-10">
         <Reveal>
@@ -40,10 +48,10 @@ export function PainSection() {
             <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
               O problema
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
               Você ainda está fazendo isso manualmente?
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-neutral-300">
               Se você roda tráfego, conhece esses três pesadelos.
             </p>
           </div>
@@ -52,14 +60,14 @@ export function PainSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {PAINS.map((pain, i) => (
             <Reveal key={pain.title} delay={i * 100}>
-              <GlowCard className="h-full p-8 border border-border/60 bg-card/50 hover:border-border/80 transition-colors duration-300">
+              <GlowCard className="h-full p-8 border border-white/15 bg-black/70 backdrop-blur-md hover:border-primary/40 transition-colors duration-300">
                 <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${pain.color} mb-6`}>
                   <pain.icon className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3">
+                <h3 className="text-xl font-bold text-white mb-3">
                   {pain.title}
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-neutral-300 text-sm leading-relaxed">
                   {pain.description}
                 </p>
               </GlowCard>

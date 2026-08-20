@@ -331,7 +331,7 @@ export async function requestEmailChangeAction(
   state: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { userId, tenantId, email: currentEmail } = await requireAuth();
+  const { email: currentEmail } = await requireAuth();
 
   const parsed = EmailChangeSchema.safeParse({
     newEmail: formData.get("newEmail"),
@@ -653,7 +653,7 @@ export async function changePlanCheckoutAction(
   state: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { plan: currentPlan, tenantId, userId, email } = await requireAuth();
+  const { plan: currentPlan, tenantId, userId } = await requireAuth();
 
   const parsed = PlanChangeSchema.safeParse({
     plan: formData.get("plan"),

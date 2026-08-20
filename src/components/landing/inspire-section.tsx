@@ -37,12 +37,17 @@ const FEATURED_TEMPLATES = [
 
 export function InspireSection() {
   return (
-    <section className="py-24 sm:py-32 relative overflow-hidden bg-secondary/30 border-y border-border/50">
-      {/* Animated gradient blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px] animate-blob-float-1" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-accent/10 blur-[120px] animate-blob-float-2" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px] animate-blob-float-3" />
+    <section className="py-24 sm:py-32 relative overflow-hidden bg-black border-y border-white/10">
+      {/* Background: background-templates.png com horizonte luminoso */}
+      <div className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden flex items-center justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/background-templates.png"
+          alt=""
+          className="w-full h-full object-cover object-center opacity-75 mix-blend-screen"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#000000_90%)]" />
       </div>
 
       <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 relative z-10">
@@ -62,11 +67,11 @@ export function InspireSection() {
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
               <span className="flex items-center gap-1.5">
-                <Copy className="w-4 h-4" />
+                <Copy className="w-4 h-4 text-primary" />
                 <span className="font-semibold text-foreground">+120</span> templates
               </span>
               <span className="flex items-center gap-1.5">
-                <Heart className="w-4 h-4" />
+                <Heart className="w-4 h-4 text-pink-500" />
                 <span className="font-semibold text-foreground">+800</span> curtidas
               </span>
             </div>
@@ -77,25 +82,22 @@ export function InspireSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {FEATURED_TEMPLATES.map((template, i) => (
             <Reveal key={template.name} delay={i * 80}>
-              <GlowCard className="group cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1">
+              <GlowCard className="group cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
                 {/* Preview Area */}
-                <div
-                  className="relative aspect-[4/3] overflow-hidden"
-                  style={{ backgroundColor: template.color }}
-                >
-                  {/* Gradient overlay */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${template.gradient} opacity-20`} />
-
-                  {/* Icon / Mockup */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-6xl">{template.icon}</span>
-                  </div>
+                <div className="relative aspect-[4/3] overflow-hidden bg-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/community-template-icon.png"
+                    alt={template.name}
+                    className="w-full h-full object-cover object-top transform transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                   {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-xs">
                     <Link
                       href="/templates"
-                      className="inline-flex items-center gap-2 rounded-lg bg-white text-black px-4 py-2 text-sm font-medium transition-transform duration-200 hover:scale-105 active:scale-95"
+                      className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-semibold transition-transform duration-200 hover:scale-105 active:scale-95 shadow-lg"
                     >
                       Ver template
                       <ArrowRight className="w-4 h-4" />
@@ -104,22 +106,22 @@ export function InspireSection() {
 
                   {/* Badges */}
                   <div className="absolute top-3 left-3 flex gap-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-black/60 text-white backdrop-blur-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10">
                       {template.category}
                     </span>
                   </div>
                 </div>
 
                 {/* Info */}
-                <div className="p-5">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
+                <div className="p-6">
+                  <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-200">
                     {template.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">
+                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-2">
                     {template.description}
                   </p>
-                  <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
-                    <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
+                    <span className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-zinc-300 font-medium">
                       {template.theme}
                     </span>
                   </div>
@@ -139,7 +141,7 @@ export function InspireSection() {
               Explorar todos os templates
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <p className="text-xs text-muted-foreground mt-3">
+            <p className="text-xs text-muted-foreground mt-3 font-medium">
               Grátis para usar · +{FEATURED_TEMPLATES.length} categorias disponíveis
             </p>
           </div>

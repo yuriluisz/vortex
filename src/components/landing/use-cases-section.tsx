@@ -39,19 +39,17 @@ const USE_CASES = [
 
 export function UseCasesSection() {
   return (
-    <section className="py-24 sm:py-32 bg-secondary/30 border-y border-border/50 relative overflow-hidden">
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-accent/5 blur-[120px] pointer-events-none" />
-
+    <section className="py-24 sm:py-32 bg-black border-y border-white/10 relative overflow-hidden">
       <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 relative z-10">
         <Reveal>
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
               Resultados
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
               Quem valida com a Vórtex+ não volta atrás
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-neutral-400">
               Marketers e infoprodutores que trocaram a dor pela velocidade.
             </p>
           </div>
@@ -60,28 +58,28 @@ export function UseCasesSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {USE_CASES.map((useCase, i) => (
             <Reveal key={useCase.name} delay={i * 100}>
-              <GlowCard className="h-full flex flex-col p-8 border border-border/60 bg-card/50 hover:border-border/80 transition-colors duration-300">
+              <GlowCard className="h-full flex flex-col p-8 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-primary/40 transition-colors duration-300">
                 <div className="flex items-center gap-4 mb-6">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={useCase.avatar}
                     alt={useCase.name}
-                    className="h-12 w-12 rounded-full object-cover border-2 border-border"
+                    className="h-12 w-12 rounded-full object-cover border-2 border-white/10"
                     loading="lazy"
                   />
                   <div>
-                    <p className="font-semibold text-foreground">{useCase.name}</p>
-                    <p className="text-xs text-muted-foreground">{useCase.niche}</p>
+                    <p className="font-semibold text-white">{useCase.name}</p>
+                    <p className="text-xs text-neutral-400">{useCase.niche}</p>
                   </div>
                 </div>
 
-                <blockquote className="text-muted-foreground leading-relaxed flex-1">
+                <blockquote className="text-neutral-300 leading-relaxed flex-1">
                   &ldquo;{useCase.quote}&rdquo;
                 </blockquote>
 
-                <div className="mt-6 pt-6 border-t border-border/40 flex items-center gap-2">
+                <div className="mt-6 pt-6 border-t border-white/10 flex items-center gap-2">
                   <useCase.icon className="h-4 w-4 text-primary shrink-0" />
-                  <span className="text-xs font-semibold text-foreground/80">
+                  <span className="text-xs font-semibold text-neutral-200">
                     {useCase.metric}
                   </span>
                 </div>

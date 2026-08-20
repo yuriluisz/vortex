@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
   }, [isOTPStep]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-background relative overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center px-4 bg-black text-white relative overflow-hidden">
       {/* Background global effects */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -left-1/4 -top-1/4 h-[800px] w-[800px] rounded-full bg-primary/20 blur-[128px]" />
@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-10 mx-auto invert drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
           </Link>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 text-sm text-neutral-400">
             Painel Administrativo
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
           {!isOTPStep ? (
             <>
               {/* Toggle Login / Registro */}
-              <div className="flex mb-8 p-1 rounded-xl bg-black/40 border border-white/5 backdrop-blur-md">
+              <div className="flex mb-8 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => setMode("login")}

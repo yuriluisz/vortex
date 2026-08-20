@@ -100,14 +100,22 @@ export default async function CampaignGroupsPage({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-full max-w-[120px] bg-muted rounded-full h-2">
+                        <div className="w-full max-w-[130px] bg-white/5 rounded-full h-2 overflow-hidden border border-white/10">
                           <div 
-                            className={`h-2 rounded-full transition-all ${percentage >= 100 ? 'bg-destructive' : 'bg-primary'}`} 
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              percentage >= 100
+                                ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                                : percentage >= 80
+                                ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]"
+                                : percentage >= 50
+                                ? "bg-amber-400"
+                                : "bg-emerald-500"
+                            }`} 
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {group.currentCount} / {group.maxCapacity}
+                        <span className="text-xs text-muted-foreground whitespace-nowrap font-mono tabular-nums">
+                          {group.currentCount} / {group.maxCapacity} ({percentage}%)
                         </span>
                       </div>
                     </td>

@@ -18,6 +18,9 @@ import {
   PowerOff,
   Trash2,
   AlertTriangle,
+  Monitor,
+  Tablet,
+  Smartphone,
 } from "lucide-react";
 import { TemplatePicker } from "@/components/templates/template-picker";
 import {
@@ -177,6 +180,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
   const [showPicker, setShowPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<"code" | "preview" | "split">("split");
+  const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [isMobile, setIsMobile] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -358,7 +362,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
       await toggleCampaignStatusAction(campaign.id, newActive);
       router.refresh();
     });
-  }, [campaign?.id, controls.active, router, startTransition]);
+  }, [campaign, controls.active, router, startTransition]);
 
   const handleToggleProtection = useCallback(() => {
     if (!campaign?.id) return;
@@ -373,7 +377,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
       await toggleCampaignProtectionAction(campaign.id, newProtected);
       router.refresh();
     });
-  }, [campaign?.id, controls.protected, controls.accessCode, router, startTransition]);
+  }, [campaign, controls.protected, controls.accessCode, router, startTransition]);
 
   const handleDelete = useCallback(() => {
     setShowDeleteConfirm(true);
@@ -385,7 +389,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
       await deleteCampaignAction(campaign.id);
       router.push("/admin/campaigns");
     });
-  }, [campaign?.id, router, startTransition]);
+  }, [campaign, router, startTransition]);
 
   const handleCheckDomainStatus = useCallback(async () => {
     if (!controls.customDomain) return null;
@@ -622,26 +626,78 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
         {/* Preview */}
         {(activeTab === "preview" || activeTab === "split") && (
-          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} bg-neutral-100 min-w-0 relative z-0`}>
-            <iframe
-              srcDoc={PREVIEW_BASE_DOCUMENT}
-              onLoad={handleIframeLoad}
-              title="Preview"
-              className="w-full h-full bg-white shadow-inner"
-              sandbox="allow-scripts allow-same-origin allow-forms"
-            />
-            {iframePortalRoot && createPortal(
-              <HtmlRenderer
-                rawHtml={previewHtml}
-                campaignId={campaign?.id || "preview"}
-                slug={campaign?.slug || "preview"}
-                formSchema={parsedFormSchema}
-                isPreview={true}
-              />,
-              iframePortalRoot
-            )}
+          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} bg-[#0a0a0a] min-w-0 relative z-0 flex items-center justify-center p-2 sm:p-4 overflow-auto`}>
+            {/* Viewport switcher */}
+            <div className="absolute top-3 left-3 z-20 flex items-center rounded-lg border border-white/10 bg-black/70 p-0.5 backdrop-blur-md shadow-lg">
+              <button
+                type="button"
+                onClick={() => setViewport("desktop")}
+                className={`p-1.5 rounded-md transition-all ${
+                  viewport === "desktop"
+                    ? "bg-primary/20 text-primary shadow-sm"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                title="Desktop (100%)"
+              >
+                <Monitor className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewport("tablet")}
+                className={`p-1.5 rounded-md transition-all ${
+                  viewport === "tablet"
+                    ? "bg-primary/20 text-primary shadow-sm"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                title="Tablet (768px)"
+              >
+                <Tablet className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewport("mobile")}
+                className={`p-1.5 rounded-md transition-all ${
+                  viewport === "mobile"
+                    ? "bg-primary/20 text-primary shadow-sm"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                title="Mobile (375px)"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Preview Frame Container */}
+            <div
+              className={`transition-all duration-300 relative flex items-center justify-center ${
+                viewport === "mobile"
+                  ? "w-[375px] h-[720px] rounded-[36px] border-4 border-neutral-800 shadow-2xl overflow-hidden bg-white"
+                  : viewport === "tablet"
+                  ? "w-[768px] h-full max-h-[850px] rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden bg-white"
+                  : "w-full h-full bg-white shadow-inner"
+              }`}
+            >
+              <iframe
+                srcDoc={PREVIEW_BASE_DOCUMENT}
+                onLoad={handleIframeLoad}
+                title="Preview"
+                className="w-full h-full bg-white"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+              />
+              {iframePortalRoot && createPortal(
+                <HtmlRenderer
+                  rawHtml={previewHtml}
+                  campaignId={campaign?.id || "preview"}
+                  slug={campaign?.slug || "preview"}
+                  formSchema={parsedFormSchema}
+                  isPreview={true}
+                />,
+                iframePortalRoot
+              )}
+            </div>
+
             {/* Preview label */}
-            <div className="absolute top-3 right-3 flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/80 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full font-semibold border border-white/10 shadow-lg">
+            <div className="absolute top-3 right-3 flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/80 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full font-semibold border border-white/10 shadow-lg z-20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>

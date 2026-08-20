@@ -94,7 +94,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
   const planType = tenantInfo?.plan as "FREE" | "PRO" | "ULTRA" | undefined;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground antialiased relative">
+    <div className="flex h-screen overflow-hidden bg-black text-white antialiased relative">
       {/* Background global effects */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[128px]" />
@@ -114,14 +114,14 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col
-          bg-background/40 backdrop-blur-2xl border-r border-border/50
+          bg-black/90 backdrop-blur-2xl border-r border-white/10
           motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[var(--ease-drawer)]
           md:static md:z-auto md:translate-x-0 shadow-2xl
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center px-6 border-b border-border/50">
+        <div className="flex h-16 items-center px-6 border-b border-white/10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
           {planType && (
@@ -131,7 +131,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
         {/* Header do Tenant */}
         {tenantInfo && (
-          <div className="px-4 py-3 border-b border-border/50">
+          <div className="px-4 py-3 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-[0_0_15px_rgba(var(--primary),0.2)] border border-primary/20">
                 <Building2 className="h-5 w-5" />
@@ -174,7 +174,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
                 className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
-                    : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
+                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <item.icon className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]' : ''}`} />
@@ -190,7 +190,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                 pathname?.startsWith("/admin/whatsapp")
                   ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
-                  : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
               }`}
             >
               <MessageSquareMore className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${pathname?.startsWith("/admin/whatsapp") ? 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]' : ''}`} />
@@ -201,7 +201,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-border/50 space-y-1">
+        <div className="p-3 border-t border-white/10 space-y-1">
           {/* Navegação secundária */}
           {SECONDARY_NAV.map((item) => {
             const isActive = item.exact
@@ -215,7 +215,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
                 className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
-                    : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
+                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <item.icon className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]' : ''}`} />
@@ -224,7 +224,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
             );
           })}
 
-          <div className="my-2 border-t border-border/50" />
+          <div className="my-2 border-t border-white/10" />
 
           {tenantInfo ? (
             <form action={logoutAction}>
@@ -249,13 +249,13 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden relative z-10">
+      <main className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black">
         {/* Botão hamburger — visível apenas em mobile */}
-        <div className="md:hidden flex items-center h-14 px-4 border-b border-border/50 bg-background/50 backdrop-blur-md">
+        <div className="md:hidden flex items-center h-14 px-4 border-b border-white/10 bg-black/90 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setSidebarOpen((prev) => !prev)}
-            className="flex items-center justify-center rounded-lg p-2 text-foreground/70 hover:bg-white/5 hover:text-foreground transition-colors"
+            className="flex items-center justify-center rounded-lg p-2 text-neutral-400 hover:bg-white/5 hover:text-white transition-colors"
             aria-label={sidebarOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={sidebarOpen}
           >

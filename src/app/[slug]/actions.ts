@@ -4,7 +4,6 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { UAParser } from "ua-parser-js";
-import { logAudit } from "@/lib/audit";
 import { leadsQueue, viewsQueue } from "@/lib/queue";
 import { canCreateResource, getLimitForPlan, isUnlimited } from "@/lib/plans";
 import { getCachedCampaignData, getCachedLeadCount } from "@/lib/campaign-cache";

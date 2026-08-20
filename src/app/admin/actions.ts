@@ -683,7 +683,7 @@ export async function toggleGroupStatusAction(
   campaignId: string,
   active: boolean
 ) {
-  const { userId, tenantId } = await requireAuth();
+  const { tenantId } = await requireAuth();
 
   const result = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
   if (result.error) throw new Error(result.error.error);
@@ -701,7 +701,7 @@ export async function updateGroupUrlAction(
   campaignId: string,
   url: string
 ) {
-  const { userId, tenantId } = await requireAuth();
+  const { tenantId } = await requireAuth();
 
   const result = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
   if (result.error) throw new Error(result.error.error);
