@@ -1,12 +1,10 @@
 import React from "react";
 import { PageTransition } from "@/components/ui/page-transition";
 
-export default function RootTemplate({
+export default function CampaignSubTemplate({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // O template do Next.js App Router re-monta a cada transição de rota,
-  // disparando a animação de entrada de forma suave, sem layout shift.
   return <PageTransition>{children}</PageTransition>;
 }

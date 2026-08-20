@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
 import "./globals.css";
 import "./animations.css";
 
@@ -68,7 +69,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <NavigationProgress />
+        {children}
+      </body>
     </html>
   );
 }

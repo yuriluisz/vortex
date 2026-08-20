@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Megaphone, Users, MessageCircle, Plus, BarChart3 } from "lucide-react";
 import { DashboardCharts } from "./dashboard-charts";
+import { getLeadsTimeSeries } from "./dashboard-actions";
 
 export default async function AdminDashboardPage() {
   const session = await getSession();
@@ -14,7 +15,7 @@ export default async function AdminDashboardPage() {
 
   const { tenantId } = session;
 
-  const [totalCampaigns, totalLeads, activeGroups, campaigns] =
+  const [totalCampaigns, totalLeads, activeGroups, campaigns, initialTimeSeries] =
     await Promise.all([
       prisma.campaign.count({ where: { active: true, tenantId } }),
       prisma.lead.count({ where: { tenantId } }),
@@ -34,6 +35,7 @@ export default async function AdminDashboardPage() {
         },
         orderBy: { createdAt: "desc" },
       }),
+      getLeadsTimeSeries(7),
     ]);
 
   const totalActiveGroups = activeGroups;
@@ -103,8 +105,11 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* ─── GRÁFICO: Leads por dia (com DotGrid + filtros) ─── */}
-      <DashboardCharts />
+      {/* ─── GRÁFICO: Leads por dia (com animação fluida + filtros) ─── */}
+      <DashboardCharts
+        initialData={initialTimeSeries}
+        initialCampaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))}
+      />
 
       {/* ─── 3. CAMPANHAS com listagem de grupos ─── */}
       <div>
