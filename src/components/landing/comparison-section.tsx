@@ -100,48 +100,55 @@ export function ComparisonSection() {
         </Reveal>
 
         <Reveal delay={100}>
-          <div className="overflow-x-auto border border-white/15 bg-black/70 backdrop-blur-xl shadow-xl">
-            <table className="w-full min-w-[640px] text-left">
-              <thead>
-                <tr className="border-b border-white/15">
-                  <th className="p-5 text-sm font-semibold text-neutral-300 w-1/4">
-                    Recurso
-                  </th>
-                  <th className="p-5 text-sm font-bold text-primary bg-primary/10">
-                    Vórtex+
-                  </th>
-                  <th className="p-5 text-sm font-semibold text-neutral-300">
-                    Manual (VPS)
-                  </th>
-                  <th className="p-5 text-sm font-semibold text-neutral-300">
-                    Outras plataformas
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map((row, i) => (
-                  <tr
-                    key={row.feature}
-                    className={`border-b border-white/10 last:border-0 ${
-                      i % 2 === 0 ? "bg-white/[0.02]" : ""
-                    }`}
-                  >
-                    <td className="p-5 text-sm font-medium text-white">
-                      {row.feature}
-                    </td>
-                    <td className="p-5 bg-primary/5">
-                      <CellValue value={row.vortex} />
-                    </td>
-                    <td className="p-5">
-                      <CellValue value={row.manual} />
-                    </td>
-                    <td className="p-5">
-                      <CellValue value={row.others} />
-                    </td>
+          <div className="relative">
+            <div className="sm:hidden text-right mb-2">
+              <span className="text-[11px] font-medium text-neutral-400">
+                Arraste para o lado →
+              </span>
+            </div>
+            <div className="overflow-x-auto border border-white/15 bg-black/70 backdrop-blur-xl shadow-xl rounded-xl sm:rounded-2xl no-scrollbar">
+              <table className="w-full min-w-[560px] sm:min-w-[640px] text-left">
+                <thead>
+                  <tr className="border-b border-white/15">
+                    <th className="p-3.5 sm:p-5 text-xs sm:text-sm font-semibold text-neutral-300 w-1/4">
+                      Recurso
+                    </th>
+                    <th className="p-3.5 sm:p-5 text-xs sm:text-sm font-bold text-primary bg-primary/10">
+                      Vórtex+
+                    </th>
+                    <th className="p-3.5 sm:p-5 text-xs sm:text-sm font-semibold text-neutral-300">
+                      Manual (VPS)
+                    </th>
+                    <th className="p-3.5 sm:p-5 text-xs sm:text-sm font-semibold text-neutral-300">
+                      Outras plataformas
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {ROWS.map((row, i) => (
+                    <tr
+                      key={row.feature}
+                      className={`border-b border-white/10 last:border-0 ${
+                        i % 2 === 0 ? "bg-white/[0.02]" : ""
+                      }`}
+                    >
+                      <td className="p-3.5 sm:p-5 text-xs sm:text-sm font-medium text-white">
+                        {row.feature}
+                      </td>
+                      <td className="p-3.5 sm:p-5 bg-primary/5">
+                        <CellValue value={row.vortex} />
+                      </td>
+                      <td className="p-3.5 sm:p-5">
+                        <CellValue value={row.manual} />
+                      </td>
+                      <td className="p-3.5 sm:p-5">
+                        <CellValue value={row.others} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </Reveal>
 

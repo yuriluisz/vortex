@@ -147,23 +147,25 @@ export function DashboardCharts({
   return (
     <div className="space-y-4">
       {/* Controles: Filtro de Campanha e Range de Data */}
-      <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-bold text-foreground tracking-tight">Desempenho Diário</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Desempenho Diário</h2>
           {loading && <Loader2 className="h-4 w-4 animate-spin text-primary opacity-80" />}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {/* Filtro de campanha — dropdown customizado */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative flex-1 sm:flex-initial" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setDropdownOpen((prev) => !prev)}
-              className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               aria-expanded={dropdownOpen}
               aria-haspopup="listbox"
             >
-              <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="max-w-[140px] truncate">{selectedCampaignName}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="max-w-[130px] sm:max-w-[160px] truncate">{selectedCampaignName}</span>
+              </div>
               <ChevronDown
                 className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${
                   dropdownOpen ? "rotate-180" : ""
@@ -174,7 +176,7 @@ export function DashboardCharts({
             {dropdownOpen && (
               <ul
                 role="listbox"
-                className="absolute right-0 top-full mt-1.5 z-20 min-w-[180px] overflow-hidden rounded-lg border border-border bg-card shadow-lg animate-scale-in"
+                className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 z-30 min-w-[200px] max-w-[calc(100vw-2rem)] max-h-60 overflow-y-auto rounded-lg border border-border bg-card shadow-xl animate-scale-in"
               >
                 <li
                   role="option"
@@ -214,7 +216,7 @@ export function DashboardCharts({
           </div>
 
           {/* Toggle 7d / 30d */}
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex rounded-lg border border-border overflow-hidden flex-shrink-0">
             {([7, 30] as Range[]).map((r) => (
               <button
                 key={r}

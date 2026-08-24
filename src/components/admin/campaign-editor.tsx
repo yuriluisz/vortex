@@ -430,12 +430,12 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TOOLBAR                                                           */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-background/60 backdrop-blur-xl shrink-0 gap-2 relative z-20 shadow-sm">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-b border-white/5 bg-background/60 backdrop-blur-xl shrink-0 gap-1.5 sm:gap-2 relative z-20 shadow-sm overflow-x-auto no-scrollbar">
         {/* Left side */}
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-shrink-0">
           <Link
             href="/admin/campaigns"
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+            className="p-1.5 sm:p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             title="Voltar para Campanhas"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -465,7 +465,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
           <div className="flex rounded-lg border border-white/10 bg-black/40 p-0.5 overflow-hidden backdrop-blur-md shadow-inner">
             <button
               onClick={() => setActiveTab("code")}
-              className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all duration-200 rounded-md ${
+              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-all duration-200 rounded-md ${
                 activeTab === "code" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
               }`}
               title="Código"
@@ -476,7 +476,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             {!isMobile && (
               <button
                 onClick={() => setActiveTab("split")}
-                className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all duration-200 rounded-md ${
+                className={`px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-all duration-200 rounded-md ${
                   activeTab === "split" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
                 title="Split"
@@ -487,7 +487,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             )}
             <button
               onClick={() => setActiveTab("preview")}
-              className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all duration-200 rounded-md ${
+              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-all duration-200 rounded-md ${
                 activeTab === "preview" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
               }`}
               title="Preview"
@@ -499,7 +499,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           {/* Save status */}
           {saveStatus === "error" && saveError && (
             <span className="text-xs text-destructive font-medium max-w-[200px] truncate hidden sm:inline">
@@ -517,13 +517,13 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             <>
               <Link
                 href={`/admin/campaigns/${campaign.id}/leads`}
-                className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+                className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
               >
                 Leads
               </Link>
               <Link
                 href={`/admin/campaigns/${campaign.id}/groups`}
-                className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+                className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
               >
                 Grupos
               </Link>
@@ -532,23 +532,23 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
           <button
             onClick={() => setShowPicker(true)}
-            className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+            className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
           >
             Templates
           </button>
 
           <button
             onClick={() => setSettingsOpen(true)}
-            className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
+            className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
           >
-            <Settings className="w-3.5 h-3.5 mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <Settings className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
             <span className="hidden sm:inline">Configurações</span>
           </button>
 
           {mode === "edit" && controls && (
             <button
               onClick={handleToggleActive}
-              className={`inline-flex items-center px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 shadow-sm hover:shadow active:scale-95 ${
+              className={`inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 shadow-sm hover:shadow active:scale-95 ${
                 controls.active
                   ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20"
                   : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10"
@@ -556,9 +556,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               title={controls.active ? "Desativar Campanha" : "Ativar Campanha"}
             >
               {controls.active ? (
-                <Power className="w-3.5 h-3.5 mr-1.5" />
+                <Power className="w-3.5 h-3.5 sm:mr-1.5" />
               ) : (
-                <PowerOff className="w-3.5 h-3.5 mr-1.5" />
+                <PowerOff className="w-3.5 h-3.5 sm:mr-1.5" />
               )}
               <span className="hidden sm:inline">{controls.active ? "Ativa" : "Pausada"}</span>
             </button>
@@ -567,7 +567,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
           <button
             onClick={handleSave}
             disabled={isPending || saveStatus === "saving"}
-            className="relative inline-flex items-center px-4 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground font-semibold gap-1.5 overflow-hidden transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed hover:bg-primary/90 active:scale-95 hover:shadow-[0_0_20px_rgba(147,51,234,0.4)]"
+            className="relative inline-flex items-center px-3 sm:px-4 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground font-semibold gap-1.5 overflow-hidden transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed hover:bg-primary/90 active:scale-95 hover:shadow-[0_0_20px_rgba(147,51,234,0.4)]"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] animate-shimmer" />
             {saveStatus === "saving" || isPending ? (
@@ -671,9 +671,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             <div
               className={`transition-all duration-300 relative flex items-center justify-center ${
                 viewport === "mobile"
-                  ? "w-[375px] h-[720px] rounded-[36px] border-4 border-neutral-800 shadow-2xl overflow-hidden bg-white"
+                  ? "w-full max-w-[375px] h-[720px] max-h-full rounded-[28px] sm:rounded-[36px] border-2 sm:border-4 border-neutral-800 shadow-2xl overflow-hidden bg-white"
                   : viewport === "tablet"
-                  ? "w-[768px] h-full max-h-[850px] rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden bg-white"
+                  ? "w-full max-w-[768px] h-full max-h-[850px] rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden bg-white"
                   : "w-full h-full bg-white shadow-inner"
               }`}
             >

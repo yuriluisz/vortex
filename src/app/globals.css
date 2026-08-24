@@ -175,8 +175,18 @@
     pointer-events: none;
   }
 
-  .glow-card:hover::before {
-    opacity: 1;
+  @media (hover: hover) {
+    .glow-card:hover::before {
+      opacity: 1;
+    }
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   @keyframes marquee {

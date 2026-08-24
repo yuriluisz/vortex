@@ -90,39 +90,39 @@ export function HowItWorksSection() {
 
             return (
               <Reveal key={step.title} delay={i * 120} className="flex">
-                <GlowCard className="group relative flex flex-col justify-between p-8 border border-white/15 bg-black/70 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:border-white/30 hover:shadow-2xl hover:shadow-primary/20 w-full">
+                <GlowCard className="group relative flex flex-col justify-between p-5 sm:p-8 rounded-2xl border border-white/15 bg-black/70 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:border-white/30 hover:shadow-2xl hover:shadow-primary/20 w-full">
                   <div>
                     {/* Step Number & Badge */}
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.05] border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-inner">
-                          <Icon className={`h-6 w-6 ${step.iconColor}`} />
+                    <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
+                      <div className="flex items-center gap-2.5 sm:gap-3">
+                        <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-white/[0.05] border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-inner flex-shrink-0">
+                          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${step.iconColor}`} />
                         </div>
-                        <span className="font-mono text-xs font-extrabold uppercase tracking-wider text-neutral-300 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10">
+                        <span className="font-mono text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-neutral-300 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 whitespace-nowrap">
                           PASSO {step.step}
                         </span>
                       </div>
 
-                      <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2 sm:px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
                         {step.badge}
                       </span>
                     </div>
 
                     {/* Title & Description */}
-                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-primary transition-colors duration-200">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-2.5 sm:mb-3 group-hover:text-primary transition-colors duration-200">
                       {step.title}
                     </h3>
-                    <p className="text-sm text-neutral-300 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
                       {step.description}
                     </p>
                   </div>
 
                   {/* Feature Tags Footer */}
-                  <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-2">
+                  <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-white/10 flex flex-wrap gap-1.5 sm:gap-2">
                     {step.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="text-[11px] font-semibold text-neutral-300 bg-white/[0.05] border border-white/10 rounded-lg px-2.5 py-1"
+                        className="text-[10px] sm:text-[11px] font-semibold text-neutral-300 bg-white/[0.05] border border-white/10 rounded-lg px-2 sm:px-2.5 py-1"
                       >
                         {tag}
                       </span>

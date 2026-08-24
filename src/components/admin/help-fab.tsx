@@ -462,10 +462,10 @@ export function HelpFAB() {
   }
 
   return (
-    <div ref={panelRef} className="fixed bottom-6 right-6 z-[60]">
+    <div ref={panelRef} className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[60]">
       {/* Chat Panel */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 max-h-[70vh] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 fade-in zoom-in-95 duration-300">
+        <div className="absolute bottom-14 sm:bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 max-w-[340px] max-h-[75vh] sm:max-h-[70vh] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 fade-in zoom-in-95 duration-300">
           {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -489,7 +489,7 @@ export function HelpFAB() {
           </div>
 
           {/* FAQ Content */}
-          <div className="overflow-y-auto max-h-[calc(70vh-120px)]">
+          <div className="overflow-y-auto max-h-[calc(75vh-120px)] sm:max-h-[calc(70vh-120px)]">
             <div className="px-4 py-3 border-b border-border bg-muted/30">
               <p className="text-xs text-muted-foreground">
                 Perguntas frequentes sobre esta página. Clique para expandir.
@@ -520,7 +520,7 @@ export function HelpFAB() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`group flex items-center justify-center h-12 w-12 rounded-full shadow-lg transition-all duration-300 ${
+        className={`group flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-full shadow-lg transition-all duration-300 ${
           isOpen
             ? "bg-muted text-muted-foreground hover:bg-accent"
             : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-xl hover:scale-105"

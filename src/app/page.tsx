@@ -429,11 +429,11 @@ export default function Home() {
               </div>
             </Reveal>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start lg:px-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-start lg:px-12">
               {plans.map((plan, i) => (
                 <Reveal key={plan.name} delay={i * 100} className={plan.highlight ? "md:-mt-4" : ""}>
                   <div
-                    className={`relative flex flex-col p-8 transition-all duration-300 overflow-hidden ${
+                    className={`relative flex flex-col p-6 sm:p-8 rounded-2xl sm:rounded-3xl transition-all duration-300 overflow-hidden ${
                       plan.highlight
                         ? "border border-primary/50 bg-black/85 shadow-2xl shadow-primary/20 ring-1 ring-primary/40 md:min-h-[520px] backdrop-blur-xl"
                         : "border border-white/15 bg-black/70 backdrop-blur-xl hover:border-white/30"
@@ -453,35 +453,36 @@ export default function Home() {
                     )}
 
                     <div className="relative z-10 flex flex-col h-full">
-                      {plan.highlight && (
-                        <span className="absolute -top-3 right-0 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-sm">
-                          {plan.badge}
-                        </span>
-                      )}
-
-                      <div className="mb-6">
-                        <h3 className={`text-xl font-bold ${plan.highlight ? 'text-primary' : 'text-white'}`}>
-                          {plan.name}
-                        </h3>
-                        <p className="mt-2 text-sm text-neutral-300 min-h-[40px]">
-                          {plan.description}
-                        </p>
+                      <div className="flex items-start justify-between gap-2 mb-6">
+                        <div>
+                          <h3 className={`text-xl font-bold ${plan.highlight ? 'text-primary' : 'text-white'}`}>
+                            {plan.name}
+                          </h3>
+                          <p className="mt-2 text-xs sm:text-sm text-neutral-300 min-h-[36px] sm:min-h-[40px]">
+                            {plan.description}
+                          </p>
+                        </div>
+                        {plan.highlight && (
+                          <span className="rounded-full bg-primary px-2.5 sm:px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-sm flex-shrink-0 whitespace-nowrap">
+                            {plan.badge}
+                          </span>
+                        )}
                       </div>
 
-                      <div className="mb-8">
-                        <span className="text-4xl font-bold text-white">
+                      <div className="mb-6 sm:mb-8">
+                        <span className="text-3xl sm:text-4xl font-bold text-white">
                           {plan.price}
                         </span>
-                        <span className="text-neutral-300 font-medium ml-1">
+                        <span className="text-neutral-300 font-medium ml-1 text-sm sm:text-base">
                           {plan.period}
                         </span>
                       </div>
 
-                      <ul className="mb-8 flex-1 space-y-4">
+                      <ul className="mb-6 sm:mb-8 flex-1 space-y-3 sm:space-y-4">
                         {plan.features.map((feature) => (
-                          <li key={feature} className="flex items-start gap-3">
-                            <CheckCircle2 className={`h-5 w-5 shrink-0 ${plan.highlight ? 'text-primary' : 'text-neutral-300'}`} />
-                            <span className="text-sm text-neutral-100 leading-snug">
+                          <li key={feature} className="flex items-start gap-2.5 sm:gap-3">
+                            <CheckCircle2 className={`h-4 w-4 sm:h-5 sm:w-5 shrink-0 mt-0.5 ${plan.highlight ? 'text-primary' : 'text-neutral-300'}`} />
+                            <span className="text-xs sm:text-sm text-neutral-100 leading-snug">
                               {feature}
                             </span>
                           </li>
@@ -490,7 +491,7 @@ export default function Home() {
 
                       <Link
                         href={plan.href}
-                        className={`mt-auto inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                        className={`mt-auto inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold transition-all ${
                           plan.highlight
                             ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-md"
                             : "bg-white/10 text-white hover:bg-white/15 border border-white/15"
@@ -499,7 +500,7 @@ export default function Home() {
                         {plan.cta}
                       </Link>
 
-                      <p className="mt-3 text-center text-[11px] text-neutral-300">
+                      <p className="mt-3 text-center text-[10px] sm:text-[11px] text-neutral-400">
                         7 dias de garantia · Cancele quando quiser
                       </p>
                     </div>
@@ -519,39 +520,39 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black py-12 relative z-10">
-        <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <footer className="border-t border-white/10 bg-black py-10 sm:py-12 relative z-10">
+        <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-6 w-auto invert opacity-70" />
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             <Link
               href="/docs"
-              className="text-sm text-neutral-400 hover:text-white transition-colors"
+              className="text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               Docs
             </Link>
             <Link
               href="/templates"
-              className="text-sm text-neutral-400 hover:text-white transition-colors"
+              className="text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               Templates
             </Link>
             <Link
               href="/privacy"
-              className="text-sm text-neutral-400 hover:text-white transition-colors"
+              className="text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               Política de Privacidade
             </Link>
             <Link
               href="/admin/login"
-              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+              className="text-xs sm:text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               Começar grátis →
             </Link>
           </div>
-          <p className="text-sm text-neutral-500">
+          <p className="text-xs sm:text-sm text-neutral-500">
             &copy; {new Date().getFullYear()} Vórtex+. Todos os direitos reservados.
           </p>
         </div>

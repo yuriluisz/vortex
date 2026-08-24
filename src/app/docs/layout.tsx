@@ -35,19 +35,19 @@ export default function PublicDocsLayout({
           </div>
 
           {/* Nav Links */}
-          <nav className="flex items-center gap-4 sm:gap-6">
+          <nav className="flex items-center gap-2.5 sm:gap-6">
             <Link
               href="/"
-              className="text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
+              className="hidden sm:inline text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               Início
             </Link>
             <Link
               href="/templates"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1 text-xs sm:text-sm text-neutral-400 hover:text-white transition-colors"
             >
               <Store className="w-3.5 h-3.5" />
-              Templates
+              <span>Templates</span>
             </Link>
             <Link
               href="/admin/login"
@@ -57,9 +57,9 @@ export default function PublicDocsLayout({
             </Link>
             <Link
               href="/admin/login?mode=register"
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-md shadow-primary/20"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-md shadow-primary/20"
             >
-              <span>Começar grátis</span>
+              <span>Começar</span>
               <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </Link>
           </nav>
@@ -68,14 +68,14 @@ export default function PublicDocsLayout({
 
       {/* Main Content */}
       <main className="flex-1 bg-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
           {children}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black py-10 relative z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <footer className="border-t border-white/10 bg-black py-8 sm:py-10 relative z-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -84,7 +84,7 @@ export default function PublicDocsLayout({
               className="h-5 w-auto invert opacity-50"
             />
           </div>
-          <div className="flex items-center gap-6 text-xs text-neutral-400">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-neutral-400">
             <Link href="/" className="hover:text-white transition-colors">
               Início
             </Link>

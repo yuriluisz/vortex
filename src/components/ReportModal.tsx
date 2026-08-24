@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AlertCircle, CheckCircle2, Flag, Loader2, X } from "lucide-react";
 
 interface ReportModalProps {
   campaignSlug: string;
@@ -58,8 +59,8 @@ export default function ReportModal({
       }
 
       setSent(true);
-    } catch (err: any) {
-      setError(err.message || "Erro ao enviar. Tente novamente.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao enviar. Tente novamente.");
     } finally {
       setSending(false);
     }
@@ -73,155 +74,105 @@ export default function ReportModal({
   return (
     <div
       onClick={handleOverlayClick}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 99999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.7)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-      }}
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
     >
-      <div
-        style={{
-          background: "#111",
-          border: "1px solid #262626",
-          borderRadius: "12px",
-          padding: "24px",
-          maxWidth: "440px",
-          width: "90%",
-          color: "#e5e5e5",
-        }}
-      >
+      <div className="bg-zinc-950 border border-white/15 rounded-2xl p-5 sm:p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto shadow-2xl text-foreground animate-in zoom-in-95 duration-200 relative">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label="Fechar"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         {sent ? (
-          <div style={{ textAlign: "center", padding: "24px 0" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
-            <h2 style={{ fontSize: "18px", fontWeight: 700, margin: 0 }}>
+          <div className="text-center py-6">
+            <div className="flex justify-center mb-3">
+              <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white">
               Report enviado!
             </h2>
-            <p style={{ color: "#a3a3a3", fontSize: "14px", marginTop: "8px" }}>
-              Obrigado. Sua mensagem foi enviada para nossa equipe.
+            <p className="text-sm text-neutral-400 mt-2">
+              Obrigado. Sua mensagem foi enviada para nossa equipe de moderação.
             </p>
             <button
               onClick={onClose}
-              style={{
-                marginTop: "16px",
-                background: "white",
-                color: "#000",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px 24px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
+              className="mt-6 inline-flex items-center justify-center bg-white text-black font-semibold rounded-xl px-6 py-2.5 text-sm hover:bg-neutral-200 active:scale-95 transition-all"
             >
               Fechar
             </button>
           </div>
         ) : (
           <>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-              <span style={{ fontSize: "20px" }}>🚩</span>
-              <h2 style={{ fontSize: "18px", fontWeight: 700, margin: 0 }}>
+            <div className="flex items-center gap-2.5 mb-5 pr-8">
+              <div className="p-2 rounded-xl bg-destructive/15 text-destructive border border-destructive/20">
+                <Flag className="w-4 h-4" />
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white">
                 Reportar Conteúdo
               </h2>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
                 <label
                   htmlFor="report-email"
-                  style={{ display: "block", fontSize: "13px", color: "#a3a3a3", marginBottom: "4px" }}
+                  className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1.5"
                 >
                   Seu email
                 </label>
                 <input
                   id="report-email"
                   type="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    background: "#1a1a1a",
-                    border: "1px solid #262626",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    color: "white",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
+                  className="w-full rounded-xl border border-white/15 bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-neutral-500 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="report-message"
-                  style={{ display: "block", fontSize: "13px", color: "#a3a3a3", marginBottom: "4px" }}
+                  className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1.5"
                 >
                   O que você encontrou?
                 </label>
                 <textarea
                   id="report-message"
+                  required
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Descreva o problema..."
+                  placeholder="Descreva o problema encontrado..."
                   rows={4}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    background: "#1a1a1a",
-                    border: "1px solid #262626",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    color: "white",
-                    fontSize: "14px",
-                    outline: "none",
-                    resize: "vertical",
-                    fontFamily: "inherit",
-                  }}
+                  className="w-full rounded-xl border border-white/15 bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-neutral-500 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-y"
                 />
               </div>
 
               {error && (
-                <p style={{ color: "#f87171", fontSize: "13px", margin: 0 }}>
-                  {error}
-                </p>
+                <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 p-2.5 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
               )}
 
-              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <div className="flex items-center gap-2 justify-end pt-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid #262626",
-                    borderRadius: "8px",
-                    padding: "8px 16px",
-                    color: "#a3a3a3",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
+                  className="px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-white/10 text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={sending}
-                  style={{
-                    background: sending ? "#525252" : "#ef4444",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "8px 16px",
-                    color: "white",
-                    fontWeight: 600,
-                    cursor: sending ? "not-allowed" : "pointer",
-                    fontSize: "14px",
-                  }}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                  {sending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {sending ? "Enviando..." : "Enviar Report"}
                 </button>
               </div>

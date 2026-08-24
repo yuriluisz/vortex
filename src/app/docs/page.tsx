@@ -1,7 +1,7 @@
 "use client";
 
 import { PlanBadge } from "@/components/admin/plan-badge";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   BookOpen,
   Megaphone,
@@ -159,6 +159,7 @@ function SectionDivider() {
 export default function PublicDocsPage() {
   const [activeSection, setActiveSection] = useState("bem-vindo");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Scroll spy
   useEffect(() => {
@@ -204,13 +205,14 @@ export default function PublicDocsPage() {
     }
   }, []);
 
-  const handleNavigate = (id: string) => {
+  const handleNavigate = useCallback((id: string) => {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     window.history.replaceState(null, "", `#${id}`);
-  };
+    setMobileSidebarOpen(false);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -218,7 +220,50 @@ export default function PublicDocsPage() {
 
   return (
     <div className="flex items-start gap-10 relative">
-      {/* Sidebar de Navegação */}
+      {/* Mobile sidebar toggle button */}
+      <button
+        type="button"
+        onClick={() => setMobileSidebarOpen(true)}
+        className="lg:hidden fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all"
+        aria-label="Abrir índice"
+      >
+        <BookOpen className="w-4 h-4" />
+        Índice
+      </button>
+
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile sidebar drawer */}
+      <aside
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-black/95 backdrop-blur-2xl border-r border-white/10 overflow-y-auto p-4 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between mb-6 px-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            <BookOpen className="w-3.5 h-3.5" />
+            Índice
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen(false)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
+            aria-label="Fechar índice"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180" />
+          </button>
+        </div>
+        <DocsSidebar activeSection={activeSection} onNavigate={handleNavigate} />
+      </aside>
+
+      {/* Desktop Sidebar de Navegação */}
       <aside className="hidden lg:block w-72 flex-shrink-0 overflow-y-auto pr-4 border-r border-border py-2 sticky top-24 max-h-[calc(100vh-8rem)] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
         <div className="mb-6 px-3">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">

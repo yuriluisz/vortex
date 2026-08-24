@@ -589,20 +589,20 @@ export function CampaignSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-      <div className="bg-zinc-950 border border-white/15 rounded-3xl w-full max-w-5xl h-[90vh] max-h-[900px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xl">
+      <div className="bg-zinc-950 border border-white/15 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[95dvh] sm:h-[90vh] max-h-[900px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative">
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-white/10 shrink-0 relative z-10 bg-black/40">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-inner">
-              <Settings2 className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between px-4 sm:px-8 py-3.5 sm:py-6 border-b border-white/10 shrink-0 relative z-10 bg-black/40">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-inner flex-shrink-0">
+              <Settings2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground tracking-tight">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-xl font-bold text-foreground tracking-tight truncate">
                 {mode === "create" ? "Configurações da Nova Campanha" : "Configurações"}
               </h2>
 
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
                 {settings.name || "Sem nome"}
               </p>
             </div>
@@ -610,16 +610,34 @@ export function CampaignSettingsModal({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all duration-200"
+            className="p-2 sm:p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all duration-200 flex-shrink-0"
             aria-label="Fechar"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Mobile Tab Bar - Static flow above content */}
+        <div className="md:hidden flex overflow-x-auto border-b border-white/10 bg-black/40 shrink-0 px-2 py-1 gap-1 no-scrollbar">
+          {visibleTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all duration-150 ${
+                activeTab === tab.id
+                  ? "text-primary bg-primary/10 border border-primary/20 shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {/* Body: Sidebar + Content */}
         <div className="flex flex-1 min-h-0 relative z-10">
-          {/* Tab Sidebar */}
+          {/* Tab Sidebar (Desktop) */}
           <div className="w-56 border-r border-white/5 bg-black/20 p-4 shrink-0 overflow-y-auto hidden md:block space-y-1">
             {visibleTabs.map((tab) => (
               <button
@@ -639,36 +657,18 @@ export function CampaignSettingsModal({
             ))}
           </div>
 
-          {/* Mobile Tab Bar */}
-          <div className="md:hidden flex overflow-x-auto border-b border-border shrink-0 absolute top-[64px] left-0 right-0 bg-card z-10">
-            {visibleTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-colors ${
-                  activeTab === tab.id
-                    ? "text-primary border-b-2 border-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
             {renderTabContent()}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-8 py-5 border-t border-white/10 shrink-0 bg-black/40 relative z-10">
+        <div className="flex items-center justify-end px-4 sm:px-8 py-3 sm:py-5 border-t border-white/10 shrink-0 bg-black/40 relative z-10">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-sm font-bold text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:bg-primary/90 active:scale-[0.97] hover:shadow-[0_0_25px_rgba(var(--primary),0.5)]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 sm:px-8 py-2.5 sm:py-3 text-sm font-bold text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:bg-primary/90 active:scale-[0.97] hover:shadow-[0_0_25px_rgba(var(--primary),0.5)]"
           >
             <Check className="w-4 h-4" />
             Concluído

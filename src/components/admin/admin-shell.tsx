@@ -283,14 +283,14 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
           if (isBlocked) {
             return (
-              <div className="bg-destructive/20 border-b border-destructive/30 backdrop-blur-md text-destructive px-4 py-3 flex items-center justify-between shadow-md relative z-50">
-                <div className="flex items-center gap-2 font-medium text-sm">
-                  <Megaphone className="h-5 w-5" />
-                  {message}
+              <div className="bg-destructive/20 border-b border-destructive/30 backdrop-blur-md text-destructive px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md relative z-50">
+                <div className="flex items-center gap-2 font-medium text-xs sm:text-sm">
+                  <Megaphone className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <span>{message}</span>
                 </div>
                 <Link
                   href="/admin/settings"
-                  className="bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-md shadow-[0_0_10px_rgba(var(--destructive),0.4)] hover:scale-105 transition-transform"
+                  className="w-full sm:w-auto text-center bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-md shadow-[0_0_10px_rgba(var(--destructive),0.4)] hover:scale-105 active:scale-95 transition-all"
                 >
                   Regularizar Agora
                 </Link>

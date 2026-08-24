@@ -31,69 +31,34 @@ export default function VortexFooter({
 
   return (
     <>
-      <footer
-        style={{
-          width: "100%",
-          background: "#000000",
-          padding: "12px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "13px",
-          color: "#a3a3a3",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-          boxSizing: "border-box",
-          minHeight: "48px",
-          flexShrink: 0,
-          position: "relative",
-        }}
-      >
+      <footer className="w-full bg-black px-4 py-3 sm:px-6 flex items-center justify-between gap-4 text-xs text-neutral-400 min-h-[48px] border-t border-white/5 relative">
+        <div className="flex-1 hidden sm:block" />
+
         {/* Made with + Logo no centro */}
         <a
           href="https://vortexpages.online"
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            color: "#a3a3a3",
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
+          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors"
         >
           <span>Made with</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/Vortex Padrão.svg"
             alt="Vórtex+"
-            style={{
-              height: "16px",
-              width: "auto",
-              filter: "invert(1)",
-              display: "block",
-            }}
+            className="h-3.5 sm:h-4 w-auto invert block"
           />
         </a>
 
         {/* Link de report à direita */}
-        <button
-          onClick={() => setShowReport(true)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#a3a3a3",
-            cursor: "pointer",
-            fontSize: "13px",
-            fontFamily: "inherit",
-            textDecoration: "underline",
-            textUnderlineOffset: "2px",
-            padding: "4px 0",
-            position: "absolute",
-            right: "24px",
-          }}
-        >
-          Reporte aqui
-        </button>
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={() => setShowReport(true)}
+            className="text-neutral-500 hover:text-neutral-300 transition-colors text-[11px] sm:text-xs underline underline-offset-2"
+          >
+            Reporte aqui
+          </button>
+        </div>
       </footer>
 
       {/* Modal de Report */}
