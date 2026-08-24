@@ -100,9 +100,9 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap sm:flex-nowrap">
             {/* Filter Tabs */}
-            <div className="inline-flex rounded-xl border border-border/60 bg-card/40 backdrop-blur-md p-1">
+            <div className="inline-flex rounded-xl border border-border/60 bg-card/40 backdrop-blur-md p-1 overflow-x-auto max-w-full">
               <button
                 type="button"
                 onClick={() => setFilter("all")}

@@ -102,35 +102,35 @@ export function CampaignFormBuilder({ defaultValue, error, onChange }: CampaignF
             className="flex flex-col gap-4 p-4 rounded-xl border border-border bg-muted/50 relative group transition-colors focus-within:border-ring"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => moveFieldUp(index)}
                     disabled={index === 0}
-                    className="p-1 hover:text-foreground hover:bg-muted rounded disabled:opacity-30 transition-colors"
+                    className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-foreground hover:bg-muted rounded-md disabled:opacity-30 transition-colors"
                     title="Mover para cima"
                   >
-                    <ArrowUp className="w-3.5 h-3.5" />
+                    <ArrowUp className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => moveFieldDown(index)}
                     disabled={index === fields.length - 1}
-                    className="p-1 hover:text-foreground hover:bg-muted rounded disabled:opacity-30 transition-colors"
+                    className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-foreground hover:bg-muted rounded-md disabled:opacity-30 transition-colors"
                     title="Mover para baixo"
                   >
-                    <ArrowDown className="w-3.5 h-3.5" />
+                    <ArrowDown className="w-4 h-4" />
                   </button>
                 </div>
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground ml-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
                   Campo {index + 1}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => removeField(index)}
-                className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                className="text-muted-foreground hover:text-destructive transition-colors p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md hover:bg-destructive/10"
                 title="Remover campo"
               >
                 <Trash2 className="w-4 h-4" />
@@ -144,7 +144,7 @@ export function CampaignFormBuilder({ defaultValue, error, onChange }: CampaignF
                   type="text"
                   value={field.id}
                   onChange={(e) => updateField(index, "id", e.target.value.toLowerCase().replace(/\s+/g, "_"))}
-                  className="w-full bg-transparent border-b border-border focus:border-ring text-sm text-foreground py-1 outline-none transition-colors font-mono"
+                  className="w-full bg-transparent border-b border-border focus:border-ring text-base md:text-sm text-foreground py-1.5 outline-none transition-colors font-mono"
                 />
               </div>
               <div className="space-y-1">
@@ -153,7 +153,7 @@ export function CampaignFormBuilder({ defaultValue, error, onChange }: CampaignF
                   type="text"
                   value={field.label}
                   onChange={(e) => updateField(index, "label", e.target.value)}
-                  className="w-full bg-transparent border-b border-border focus:border-ring text-sm text-foreground py-1 outline-none transition-colors"
+                  className="w-full bg-transparent border-b border-border focus:border-ring text-base md:text-sm text-foreground py-1.5 outline-none transition-colors"
                 />
               </div>
               <div className="space-y-1">
@@ -162,7 +162,7 @@ export function CampaignFormBuilder({ defaultValue, error, onChange }: CampaignF
                   type="text"
                   value={field.placeholder}
                   onChange={(e) => updateField(index, "placeholder", e.target.value)}
-                  className="w-full bg-transparent border-b border-border focus:border-ring text-sm text-foreground py-1 outline-none transition-colors"
+                  className="w-full bg-transparent border-b border-border focus:border-ring text-base md:text-sm text-foreground py-1.5 outline-none transition-colors"
                 />
               </div>
               <div className="flex items-center justify-between gap-4">
@@ -171,7 +171,7 @@ export function CampaignFormBuilder({ defaultValue, error, onChange }: CampaignF
                   <select
                     value={field.type}
                     onChange={(e) => updateField(index, "type", e.target.value)}
-                    className="w-full bg-card border-b border-border focus:border-ring text-sm text-foreground py-1 outline-none transition-colors"
+                    className="w-full bg-card border-b border-border focus:border-ring text-base md:text-sm text-foreground py-1.5 outline-none transition-colors"
                   >
                     <option value="text">Texto Curto</option>
                     <option value="email">E-mail</option>

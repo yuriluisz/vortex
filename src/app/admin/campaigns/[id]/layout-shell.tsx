@@ -40,7 +40,7 @@ export function CampaignLayoutShell({ campaign, children }: CampaignLayoutShellP
 
   // Sub-pages get the classic chrome with header + tabs
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl w-full min-w-0">
       <div className="mb-6">
         <Link
           href={basePath}
@@ -49,9 +49,9 @@ export function CampaignLayoutShell({ campaign, children }: CampaignLayoutShellP
           <ArrowLeft className="h-4 w-4" />
           Voltar para Editor
         </Link>
-        <h2 className="text-3xl font-bold text-foreground tracking-tight">{campaign.name}</h2>
-        <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
-          <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 font-mono">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight truncate">{campaign.name}</h2>
+        <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 font-mono text-xs">
             /{campaign.slug}
           </span>
           <span className="flex items-center gap-1.5">

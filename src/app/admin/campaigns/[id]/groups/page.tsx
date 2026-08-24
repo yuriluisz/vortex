@@ -58,7 +58,8 @@ export default async function CampaignGroupsPage({
       )}
 
       <div className="glass-panel rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-left text-sm text-muted-foreground">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-muted-foreground">
           <thead className="bg-muted text-xs uppercase text-muted-foreground border-b border-border">
             <tr>
               <th className="px-6 py-4 font-medium">Grupo / URL</th>
@@ -168,6 +169,7 @@ export default async function CampaignGroupsPage({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

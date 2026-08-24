@@ -94,7 +94,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
   const planType = tenantInfo?.plan as "FREE" | "PRO" | "ULTRA" | undefined;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-black text-white antialiased relative">
+    <div className="flex h-dvh w-full max-w-full overflow-hidden bg-black text-white antialiased relative">
       {/* Background global effects */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[128px]" />
@@ -249,7 +249,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black">
+      <main className="flex-1 min-w-0 w-full max-w-full flex flex-col overflow-hidden relative z-10 bg-black">
         {/* Botão hamburger — visível apenas em mobile */}
         <div className="md:hidden flex items-center h-14 px-4 border-b border-white/10 bg-black/90 backdrop-blur-md">
           <button
@@ -300,7 +300,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           return null;
         })()}
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 animate-in fade-in duration-300 relative z-10">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 md:p-8 animate-in fade-in duration-300 relative z-10">
           {children}
         </div>
 

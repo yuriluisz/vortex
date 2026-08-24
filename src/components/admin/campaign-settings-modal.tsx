@@ -183,7 +183,7 @@ export function CampaignSettingsModal({
 
   const isLocked = plan !== "PRO" && plan !== "ULTRA";
   const inputClass =
-    "w-full rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-sm text-foreground outline-none transition-all duration-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-white/[0.08] shadow-inner";
+    "w-full rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-base md:text-sm text-foreground outline-none transition-all duration-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-white/[0.08] shadow-inner";
   const disabledInputClass = `${inputClass} opacity-50 cursor-not-allowed`;
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -191,14 +191,14 @@ export function CampaignSettingsModal({
   // ──────────────────────────────────────────────────────────────────────────
 
   const renderGeneral = () => (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-semibold text-foreground mb-1">Configurações Gerais</h3>
           <p className="text-sm text-muted-foreground">Informações básicas da sua campanha.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           <div className="space-y-2">
             <label htmlFor="settings-name" className="block text-sm font-medium text-foreground/80 flex items-center">
               Nome da Campanha *
@@ -220,8 +220,8 @@ export function CampaignSettingsModal({
               Slug (URL) *
               <FieldTooltip tooltip="O slug é o endereço público da sua página de captura (vortexpages.online/seu-slug)." docsAnchor="campo-slug" />
             </label>
-            <div className="flex rounded-xl border border-white/10 bg-black/20 overflow-hidden focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/20 focus-within:bg-black/40 transition-all duration-200 shadow-inner">
-              <span className="flex items-center px-4 border-r border-white/10 text-sm text-muted-foreground bg-white/5 whitespace-nowrap">
+            <div className="flex flex-col sm:flex-row rounded-xl border border-white/10 bg-black/20 overflow-hidden focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/20 focus-within:bg-black/40 transition-all duration-200 shadow-inner">
+              <span className="flex items-center px-3 sm:px-4 py-2 sm:py-0 border-b sm:border-b-0 sm:border-r border-white/10 text-xs sm:text-sm text-muted-foreground bg-white/5 whitespace-nowrap">
                 vortexpages.online/
               </span>
               <input
@@ -233,7 +233,7 @@ export function CampaignSettingsModal({
                   updateField("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"))
                 }
                 placeholder="mentoria-2026"
-                className="w-full bg-transparent px-4 py-3 text-sm text-foreground outline-none"
+                className="w-full bg-transparent px-3 sm:px-4 py-2.5 sm:py-3 text-base md:text-sm text-foreground outline-none"
               />
             </div>
           </div>
@@ -443,28 +443,30 @@ export function CampaignSettingsModal({
   const renderLinkRow = (label: string, url: string) => (
     <div>
       <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2.5">
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/60 px-3 py-2.5 min-w-0">
         <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        <code className="text-sm text-card-foreground flex-1 select-all font-mono truncate">
+        <code className="text-xs sm:text-sm text-card-foreground flex-1 select-all font-mono truncate min-w-0">
           {url}
         </code>
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
-          title="Abrir em nova aba"
-        >
-          <ExternalLink className="h-4 w-4" />
-        </a>
-        <button
-          type="button"
-          onClick={() => copyToClipboard(url)}
-          className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
-          title="Copiar link"
-        >
-          {copiedUrl === url ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
+            title="Abrir em nova aba"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+          <button
+            type="button"
+            onClick={() => copyToClipboard(url)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
+            title="Copiar link"
+          >
+            {copiedUrl === url ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -590,7 +592,7 @@ export function CampaignSettingsModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xl">
-      <div className="bg-zinc-950 border border-white/15 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[95dvh] sm:h-[90vh] max-h-[900px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative">
+      <div className="bg-zinc-950 border border-white/15 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[94dvh] sm:h-[90vh] max-h-[900px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative">
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-8 py-3.5 sm:py-6 border-b border-white/10 shrink-0 relative z-10 bg-black/40">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">

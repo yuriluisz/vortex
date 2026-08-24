@@ -21,6 +21,10 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  MoreVertical,
+  Users,
+  MessageCircle,
+  LayoutTemplate,
 } from "lucide-react";
 import { TemplatePicker } from "@/components/templates/template-picker";
 import {
@@ -213,6 +217,20 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
   // ── Refs ──
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // ── Click outside mobile menu ──
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mobileMenuOpen]);
 
   // ── Mobile detection ──
   useEffect(() => {
@@ -430,20 +448,20 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TOOLBAR                                                           */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-b border-white/5 bg-background/60 backdrop-blur-xl shrink-0 gap-1.5 sm:gap-2 relative z-20 shadow-sm overflow-x-auto no-scrollbar">
+      <div className="flex items-center justify-between px-2.5 sm:px-4 py-2 sm:py-2.5 border-b border-white/10 bg-background/80 backdrop-blur-xl shrink-0 gap-2 relative z-20 shadow-sm">
         {/* Left side */}
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-shrink-0">
           <Link
             href="/admin/campaigns"
-            className="p-1.5 sm:p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+            className="p-1.5 sm:p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors flex-shrink-0"
             title="Voltar para Campanhas"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
 
-          {/* Campaign name */}
-          <div className="hidden sm:flex items-center gap-2 min-w-0">
-            <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
+          {/* Campaign name (desktop) */}
+          <div className="hidden md:flex items-center gap-2 min-w-0">
+            <span className="text-sm font-medium text-foreground truncate max-w-[180px] lg:max-w-[240px]">
               {settings.name || (mode === "create" ? "Nova Campanha" : "Sem nome")}
             </span>
             {mode === "edit" && controls && (
@@ -459,25 +477,31 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             )}
           </div>
 
-          <div className="w-px h-5 bg-border/40 mx-1 hidden sm:block" />
+          <div className="w-px h-5 bg-border/40 mx-1 hidden md:block" />
 
           {/* View toggle */}
           <div className="flex rounded-lg border border-white/10 bg-black/40 p-0.5 overflow-hidden backdrop-blur-md shadow-inner">
             <button
+              type="button"
               onClick={() => setActiveTab("code")}
               className={`px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-all duration-200 rounded-md ${
-                activeTab === "code" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
+                activeTab === "code"
+                  ? "bg-primary/20 text-primary shadow-sm border border-primary/20"
+                  : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
               }`}
               title="Código"
             >
               <Code className="w-3.5 h-3.5" />
-              {!isMobile && <span className="hidden lg:inline">Código</span>}
+              <span className="hidden sm:inline">Código</span>
             </button>
             {!isMobile && (
               <button
+                type="button"
                 onClick={() => setActiveTab("split")}
                 className={`px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-all duration-200 rounded-md ${
-                  activeTab === "split" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
+                  activeTab === "split"
+                    ? "bg-primary/20 text-primary shadow-sm border border-primary/20"
+                    : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
                 title="Split"
               >
@@ -486,14 +510,17 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               </button>
             )}
             <button
+              type="button"
               onClick={() => setActiveTab("preview")}
               className={`px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-all duration-200 rounded-md ${
-                activeTab === "preview" ? "bg-primary/20 text-primary shadow-sm border border-primary/20" : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
+                activeTab === "preview"
+                  ? "bg-primary/20 text-primary shadow-sm border border-primary/20"
+                  : "hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent"
               }`}
               title="Preview"
             >
               <Eye className="w-3.5 h-3.5" />
-              {!isMobile && <span className="hidden lg:inline">Preview</span>}
+              <span className="hidden sm:inline">Preview</span>
             </button>
           </div>
         </div>
@@ -502,69 +529,158 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
         <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           {/* Save status */}
           {saveStatus === "error" && saveError && (
-            <span className="text-xs text-destructive font-medium max-w-[200px] truncate hidden sm:inline">
+            <span className="text-xs text-destructive font-medium max-w-[150px] truncate hidden md:inline">
               {saveError}
             </span>
           )}
           {saveStatus === "saved" && (
-            <span className="text-xs text-emerald-500 font-medium flex items-center gap-1 hidden sm:flex">
+            <span className="text-xs text-emerald-500 font-medium flex items-center gap-1 hidden md:flex">
               <CheckCircle2 className="w-3.5 h-3.5" />
               Salvo
             </span>
           )}
 
-          {mode === "edit" && campaign && (
-            <>
-              <Link
-                href={`/admin/campaigns/${campaign.id}/leads`}
-                className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
-              >
-                Leads
-              </Link>
-              <Link
-                href={`/admin/campaigns/${campaign.id}/groups`}
-                className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
-              >
-                Grupos
-              </Link>
-            </>
-          )}
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-1.5">
+            {mode === "edit" && campaign && (
+              <>
+                <Link
+                  href={`/admin/campaigns/${campaign.id}/leads`}
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+                >
+                  Leads
+                </Link>
+                <Link
+                  href={`/admin/campaigns/${campaign.id}/groups`}
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+                >
+                  Grupos
+                </Link>
+              </>
+            )}
 
-          <button
-            onClick={() => setShowPicker(true)}
-            className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
-          >
-            Templates
-          </button>
-
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
-          >
-            <Settings className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            <span className="hidden sm:inline">Configurações</span>
-          </button>
-
-          {mode === "edit" && controls && (
             <button
-              onClick={handleToggleActive}
-              className={`inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 shadow-sm hover:shadow active:scale-95 ${
-                controls.active
-                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20"
-                  : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10"
-              }`}
-              title={controls.active ? "Desativar Campanha" : "Ativar Campanha"}
+              type="button"
+              onClick={() => setShowPicker(true)}
+              className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
             >
-              {controls.active ? (
-                <Power className="w-3.5 h-3.5 sm:mr-1.5" />
-              ) : (
-                <PowerOff className="w-3.5 h-3.5 sm:mr-1.5" />
-              )}
-              <span className="hidden sm:inline">{controls.active ? "Ativa" : "Pausada"}</span>
+              Templates
             </button>
-          )}
 
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
+            >
+              <Settings className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span className="hidden sm:inline">Configurações</span>
+            </button>
+
+            {mode === "edit" && controls && (
+              <button
+                type="button"
+                onClick={handleToggleActive}
+                className={`inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 shadow-sm hover:shadow active:scale-95 ${
+                  controls.active
+                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20"
+                    : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10"
+                }`}
+                title={controls.active ? "Desativar Campanha" : "Ativar Campanha"}
+              >
+                {controls.active ? (
+                  <Power className="w-3.5 h-3.5 sm:mr-1.5" />
+                ) : (
+                  <PowerOff className="w-3.5 h-3.5 sm:mr-1.5" />
+                )}
+                <span className="hidden sm:inline">{controls.active ? "Ativa" : "Pausada"}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Actions: Settings + Overflow Menu */}
+          <div className="flex md:hidden items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-foreground transition-colors"
+              title="Configurações"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            <div className="relative" ref={mobileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((prev) => !prev)}
+                className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-foreground transition-colors"
+                title="Mais opções"
+                aria-expanded={mobileMenuOpen}
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+
+              {mobileMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[170px] rounded-xl border border-white/15 bg-zinc-950/95 backdrop-blur-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPicker(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
+                  >
+                    <LayoutTemplate className="w-4 h-4 text-muted-foreground" />
+                    Templates
+                  </button>
+
+                  {mode === "edit" && campaign && (
+                    <>
+                      <Link
+                        href={`/admin/campaigns/${campaign.id}/leads`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
+                      >
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        Ver Leads
+                      </Link>
+                      <Link
+                        href={`/admin/campaigns/${campaign.id}/groups`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
+                      >
+                        <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                        Ver Grupos
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleToggleActive();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
+                      >
+                        {controls?.active ? (
+                          <>
+                            <PowerOff className="w-4 h-4 text-destructive" />
+                            Pausar Campanha
+                          </>
+                        ) : (
+                          <>
+                            <Power className="w-4 h-4 text-emerald-400" />
+                            Ativar Campanha
+                          </>
+                        )}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Primary Save button */}
           <button
+            type="button"
             onClick={handleSave}
             disabled={isPending || saveStatus === "saving"}
             className="relative inline-flex items-center px-3 sm:px-4 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground font-semibold gap-1.5 overflow-hidden transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed hover:bg-primary/90 active:scale-95 hover:shadow-[0_0_20px_rgba(147,51,234,0.4)]"
@@ -578,7 +694,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{mode === "create" ? "Criar" : "Salvar"}</span>
+                <span>{mode === "create" ? "Criar" : "Salvar"}</span>
               </>
             )}
           </button>
@@ -600,20 +716,20 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               onChange={handleEditorChange}
               onMount={handleEditorMount}
               options={{
-                fontSize: 14,
+                fontSize: isMobile ? 13 : 14,
                 minimap: { enabled: false },
                 wordWrap: "on",
-                lineNumbers: "on",
+                lineNumbers: isMobile ? "off" : "on",
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
                 tabSize: 2,
                 formatOnPaste: true,
-                suggestOnTriggerCharacters: false,
-                quickSuggestions: false,
-                folding: true,
+                suggestOnTriggerCharacters: !isMobile,
+                quickSuggestions: !isMobile,
+                folding: !isMobile,
                 renderWhitespace: "selection",
                 bracketPairColorization: { enabled: true },
-                padding: { top: 12 },
+                padding: { top: isMobile ? 8 : 12, bottom: isMobile ? 8 : 12 },
               }}
               loading={
                 <div className="flex items-center justify-center h-full bg-muted/50">
@@ -626,51 +742,55 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
         {/* Preview */}
         {(activeTab === "preview" || activeTab === "split") && (
-          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} bg-[#0a0a0a] min-w-0 relative z-0 flex items-center justify-center p-2 sm:p-4 overflow-auto`}>
-            {/* Viewport switcher */}
-            <div className="absolute top-3 left-3 z-20 flex items-center rounded-lg border border-white/10 bg-black/70 p-0.5 backdrop-blur-md shadow-lg">
-              <button
-                type="button"
-                onClick={() => setViewport("desktop")}
-                className={`p-1.5 rounded-md transition-all ${
-                  viewport === "desktop"
-                    ? "bg-primary/20 text-primary shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                title="Desktop (100%)"
-              >
-                <Monitor className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewport("tablet")}
-                className={`p-1.5 rounded-md transition-all ${
-                  viewport === "tablet"
-                    ? "bg-primary/20 text-primary shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                title="Tablet (768px)"
-              >
-                <Tablet className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewport("mobile")}
-                className={`p-1.5 rounded-md transition-all ${
-                  viewport === "mobile"
-                    ? "bg-primary/20 text-primary shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                title="Mobile (375px)"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-              </button>
-            </div>
+          <div className={`${activeTab === "split" ? "w-1/2" : "w-full"} bg-[#0a0a0a] min-w-0 relative z-0 flex items-center justify-center ${isMobile ? "p-0" : "p-2 sm:p-4"} overflow-auto`}>
+            {/* Viewport switcher - only shown on desktop / tablet */}
+            {!isMobile && (
+              <div className="absolute top-3 left-3 z-20 flex items-center rounded-lg border border-white/10 bg-black/70 p-0.5 backdrop-blur-md shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => setViewport("desktop")}
+                  className={`p-1.5 rounded-md transition-all ${
+                    viewport === "desktop"
+                      ? "bg-primary/20 text-primary shadow-sm"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                  title="Desktop (100%)"
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewport("tablet")}
+                  className={`p-1.5 rounded-md transition-all ${
+                    viewport === "tablet"
+                      ? "bg-primary/20 text-primary shadow-sm"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                  title="Tablet (768px)"
+                >
+                  <Tablet className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewport("mobile")}
+                  className={`p-1.5 rounded-md transition-all ${
+                    viewport === "mobile"
+                      ? "bg-primary/20 text-primary shadow-sm"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                  title="Mobile (375px)"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Preview Frame Container */}
             <div
               className={`transition-all duration-300 relative flex items-center justify-center ${
-                viewport === "mobile"
+                isMobile
+                  ? "w-full h-full bg-white shadow-none"
+                  : viewport === "mobile"
                   ? "w-full max-w-[375px] h-[720px] max-h-full rounded-[28px] sm:rounded-[36px] border-2 sm:border-4 border-neutral-800 shadow-2xl overflow-hidden bg-white"
                   : viewport === "tablet"
                   ? "w-full max-w-[768px] h-full max-h-[850px] rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden bg-white"
