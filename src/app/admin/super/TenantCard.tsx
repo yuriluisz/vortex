@@ -585,6 +585,7 @@ function EditCampaignModal({ campaignId, onClose }: { campaignId: string; onClos
               <div className="space-y-2">
                 <label htmlFor="sup-pixelId" className="block text-sm font-medium text-foreground/80">Meta Pixel ID</label>
                 <input id="sup-pixelId" name="pixelId" type="text" defaultValue={campaign.pixelId || ""}
+                  placeholder="1234567890"
                   className="w-full rounded-lg border border-input bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
               </div>
 

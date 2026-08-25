@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
 import { getUserTenant } from "@/lib/auth";
+import { checkCampaignAccess } from "@/lib/permissions";
 import { CampaignEditor } from "@/components/admin/campaign-editor";
 
 export default async function CampaignDetailsPage({
@@ -14,12 +15,12 @@ export default async function CampaignDetailsPage({
     redirect("/admin/login");
   }
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: { maxGroups: true }
-  });
-
   const { id } = await params;
+  const access = await checkCampaignAccess(id, session.userId, session.tenantId);
+  if (!access.allowed) {
+    notFound();
+  }
+
   const campaign = await prisma.campaign.findUnique({
     where: { id },
     include: {
@@ -29,9 +30,14 @@ export default async function CampaignDetailsPage({
     }
   });
 
-  if (!campaign || campaign.tenantId !== session.tenantId) {
+  if (!campaign) {
     notFound();
   }
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: campaign.tenantId },
+    select: { maxGroups: true }
+  });
 
   let plan = "FREE";
   if (session.userId) {

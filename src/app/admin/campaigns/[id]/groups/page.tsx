@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
+import { checkCampaignAccess } from "@/lib/permissions";
 import CreateGroupForm from "./CreateGroupForm";
 import { Trash2, PowerOff, Power, Zap, MessageCircle } from "lucide-react";
 import { toggleGroupStatusAction, deleteGroupAction } from "../../../actions";
@@ -19,25 +20,28 @@ export default async function CampaignGroupsPage({
   }
 
   const { id } = await params;
-
-  const [campaign, tenant] = await Promise.all([
-    prisma.campaign.findUnique({
-      where: { id },
-      include: {
-        groups: {
-          orderBy: { createdAt: "asc" },
-        },
-      },
-    }),
-    prisma.tenant.findUnique({
-      where: { id: session.tenantId },
-      select: { plan: true },
-    }),
-  ]);
-
-  if (!campaign || campaign.tenantId !== session.tenantId) {
+  const access = await checkCampaignAccess(id, session.userId, session.tenantId);
+  if (!access.allowed) {
     notFound();
   }
+
+  const campaign = await prisma.campaign.findUnique({
+    where: { id },
+    include: {
+      groups: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  if (!campaign) {
+    notFound();
+  }
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: campaign.tenantId },
+    select: { plan: true },
+  });
 
   const isUltra = tenant?.plan === "ULTRA";
   const totalCapacity = campaign.groups.reduce((acc, g) => acc + g.maxCapacity, 0);

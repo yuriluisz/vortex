@@ -6,27 +6,38 @@ import { useRouter } from "next/navigation";
 import Editor, { OnMount } from "@monaco-editor/react";
 import HtmlRenderer from "@/app/[slug]/HtmlRenderer";
 import {
-  Settings,
-  Eye,
   Code,
-  Loader2,
-  ArrowLeft,
+  Eye,
   Columns2,
   Save,
+  Settings,
+  Plus,
+  Users,
+  Copy,
+  Check,
+  Globe,
+  Share2,
+  Sparkles,
+  RefreshCw,
+  ExternalLink,
+  MessageCircle,
+  HelpCircle,
   CheckCircle2,
+  LayoutTemplate,
+  ArrowLeft,
+  ChevronDown,
   Power,
   PowerOff,
-  Trash2,
-  AlertTriangle,
+  MoreVertical,
+  Loader2,
   Monitor,
   Tablet,
   Smartphone,
-  MoreVertical,
-  Users,
-  MessageCircle,
-  LayoutTemplate,
+  AlertTriangle,
   X,
+  Trash2,
 } from "lucide-react";
+import { CampaignShareModal } from "@/components/admin/campaign-share-modal";
 import { TemplatePicker } from "@/components/templates/template-picker";
 import {
   CampaignSettingsModal,
@@ -185,6 +196,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
   // ── UI State ──
   const [settingsOpen, setSettingsOpen] = useState(mode === "create");
   const [showPicker, setShowPicker] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<"code" | "preview" | "split">("split");
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
@@ -570,6 +582,16 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                   <MessageCircle className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                   <span className="hidden sm:inline">Grupos</span>
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(true)}
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
+                  title="Compartilhar com Gestor de Tráfego"
+                >
+                  <Share2 className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <span className="hidden sm:inline">Compartilhar</span>
+                </button>
               </>
             )}
 
@@ -941,6 +963,16 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Compartilhamento */}
+      {mode === "edit" && campaign && (
+        <CampaignShareModal
+          campaignId={campaign.id}
+          campaignName={settings.name || campaign.name}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </div>
   );

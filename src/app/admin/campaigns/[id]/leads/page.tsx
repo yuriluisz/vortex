@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
+import { checkCampaignAccess } from "@/lib/permissions";
 import { Download, Users, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { LeadsTable } from "./LeadsTable";
 import type { LeadData } from "./LeadsTable";
@@ -19,27 +20,37 @@ export default async function CampaignLeadsPage({
   }
 
   const { id } = await params;
+  const access = await checkCampaignAccess(id, session.userId, session.tenantId);
+  if (!access.allowed) {
+    notFound();
+  }
+
+  const campaign = await prisma.campaign.findUnique({
+    where: { id },
+    select: { id: true, name: true, tenantId: true },
+  });
+
+  if (!campaign) {
+    notFound();
+  }
+
   const resolvedSearchParams = await searchParams;
 
   const page = Number(resolvedSearchParams.page) || 1;
   const pageSize = 25;
   const skip = (page - 1) * pageSize;
 
-  const [campaign, tenant, totalLeads, pendingCount, joinedCount, notJoinedCount, pagedLeads] = await Promise.all([
-    prisma.campaign.findUnique({
-      where: { id },
-      select: { id: true, name: true, tenantId: true },
-    }),
+  const [tenant, totalLeads, pendingCount, joinedCount, notJoinedCount, pagedLeads] = await Promise.all([
     prisma.tenant.findUnique({
-      where: { id: session.tenantId },
+      where: { id: campaign.tenantId },
       select: { plan: true },
     }),
-    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId } }),
-    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId, status: "PENDING" } }),
-    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId, status: "JOINED" } }),
-    prisma.lead.count({ where: { campaignId: id, tenantId: session.tenantId, status: "NOT_JOINED" } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: campaign.tenantId } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: campaign.tenantId, status: "PENDING" } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: campaign.tenantId, status: "JOINED" } }),
+    prisma.lead.count({ where: { campaignId: id, tenantId: campaign.tenantId, status: "NOT_JOINED" } }),
     prisma.lead.findMany({
-      where: { campaignId: id, tenantId: session.tenantId },
+      where: { campaignId: id, tenantId: campaign.tenantId },
       orderBy: { createdAt: "desc" },
       take: pageSize,
       skip,
@@ -48,10 +59,6 @@ export default async function CampaignLeadsPage({
       },
     }),
   ]);
-
-  if (!campaign || campaign.tenantId !== session.tenantId) {
-    notFound();
-  }
 
   const isUltra = tenant?.plan === "ULTRA";
   const totalPages = Math.ceil(totalLeads / pageSize);

@@ -241,35 +241,47 @@ export function CampaignSettingsModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="settings-pixelId" className="block text-sm font-medium text-foreground/80 flex items-center">
-              Meta Pixel ID
-              <FieldTooltip tooltip="ID do pixel do Meta para rastreamento de conversões em anúncios do Facebook/Instagram." docsAnchor="campo-pixel" />
-            </label>
-            <input
-              id="settings-pixelId"
-              type="text"
-              value={settings.pixelId}
-              onChange={(e) => updateField("pixelId", e.target.value)}
-              placeholder="Ex: 1234567890"
-              className={inputClass}
-            />
+        {/* Rastreamento & Pixels */}
+        <div className="space-y-4 pt-2">
+          <div className="border-b border-white/10 pb-2">
+            <h4 className="text-sm font-semibold text-foreground">
+              Rastreamento & Pixels
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Dispare eventos de conversão no Meta Ads e Google Tag Manager.
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="settings-gtmId" className="block text-sm font-medium text-foreground/80 flex items-center">
-              Google Tag Manager ID
-              <FieldTooltip tooltip="ID do contêiner do Google Tag Manager (ex: GTM-XXXXXXX) para disparar tags de GA4, Google Ads e eventos de conversão." docsAnchor="campo-gtm" />
-            </label>
-            <input
-              id="settings-gtmId"
-              type="text"
-              value={settings.gtmId}
-              onChange={(e) => updateField("gtmId", e.target.value.toUpperCase().trim())}
-              placeholder="Ex: GTM-XXXXXXX"
-              className={inputClass}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+            <div className="space-y-2">
+              <label htmlFor="settings-pixelId" className="block text-sm font-medium text-foreground/80 flex items-center justify-between">
+                <span>Meta Pixel ID</span>
+                <FieldTooltip tooltip="ID do pixel do Meta para rastreamento de conversões." docsAnchor="campo-pixel" />
+              </label>
+              <input
+                id="settings-pixelId"
+                type="text"
+                value={settings.pixelId}
+                onChange={(e) => updateField("pixelId", e.target.value)}
+                placeholder="1234567890"
+                className={inputClass}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="settings-gtmId" className="block text-sm font-medium text-foreground/80 flex items-center justify-between">
+                <span>Google Tag Manager ID</span>
+                <FieldTooltip tooltip="ID do contêiner GTM para tags e dataLayer." docsAnchor="campo-gtm" />
+              </label>
+              <input
+                id="settings-gtmId"
+                type="text"
+                value={settings.gtmId}
+                onChange={(e) => updateField("gtmId", e.target.value.toUpperCase())}
+                placeholder="GTM-XXXXXXX"
+                className={inputClass}
+              />
+            </div>
           </div>
         </div>
 

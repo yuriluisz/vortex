@@ -20,6 +20,7 @@ import { Shield } from "lucide-react";
 import { WhatsAppStatusToast } from "@/components/admin/whatsapp-status-toast";
 import { HelpFAB } from "@/components/admin/help-fab";
 import { PlanBadge } from "@/components/admin/plan-badge";
+import { TenantSwitcher, WorkspaceItem } from "@/components/admin/tenant-switcher";
 
 const PRIMARY_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -33,12 +34,14 @@ const SECONDARY_NAV = [
 ];
 
 interface TenantInfo {
+  id?: string | null;
   name: string;
   slug: string;
   plan: string;
   role?: string;
   subscriptionStatus?: string;
   trialEndsAt?: string;
+  workspaces?: WorkspaceItem[];
 }
 
 interface AdminShellProps {
@@ -139,20 +142,14 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           )}
         </div>
 
-        {/* Header do Tenant */}
+        {/* Workspace Switcher */}
         {tenantInfo && (
-          <div className="px-4 py-3 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-[0_0_15px_rgba(var(--primary),0.2)] border border-primary/20">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-sm font-bold truncate">
-                  {tenantInfo.name}
-                </h1>
-              </div>
-            </div>
-          </div>
+          <TenantSwitcher
+            currentTenantId={tenantInfo.id}
+            currentTenantName={tenantInfo.name}
+            currentPlan={tenantInfo.plan}
+            workspaces={tenantInfo.workspaces || []}
+          />
         )}
 
         {/* Navegação */}

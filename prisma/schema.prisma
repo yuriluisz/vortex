@@ -70,6 +70,7 @@ model Tenant {
   groupMessages      GroupMessage[]
   templates          Template[]
   templateUsages     TemplateUsage[]
+  tenantMembers      TenantMember[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -107,10 +108,12 @@ model User {
   templateBlocked Boolean   @default(false)
 
   // Relações
-  auditLogs    AuditLog[]
-  templates    Template[]   // Templates publicados pelo usuário
-  templateLikes TemplateLike[]
-  templateReports TemplateReport[]
+  auditLogs          AuditLog[]
+  templates          Template[]   // Templates publicados pelo usuário
+  templateLikes      TemplateLike[]
+  templateReports    TemplateReport[]
+  tenantMemberships  TenantMember[]
+  campaignShares     CampaignShare[]
 
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -308,6 +311,10 @@ enum AuditAction {
   TEMPLATE_REPORTED
   TEMPLATE_TAKEN_DOWN
   PROFILE_UPDATED
+  CAMPAIGN_SHARED
+  CAMPAIGN_UNSHARED
+  MEMBER_INVITED
+  MEMBER_REMOVED
 }
 
 model AuditLog {
@@ -370,8 +377,9 @@ model Campaign {
   groups        Group[]
   leads         Lead[]
   pageViews     PageView[]
-  groupMessages GroupMessage[]
+  groupMessages  GroupMessage[]
   templateUsages TemplateUsage[]
+  campaignShares CampaignShare[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -511,3 +519,45 @@ model GroupMessage {
   @@index([campaignId])
   @@index([tenantId, sentAt])
 }
+
+// ============================================================================
+// MULTI-TENANT MEMBERS & CAMPAIGN SHARING
+// ============================================================================
+
+model TenantMember {
+  id        String       @id @default(uuid())
+  tenantId  String
+  userId    String
+  role      UserRoleExpr @default(MEMBER)
+  createdAt DateTime     @default(now())
+
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+enum CampaignPermission {
+  VIEW
+  EDIT
+}
+
+model CampaignShare {
+  id         String             @id @default(uuid())
+  campaignId String
+  userId     String?
+  email      String
+  permission CampaignPermission @default(VIEW)
+  token      String?            @unique
+  accepted   Boolean            @default(false)
+  createdAt  DateTime           @default(now())
+
+  campaign   Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user       User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, email])
+  @@index([userId])
+  @@index([email])
+}

@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { User, CreditCard } from "lucide-react";
+import { User, CreditCard, Users } from "lucide-react";
 import { ProfileForm } from "./profile-form";
 import { PlanSelector } from "./plan-selector";
+import { TeamSettingsTab } from "@/components/admin/team-settings-tab";
 import type { Plan } from "@prisma/client";
 
 interface UsageStats {
@@ -46,10 +47,11 @@ interface SettingsTabsProps {
   profileLinks?: Record<string, string> | null;
 }
 
-type Tab = "profile" | "subscription";
+type Tab = "profile" | "team" | "subscription";
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: "profile", label: "Perfil & Conta", icon: User },
+  { id: "team", label: "Equipe do Workspace", icon: Users },
   { id: "subscription", label: "Planos & Assinatura", icon: CreditCard },
 ];
 
@@ -117,6 +119,8 @@ export function SettingsTabs({
             publicProfile={publicProfile}
             profileLinks={profileLinks}
           />
+        ) : activeTab === "team" ? (
+          <TeamSettingsTab />
         ) : (
           <PlanSelector
             currentPlan={currentPlan}

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { decrypt } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { getUserAccessibleTenants } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
@@ -29,13 +30,26 @@ export default async function AdminLayout({
   const session = await decrypt(cookie);
 
   let realPlan = "FREE";
+  let realName = session?.tenantSlug || "Meu Workspace";
   let subscriptionStatus = "TRIAL";
   let trialEndsAt: Date | null = null;
+  let workspaces: Array<{
+    tenantId: string;
+    name: string;
+    slug: string;
+    plan: string;
+    role: "OWNER" | "ADMIN" | "MEMBER";
+    isPrimary: boolean;
+  }> = [];
   
+  if (session?.userId) {
+    workspaces = await getUserAccessibleTenants(session.userId);
+  }
+
   if (session?.tenantId) {
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.tenantId },
-      select: { plan: true, subscriptionStatus: true, trialEndsAt: true, active: true },
+      select: { name: true, plan: true, subscriptionStatus: true, trialEndsAt: true, active: true },
     });
     
     if (tenant) {
@@ -43,6 +57,7 @@ export default async function AdminLayout({
         // Se desativou a conta, derrubar do painel admin.
         redirect("/admin/login");
       }
+      realName = tenant.name;
       realPlan = tenant.plan;
       subscriptionStatus = tenant.subscriptionStatus;
       trialEndsAt = tenant.trialEndsAt;
@@ -51,12 +66,14 @@ export default async function AdminLayout({
 
   const tenantInfo = session?.tenantSlug
     ? {
-        name: session.tenantSlug,
+        id: session.tenantId,
+        name: realName,
         slug: session.tenantSlug,
         plan: realPlan,
         role: session.role || undefined,
         subscriptionStatus,
         trialEndsAt: trialEndsAt?.toISOString(),
+        workspaces,
       }
     : null;
 
