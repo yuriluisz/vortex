@@ -71,7 +71,7 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-foreground tracking-tight">Campanhas</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Campanhas</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Gerencie e monitore suas campanhas de lançamento em tempo real.
           </p>
@@ -275,7 +275,8 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
       ) : (
         /* List View */
         <div className="glass-panel rounded-xl overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm text-muted-foreground">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px] text-left text-sm text-muted-foreground">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground border-b border-border/60">
               <tr>
                 <th className="px-6 py-4 font-semibold">Campanha</th>
@@ -341,6 +342,7 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

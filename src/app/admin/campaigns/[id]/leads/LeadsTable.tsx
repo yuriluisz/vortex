@@ -69,7 +69,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
     <>
       <div className="glass-panel rounded-xl overflow-hidden shadow-sm flex flex-col min-h-[400px]">
         <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left text-sm text-muted-foreground">
+          <table className="w-full min-w-[700px] text-left text-sm text-muted-foreground">
             <thead className="bg-muted text-xs uppercase text-muted-foreground border-b border-border">
               <tr>
                 <th className="px-6 py-4 font-medium">Nome</th>
@@ -149,7 +149,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
         
         {/* Paginação */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border px-4 sm:px-6 py-4 bg-muted/20">
             <div className="text-sm text-muted-foreground">
               Página <span className="font-medium text-foreground">{currentPage}</span> de <span className="font-medium text-foreground">{totalPages}</span>
             </div>
@@ -207,7 +207,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
 
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
               {/* Resumo */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground flex items-center gap-1 mb-1">
                     <User className="h-3.5 w-3.5" /> Nome

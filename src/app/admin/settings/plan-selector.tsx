@@ -253,7 +253,7 @@ export function PlanSelector({
       {/* ================================================================ */}
       {isPaid && (
         <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
             <div>
               <h2 className="text-lg font-semibold text-card-foreground mb-1">
                 Sua Assinatura
@@ -379,7 +379,7 @@ export function PlanSelector({
       {/* SEÇÃO 2: Endereço de Cobrança */}
       {/* ================================================================ */}
       <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
             <h2 className="text-lg font-semibold text-card-foreground mb-1">
               Endereço de Cobrança

@@ -139,7 +139,7 @@ export default async function SuperAdminPage({ searchParams }: PageProps) {
             </p>
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <Link href="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors">
             ← Voltar ao dashboard
           </Link>

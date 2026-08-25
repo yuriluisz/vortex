@@ -86,17 +86,17 @@ export default async function MyTemplatesPage() {
   return (
     <div className="flex flex-col gap-6 pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-card-foreground">Meus Templates</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Acompanhe o status de publicação dos seus templates
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Link
             href="/templates"
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors flex-1 sm:flex-initial"
           >
             <Store className="w-4 h-4" />
             Explorar Templates

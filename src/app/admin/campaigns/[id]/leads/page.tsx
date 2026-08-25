@@ -73,7 +73,7 @@ export default async function CampaignLeadsPage({
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-medium text-card-foreground">Base de Leads</h3>
           <p className="text-sm text-muted-foreground">Total de {totalLeads} leads</p>
@@ -105,7 +105,7 @@ export default async function CampaignLeadsPage({
 
       {/* Status Summary */}
       {totalLeads > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           <div className="rounded-lg border border-chart-2/20 bg-chart-2/5 px-4 py-3 text-center">
             <p className="text-xl font-bold text-chart-2 tabular-nums">{pendingCount}</p>
             <p className="text-xs text-chart-2/70">Aguardando</p>

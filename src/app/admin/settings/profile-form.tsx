@@ -64,11 +64,11 @@ export function ProfileForm({
 
         <div className="space-y-5">
           {/* Avatar */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="h-16 w-16 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
               {displayName || userName ? (displayName || userName)!.charAt(0).toUpperCase() : "?"}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -199,7 +199,7 @@ export function ProfileForm({
               <FieldTooltip tooltip="Links do seu website e redes sociais. Visíveis no perfil público." docsAnchor="perfil-links" />
             </label>
             <div className="space-y-3">
-              <div className="grid grid-cols-[100px_1fr] gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-2 sm:gap-3 items-start sm:items-center">
                 <span className="text-sm text-muted-foreground">Website</span>
                 <input
                   type="url"
@@ -209,7 +209,7 @@ export function ProfileForm({
                   placeholder="https://seusite.com"
                 />
               </div>
-              <div className="grid grid-cols-[100px_1fr] gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-2 sm:gap-3 items-start sm:items-center">
                 <span className="text-sm text-muted-foreground">Instagram</span>
                 <input
                   type="url"
@@ -219,7 +219,7 @@ export function ProfileForm({
                   placeholder="https://instagram.com/seuperfil"
                 />
               </div>
-              <div className="grid grid-cols-[100px_1fr] gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-2 sm:gap-3 items-start sm:items-center">
                 <span className="text-sm text-muted-foreground">YouTube</span>
                 <input
                   type="url"
@@ -229,7 +229,7 @@ export function ProfileForm({
                   placeholder="https://youtube.com/@seucanal"
                 />
               </div>
-              <div className="grid grid-cols-[100px_1fr] gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-2 sm:gap-3 items-start sm:items-center">
                 <span className="text-sm text-muted-foreground">WhatsApp</span>
                 <input
                   type="url"

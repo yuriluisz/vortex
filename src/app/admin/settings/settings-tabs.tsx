@@ -75,7 +75,7 @@ export function SettingsTabs({
   return (
     <div>
       {/* Tab Navigation */}
-      <div className="flex border-b border-border mb-8">
+      <div className="flex overflow-x-auto border-b border-border mb-8 no-scrollbar">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           return (
