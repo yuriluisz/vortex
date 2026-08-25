@@ -109,7 +109,9 @@ export function WhatsAppChatConsole({
 
   // Target groups selection state per campaign
   const [targetType, setTargetType] = useState<"ALL" | "SELECTED">("ALL");
-  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(
+    campaigns[0]?.groups.map((g) => g.id) || []
+  );
   const [groupSearch, setGroupSearch] = useState("");
 
   // Drawer state: null | "groups" | "message_info"
@@ -157,24 +159,24 @@ export function WhatsAppChatConsole({
     );
   }, [campaigns, campaignSearch]);
 
+  // Handle Campaign Select
+  const handleSelectCampaign = (campId: string) => {
+    setSelectedCampaignId(campId);
+    const camp = campaigns.find((c) => c.id === campId);
+    if (camp) {
+      setSelectedGroupIds(camp.groups.map((g) => g.id));
+      setTargetType("ALL");
+      setDrawerMode((prev) => (prev === "message_info" ? null : prev));
+      setActiveMessageDetail(null);
+    }
+  };
+
   // Auto-scroll chat feed to bottom
   useEffect(() => {
     if (chatFeedRef.current) {
       chatFeedRef.current.scrollTop = chatFeedRef.current.scrollHeight;
     }
   }, [campaignMessages, selectedCampaignId]);
-
-  // Reset selected groups when changing campaign
-  useEffect(() => {
-    if (activeCampaign) {
-      setSelectedGroupIds(activeCampaign.groups.map((g) => g.id));
-      setTargetType("ALL");
-      if (drawerMode === "message_info") {
-        setDrawerMode(null);
-        setActiveMessageDetail(null);
-      }
-    }
-  }, [activeCampaign?.id]);
 
   // Polling for QR Code connection
   const checkStatus = useCallback(async () => {
@@ -390,9 +392,9 @@ export function WhatsAppChatConsole({
 
       {/* Main 3-Column Split Interface */}
       <div className="flex flex-1 min-h-0 w-full h-full relative">
-        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ------------------------------------------------------------------- */}
         {/* COLUNA ESQUERDA: LISTA DE CAMPANHAS                                */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ------------------------------------------------------------------- */}
         <div className="w-full sm:w-72 lg:w-80 border-r border-white/10 flex flex-col bg-zinc-950/80 backdrop-blur-xl shrink-0">
           {/* Header da Coluna Esquerda */}
           <div className="p-3.5 border-b border-white/10 space-y-3">
@@ -440,7 +442,7 @@ export function WhatsAppChatConsole({
                   <button
                     key={camp.id}
                     type="button"
-                    onClick={() => setSelectedCampaignId(camp.id)}
+                    onClick={() => handleSelectCampaign(camp.id)}
                     className={`w-full text-left p-3.5 transition-all flex items-start gap-3 relative ${
                       isSelected
                         ? "bg-primary/10 text-foreground border-l-2 border-primary"
@@ -489,9 +491,9 @@ export function WhatsAppChatConsole({
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ------------------------------------------------------------------- */}
         {/* COLUNA CENTRAL: CHAT FEED & COMPOSER                               */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ------------------------------------------------------------------- */}
         <div className="flex-1 flex flex-col min-w-0 bg-zinc-950/40 relative">
           {/* Chat Header */}
           <div className="px-4 py-3 border-b border-white/10 bg-zinc-950/90 backdrop-blur-md flex items-center justify-between shrink-0 z-10">
@@ -620,9 +622,9 @@ export function WhatsAppChatConsole({
             )}
           </div>
 
-          {/* ═════════════════════════════════════════════════════════════════ */}
+          {/* ----------------------------------------------------------------- */}
           {/* COMPOSER DE DISPARO (INFERIOR)                                    */}
-          {/* ═════════════════════════════════════════════════════════════════ */}
+          {/* ----------------------------------------------------------------- */}
           <div className="p-3 sm:p-4 border-t border-white/10 bg-zinc-950/90 backdrop-blur-xl shrink-0 space-y-2.5">
             {/* Quick Target Bar */}
             <div className="flex items-center justify-between text-xs">
@@ -691,9 +693,9 @@ export function WhatsAppChatConsole({
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ------------------------------------------------------------------- */}
         {/* COLUNA DIREITA / DRAWER RETRÁTIL (GRUPOS & DETALHES DE ENTREGA)     */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ------------------------------------------------------------------- */}
         {drawerMode && (
           <div className="w-full sm:w-80 lg:w-88 border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl flex flex-col shrink-0 animate-in slide-in-from-right-8 duration-200 absolute sm:relative inset-y-0 right-0 z-30 shadow-2xl">
             {/* Drawer Header */}
@@ -895,9 +897,9 @@ export function WhatsAppChatConsole({
         )}
       </div>
 
-      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* --------------------------------------------------------------------- */}
       {/* MODAL DE CONFIGURAÇÃO & CONEXÃO WHATSAPP                             */}
-      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* --------------------------------------------------------------------- */}
       {connectionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="relative my-auto w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
@@ -1064,9 +1066,9 @@ export function WhatsAppChatConsole({
         </div>
       )}
 
-      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* --------------------------------------------------------------------- */}
       {/* MODAL DE DÚVIDAS FREQUENTES (CENTRAL WHATSAPP)                        */}
-      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* --------------------------------------------------------------------- */}
       {helpModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="relative my-auto w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">

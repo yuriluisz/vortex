@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { SettingsTabs } from "./settings-tabs";
 import { enforceSubscription } from "@/lib/subscription-guard";
+import { AlertTriangle, Clock, AlertCircle } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await getSession();
@@ -47,6 +48,7 @@ export default async function SettingsPage() {
         displayName: true,
         handle: true,
         bio: true,
+        avatarUrl: true,
         publicProfile: true,
         profileLinks: true,
       },
@@ -61,26 +63,35 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+    <div className="mx-auto max-w-5xl space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
           Configurações
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Gerencie seu perfil, conta e assinatura.
+        <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+          Gerencie seu perfil, conta, segurança e assinatura de planos.
         </p>
       </div>
 
       {/* Banner de aviso de assinatura */}
       {subscriptionCheck.warning && (
-        <div className={`mb-6 rounded-xl border px-5 py-4 text-sm ${
-          subscriptionCheck.status === "PAST_DUE"
-            ? "border-destructive/30 bg-destructive/5 text-destructive"
-            : subscriptionCheck.status === "CANCELING"
-            ? "border-yellow-500/30 bg-yellow-500/5 text-yellow-700 dark:text-yellow-400"
-            : "border-blue-500/30 bg-blue-500/5 text-blue-700 dark:text-blue-400"
-        }`}>
-          {subscriptionCheck.warning}
+        <div
+          className={`rounded-2xl border px-5 py-4 text-xs sm:text-sm flex items-center gap-3 shadow-md animate-in fade-in duration-200 ${
+            subscriptionCheck.status === "PAST_DUE"
+              ? "border-destructive/30 bg-destructive/10 text-destructive font-medium"
+              : subscriptionCheck.status === "CANCELING"
+              ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-400 font-medium"
+              : "border-blue-500/30 bg-blue-500/10 text-blue-400 font-medium"
+          }`}
+        >
+          {subscriptionCheck.status === "PAST_DUE" ? (
+            <AlertCircle className="w-5 h-5 shrink-0" />
+          ) : subscriptionCheck.status === "CANCELING" ? (
+            <Clock className="w-5 h-5 shrink-0" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+          )}
+          <span>{subscriptionCheck.warning}</span>
         </div>
       )}
 
@@ -92,6 +103,7 @@ export default async function SettingsPage() {
           displayName={user.displayName}
           handle={user.handle}
           bio={user.bio}
+          avatarUrl={user.avatarUrl}
           publicProfile={user.publicProfile}
           profileLinks={user.profileLinks as Record<string, string> | null}
           currentPlan={tenant.plan}

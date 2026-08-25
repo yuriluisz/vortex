@@ -13,6 +13,14 @@ import {
   Sparkles,
   XCircle,
   RefreshCw,
+  CreditCard,
+  Building,
+  BarChart3,
+  Calendar,
+  Layers,
+  Users,
+  Send,
+  Edit,
 } from "lucide-react";
 import { changePlanCheckoutAction, reactivateSubscriptionAction, verifyPaymentAction } from "./actions";
 import { CancelDialog } from "./cancel-dialog";
@@ -62,14 +70,14 @@ const PLANS = [
     price: "Grátis",
     priceValue: 0,
     period: "",
-    description: "Para testar e validar sua ideia.",
+    description: "Para testar, validar e estruturar seu primeiro funil.",
     icon: Zap,
     features: [
-      "1 campanha ativa",
-      "Até 100 leads/mês",
-      "3 grupos de WhatsApp",
-      "Formulário dinâmico",
-      "Marca Vórtex+",
+      "1 campanha ativa simultânea",
+      "Até 100 leads por mês",
+      "3 grupos de WhatsApp vinculados",
+      "Formulário dinâmico integrado",
+      "Selo discreto Vórtex+",
     ],
   },
   {
@@ -78,16 +86,16 @@ const PLANS = [
     price: "R$ 97",
     priceValue: 97,
     period: "/mês",
-    description: "Para lançamentos e campanhas sérias.",
+    description: "Para lançamentos consistentes e crescimento acelerado.",
     highlight: true,
     icon: Crown,
     features: [
-      "10 campanhas ativas",
-      "Até 10.000 leads/mês",
-      "50 grupos de WhatsApp",
-      "Domínio personalizado",
-      "Sem marca Vórtex+",
-      "Suporte prioritário (chat)",
+      "10 campanhas ativas simultâneas",
+      "Até 10.000 leads por mês",
+      "50 grupos de WhatsApp vinculados",
+      "Domínio personalizado próprio",
+      "Sem qualquer marcação Vórtex+",
+      "Suporte prioritário via chat",
     ],
   },
   {
@@ -96,27 +104,26 @@ const PLANS = [
     price: "R$ 157",
     priceValue: 157,
     period: "/mês",
-    description: "Para agências e alto volume.",
+    description: "Para agências, grandes produtores e alto volume de escala.",
     icon: Sparkles,
     features: [
-      "Campanhas ilimitadas",
-      "Leads ilimitados",
-      "Grupos ilimitados",
-      "Domínio personalizado",
-      "Sem marca Vórtex+",
-      "Suporte dedicado 24h",
-      "SLA de uptime",
+      "Campanhas ativas ilimitadas (∞)",
+      "Leads capturados ilimitados (∞)",
+      "Grupos de WhatsApp ilimitados (∞)",
+      "Integração WhatsApp & Disparos em Massa",
+      "Criação automática de grupos via API",
+      "Domínio próprio + Suporte dedicado 24/7",
     ],
   },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
-  ACTIVE: { label: "Ativo", color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/30", icon: CheckCircle2 },
-  PAST_DUE: { label: "Pagamento vencido", color: "text-destructive bg-destructive/10 border-destructive/30", icon: AlertTriangle },
-  CANCELING: { label: "Cancelamento agendado", color: "text-yellow-600 bg-yellow-500/10 border-yellow-500/30", icon: Clock },
-  CANCELED: { label: "Cancelada", color: "text-muted-foreground bg-muted/50 border-border", icon: XCircle },
-  PENDING_PAYMENT: { label: "Aguardando pagamento", color: "text-blue-600 bg-blue-500/10 border-blue-500/30", icon: Clock },
-  TRIAL: { label: "Gratuito", color: "text-muted-foreground bg-muted/50 border-border", icon: Zap },
+  ACTIVE: { label: "Plano Ativo", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20", icon: CheckCircle2 },
+  PAST_DUE: { label: "Pagamento Vencido", color: "text-destructive bg-destructive/10 border-destructive/20", icon: AlertTriangle },
+  CANCELING: { label: "Cancelamento Agendado", color: "text-amber-400 bg-amber-500/10 border-amber-500/20", icon: Clock },
+  CANCELED: { label: "Cancelada", color: "text-muted-foreground bg-white/5 border-white/10", icon: XCircle },
+  PENDING_PAYMENT: { label: "Aguardando Pagamento", color: "text-blue-400 bg-blue-500/10 border-blue-500/20", icon: Clock },
+  TRIAL: { label: "Período Gratuito", color: "text-muted-foreground bg-white/5 border-white/10", icon: Zap },
 };
 
 function formatDate(dateStr: string | null): string {
@@ -177,18 +184,15 @@ export function PlanSelector({
   // Automação do checkout vindo do Login
   useEffect(() => {
     if (checkoutPlanParam && !pending && !state?.needsBilling && !state?.invoiceUrl) {
-      // Evita loops
       if (redirectingRef.current) return;
       
       const formData = new FormData();
       formData.append("plan", checkoutPlanParam);
       
-      // Remove the parameter from URL without refreshing so we don't re-trigger it
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("checkout_plan");
       router.replace(newUrl.pathname + newUrl.search);
 
-      // Trigger action
       formAction(formData);
     }
   }, [checkoutPlanParam, pending, state, formAction, router]);
@@ -247,153 +251,213 @@ export function PlanSelector({
   };
 
   return (
-    <div className="space-y-6">
-      {/* ================================================================ */}
-      {/* SEÇÃO 1: Status da Assinatura */}
-      {/* ================================================================ */}
+    <div className="space-y-8 pb-16">
+      {/* ------------------------------------------------------------------- */}
+      {/* 1. HERO DA ASSINATURA ATUAL                                         */}
+      {/* ------------------------------------------------------------------- */}
       {isPaid && (
-        <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-card-foreground mb-1">
-                Sua Assinatura
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Plano {currentPlan} — R$ {PLANS.find(p => p.id === currentPlan)?.priceValue || 0},00/mês
-              </p>
+        <div className="glass-panel rounded-2xl p-6 sm:p-7 border border-primary/25 bg-gradient-to-br from-primary/10 via-zinc-950/70 to-zinc-950/90 backdrop-blur-xl shadow-xl space-y-5 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="h-11 w-11 rounded-2xl bg-primary/20 border border-primary/30 text-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-foreground">
+                  Assinatura Plano {currentPlan}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Valor mensal: <strong className="text-foreground">R$ {PLANS.find(p => p.id === currentPlan)?.priceValue || 0},00/mês</strong>
+                </p>
+              </div>
             </div>
-            <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${statusInfo.color}`}>
-              <StatusIcon className="h-3 w-3" />
-              {statusInfo.label}
+
+            <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold self-start ${statusInfo.color}`}>
+              <StatusIcon className="h-3.5 w-3.5" />
+              <span>{statusInfo.label}</span>
             </div>
           </div>
 
-          {/* Barra de progresso do ciclo */}
+          {/* Barra de Progresso do Ciclo */}
           {subscriptionInfo.currentPeriodEnd && (isActive || isCanceling) && (
-            <div className="mb-4">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                <span>Ciclo atual</span>
-                <span>
+            <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] space-y-2">
+              <div className="flex justify-between text-xs font-semibold">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  Ciclo Atual de Cobrança
+                </span>
+                <span className="text-primary font-bold">
                   {daysLeft !== null
                     ? `${daysLeft} dia${daysLeft !== 1 ? "s" : ""} restante${daysLeft !== 1 ? "s" : ""}`
                     : "—"}
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    isCanceling ? "bg-yellow-500" : "bg-primary"
+                    isCanceling ? "bg-amber-400" : "bg-gradient-to-r from-primary to-primary/70"
                   }`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground/70 mt-1">
+              <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
                 <span>Início do ciclo</span>
-                <span>Vencimento: {formatDate(subscriptionInfo.currentPeriodEnd)}</span>
+                <span>Próxima renovação: {formatDate(subscriptionInfo.currentPeriodEnd)}</span>
               </div>
             </div>
           )}
 
-          {/* Aviso de cancelamento agendado + botão reativar */}
+          {/* Aviso de cancelamento agendado */}
           {isCanceling && subscriptionInfo.cancelAt && (
-            <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
-              <strong>Cancelamento agendado:</strong> Seu plano será rebaixado para Free em{" "}
-              {formatDate(subscriptionInfo.cancelAt)}.
-              Você mantém acesso completo até essa data.
-            </div>
-          )}
-
-          {/* Botão reativar assinatura (quando em cancelamento) */}
-          {isCanceling && (
-            <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs sm:text-sm text-amber-400 font-medium space-y-3">
+              <p>
+                <strong>Cancelamento agendado:</strong> Seu plano será revertido para Free em{" "}
+                <strong>{formatDate(subscriptionInfo.cancelAt)}</strong>. Você continua com acesso total até essa data.
+              </p>
               <button
                 onClick={handleReactivate}
                 disabled={reactivating}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-emerald-500 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 px-4 py-2 text-xs font-bold text-white transition-all shadow-md disabled:opacity-50"
               >
-                {reactivating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                {reactivating ? "Reativando..." : "Reativar assinatura"}
+                {reactivating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                {reactivating ? "Reativando..." : "Reativar Assinatura Agora"}
               </button>
               {reactivateError && (
-                <p className="mt-2 text-sm text-destructive">{reactivateError}</p>
+                <p className="text-xs text-destructive">{reactivateError}</p>
               )}
             </div>
           )}
 
-          {/* Aviso de pagamento pendente + botão verificar */}
+          {/* Aviso de pagamento pendente */}
           {isPendingPayment && subscriptionInfo.pendingPlan && (
-            <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-sm text-blue-700 dark:text-blue-400">
-              <p className="mb-3">
-                <strong>Aguardando pagamento</strong> para o plano {subscriptionInfo.pendingPlan}.
-                Complete o pagamento para ativar.
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4 text-xs sm:text-sm text-blue-400 space-y-3">
+              <p>
+                <strong>Aguardando confirmação de pagamento</strong> para o plano {subscriptionInfo.pendingPlan}.
               </p>
               <button
                 onClick={handleVerifyPayment}
                 disabled={verifyingPayment}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-blue-500 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 text-xs font-bold text-white transition-all shadow-md disabled:opacity-50"
               >
-                {verifyingPayment ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
-                )}
-                {verifyingPayment ? "Verificando..." : "Já paguei — Verificar agora"}
+                {verifyingPayment ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                {verifyingPayment ? "Verificando..." : "Já Paguei — Verificar Agora"}
               </button>
-              {verifyError && (
-                <p className="mt-2 text-xs text-red-400">{verifyError}</p>
-              )}
-              {verifySuccess && (
-                <p className="mt-2 text-xs text-emerald-400">✅ Pagamento confirmado! Ativando plano...</p>
-              )}
+              {verifyError && <p className="text-xs text-destructive">{verifyError}</p>}
+              {verifySuccess && <p className="text-xs text-emerald-400 font-semibold">✅ Pagamento confirmado com sucesso!</p>}
             </div>
           )}
 
           {/* Aviso de pagamento vencido */}
           {isPastDue && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs sm:text-sm text-destructive font-medium">
               <strong>Pagamento vencido!</strong> Regularize em{" "}
-              {daysUntil(subscriptionInfo.gracePeriodEnd)} dia(s)
-              para manter seu plano.
+              {daysUntil(subscriptionInfo.gracePeriodEnd)} dia(s) para manter os recursos liberados.
             </div>
           )}
 
-          {/* Botão cancelar (apenas se ativo ou past_due) */}
+          {/* Ação de Cancelar */}
           {(isActive || isPastDue) && (
-            <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setShowCancelDialog(true)}
-                className="text-sm text-muted-foreground hover:text-destructive transition-colors"
+                className="text-xs font-semibold text-muted-foreground hover:text-destructive transition-colors"
               >
-                Cancelar assinatura
+                Cancelar assinatura do plano
               </button>
             </div>
           )}
         </div>
       )}
 
-      {/* ================================================================ */}
-      {/* SEÇÃO 2: Endereço de Cobrança */}
-      {/* ================================================================ */}
-      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      {/* ------------------------------------------------------------------- */}
+      {/* 2. CONSUMO DE RECURSOS (USO DO PLANO)                               */}
+      {/* ------------------------------------------------------------------- */}
+      <div className="glass-panel rounded-2xl p-6 sm:p-7 border border-white/10 bg-zinc-950/70 backdrop-blur-xl shadow-xl space-y-6">
+        <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+          <div className="h-9 w-9 rounded-xl bg-primary/15 border border-primary/25 text-primary flex items-center justify-center">
+            <BarChart3 className="w-5 h-5" />
+          </div>
           <div>
-            <h2 className="text-lg font-semibold text-card-foreground mb-1">
-              Endereço de Cobrança
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Dados usados para emissão de notas fiscais e cobrança.
+            <h3 className="text-base font-bold text-foreground">
+              Consumo de Recursos
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Acompanhe os limites de utilização da sua conta no plano atual.
             </p>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { label: "Campanhas Ativas", stat: usage.campaigns, icon: Layers },
+            { label: "Grupos Vinculados", stat: usage.groups, icon: Users },
+            { label: "Leads Capturados", stat: usage.leads, icon: Send },
+          ].map(({ label, stat, icon: Icon }) => {
+            const isUnlimited = stat.max === -1;
+            const percentage = isUnlimited ? 0 : Math.round((stat.current / stat.max) * 100);
+            const isNearLimit = percentage >= 80;
+
+            return (
+              <div
+                key={label}
+                className="p-4 rounded-xl border border-white/10 bg-white/[0.02] space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5 text-primary" />
+                    {label}
+                  </span>
+                  <span className="text-xs font-bold text-foreground font-mono">
+                    {stat.current.toLocaleString("pt-BR")} / {isUnlimited ? "∞" : stat.max.toLocaleString("pt-BR")}
+                  </span>
+                </div>
+
+                <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      isNearLimit ? "bg-destructive" : "bg-primary"
+                    }`}
+                    style={{ width: `${isUnlimited ? 0 : Math.min(percentage, 100)}%` }}
+                  />
+                </div>
+
+                {isNearLimit && !isUnlimited && currentPlan === "FREE" && (
+                  <p className="text-[10px] text-destructive font-medium">
+                    Próximo do limite gratuito. Faça upgrade para continuar capturando.
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------------- */}
+      {/* 3. DADOS DE COBRANÇA & FATURAMENTO                                  */}
+      {/* ------------------------------------------------------------------- */}
+      <div className="glass-panel rounded-2xl p-6 sm:p-7 border border-white/10 bg-zinc-950/70 backdrop-blur-xl shadow-xl space-y-6">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-primary/15 border border-primary/25 text-primary flex items-center justify-center">
+              <Building className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">
+                Dados de Cobrança
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Informações fiscais para emissão de notas e pagamentos.
+              </p>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={() => setShowBillingModal(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-foreground transition-all active:scale-95"
           >
-            Editar dados
+            <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>Editar Dados</span>
           </button>
         </div>
 
@@ -401,43 +465,59 @@ export function PlanSelector({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Tipo de Pessoa */}
             {billingInfo.billingPersonType && (
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <span className="text-xs text-muted-foreground">Tipo de Pessoa</span>
-                <p className="text-sm font-medium text-foreground mt-0.5">
-                  {billingInfo.billingPersonType === "FISICA" ? "Pessoa Física" : "Pessoa Jurídica"}
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground block">
+                  Tipo de Titular
+                </span>
+                <p className="text-xs font-semibold text-foreground mt-1">
+                  {billingInfo.billingPersonType === "FISICA" ? "Pessoa Física (CPF)" : "Pessoa Jurídica (CNPJ)"}
                 </p>
               </div>
             )}
 
             {/* CPF/CNPJ */}
             {billingInfo.billingCpfCnpj && (
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <span className="text-xs text-muted-foreground">CPF/CNPJ</span>
-                <p className="text-sm font-medium text-foreground mt-0.5">{billingInfo.billingCpfCnpj}</p>
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground block">
+                  Documento Fiscal
+                </span>
+                <p className="text-xs font-semibold text-foreground font-mono mt-1">
+                  {billingInfo.billingCpfCnpj}
+                </p>
               </div>
             )}
 
             {/* Razão Social */}
             {billingInfo.billingBusinessName && (
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 sm:col-span-2">
-                <span className="text-xs text-muted-foreground">Razão Social</span>
-                <p className="text-sm font-medium text-foreground mt-0.5">{billingInfo.billingBusinessName}</p>
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 sm:col-span-2">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground block">
+                  Razão Social / Nome Completo
+                </span>
+                <p className="text-xs font-semibold text-foreground mt-1">
+                  {billingInfo.billingBusinessName}
+                </p>
               </div>
             )}
 
             {/* Telefone */}
             {billingInfo.billingPhone && (
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <span className="text-xs text-muted-foreground">Telefone / WhatsApp</span>
-                <p className="text-sm font-medium text-foreground mt-0.5">{billingInfo.billingPhone}</p>
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground block">
+                  Telefone de Cobrança
+                </span>
+                <p className="text-xs font-semibold text-foreground font-mono mt-1">
+                  {billingInfo.billingPhone}
+                </p>
               </div>
             )}
 
             {/* Endereço */}
             {billingInfo.billingAddress && (
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 sm:col-span-2">
-                <span className="text-xs text-muted-foreground">Endereço Completo</span>
-                <p className="text-sm font-medium text-foreground mt-0.5">
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 sm:col-span-2">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground block">
+                  Endereço Cadastrado
+                </span>
+                <p className="text-xs font-medium text-foreground mt-1 leading-relaxed">
                   {[
                     billingInfo.billingAddress.street,
                     billingInfo.billingAddress.number ? `Nº ${billingInfo.billingAddress.number}` : null,
@@ -451,74 +531,26 @@ export function PlanSelector({
             )}
           </div>
         ) : (
-          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
-            <strong>Atenção:</strong> Você ainda não preencheu seus dados de cobrança. Preencha clicando em "Editar dados" para assinar um plano pago.
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-400 font-medium">
+            Seus dados de cobrança ainda não foram preenchidos. Clique em <strong>Editar Dados</strong> para configurar antes de assinar um plano pago.
           </div>
         )}
       </div>
 
-      {/* ================================================================ */}
-      {/* SEÇÃO 3: Uso do Plano */}
-      {/* ================================================================ */}
-      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
-        <h2 className="text-lg font-semibold text-card-foreground mb-1">
-          Uso do Plano
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Acompanhe o consumo dos recursos da sua conta.
-        </p>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {[
-            { label: "Campanhas", stat: usage.campaigns },
-            { label: "Grupos", stat: usage.groups },
-            { label: "Leads", stat: usage.leads },
-          ].map(({ label, stat }) => {
-            const isUnlimited = stat.max === -1;
-            const percentage = isUnlimited
-              ? 0
-              : Math.round((stat.current / stat.max) * 100);
-            const isNearLimit = percentage >= 80;
-
-            return (
-              <div key={label}>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium text-foreground/80">
-                    {stat.current} / {isUnlimited ? "∞" : stat.max.toLocaleString("pt-BR")}
-                  </span>
-                </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      isNearLimit ? "bg-destructive" : "bg-primary"
-                    }`}
-                    style={{ width: `${isUnlimited ? 0 : Math.min(percentage, 100)}%` }}
-                  />
-                </div>
-                {isNearLimit && !isUnlimited && currentPlan === "FREE" && (
-                  <p className="mt-2 text-[10px] text-destructive">
-                    Quase no limite. Faça upgrade para mais recursos.
-                  </p>
-                )}
-              </div>
-            );
-          })}
+      {/* ------------------------------------------------------------------- */}
+      {/* 4. ESCOLHER / MUDAR DE PLANO (TABELA DE PREÇOS)                     */}
+      {/* ------------------------------------------------------------------- */}
+      <div className="glass-panel rounded-2xl p-6 sm:p-7 border border-white/10 bg-zinc-950/70 backdrop-blur-xl shadow-xl space-y-6">
+        <div className="border-b border-white/10 pb-4">
+          <h3 className="text-base font-bold text-foreground">
+            Planos Disponíveis
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Evolua sua conta com mais capacidade de campanhas, leads e automação.
+          </p>
         </div>
-      </div>
 
-      {/* ================================================================ */}
-      {/* SEÇÃO 4: Escolher Plano */}
-      {/* ================================================================ */}
-      <div className="glass-panel rounded-xl p-6 shadow-sm relative overflow-hidden">
-        <h2 className="text-lg font-semibold text-card-foreground mb-1">
-          Escolher Plano
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Selecione o plano ideal para o seu negócio.
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PLANS.map((plan) => {
             const isActivePlan = plan.id === currentPlan;
             const isUpgrade = plan.priceValue > (PLANS.find(p => p.id === currentPlan)?.priceValue || 0);
@@ -529,52 +561,63 @@ export function PlanSelector({
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-xl border p-5 transition-all duration-200 ${
+                className={`relative flex flex-col rounded-2xl border p-6 transition-all duration-300 ${
                   isActivePlan
-                    ? "border-primary/50 bg-primary/5 shadow-md shadow-primary/5 ring-1 ring-primary/20"
+                    ? "border-primary bg-primary/10 shadow-xl shadow-primary/10 ring-1 ring-primary/40"
+                    : plan.highlight
+                    ? "border-primary/50 bg-white/[0.02] shadow-lg hover:border-primary"
                     : isPendingThisPlan
                     ? "border-blue-500/50 bg-blue-500/5 ring-1 ring-blue-500/20"
-                    : "border-border bg-card shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                    : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
                 }`}
               >
+                {/* Badge Superior */}
                 {isActivePlan && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-primary px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground whitespace-nowrap">
-                    Seu plano
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-primary px-3.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                    Seu Plano Atual
+                  </div>
+                )}
+                {plan.highlight && !isActivePlan && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-gradient-to-r from-primary to-accent px-3.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-md whitespace-nowrap">
+                    Mais Escolhido
                   </div>
                 )}
                 {isPendingThisPlan && !isActivePlan && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-blue-500 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white whitespace-nowrap">
-                    Aguardando pagamento
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-blue-500 px-3.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap">
+                    Aguardando Pagamento
                   </div>
                 )}
 
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <PlanIcon className="h-4 w-4 text-primary" />
-                    <h3 className="text-base font-bold text-card-foreground">
+                <div className="mb-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-8 w-8 rounded-xl bg-primary/15 border border-primary/25 text-primary flex items-center justify-center">
+                      <PlanIcon className="h-4 w-4" />
+                    </div>
+                    <h4 className="text-lg font-bold text-foreground">
                       {plan.name}
-                    </h3>
+                    </h4>
                   </div>
-                  <div className="mt-1 flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-card-foreground">
+
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-3xl font-extrabold text-foreground tracking-tight">
                       {plan.price}
                     </span>
                     {plan.period && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground font-semibold">
                         {plan.period}
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
                     {plan.description}
                   </p>
                 </div>
 
-                <ul className="mb-5 flex-1 space-y-2">
+                <ul className="mb-6 flex-1 space-y-2.5 pt-2 border-t border-white/5">
                   {plan.features.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-start gap-1.5 text-xs text-muted-foreground"
+                      className="flex items-start gap-2 text-xs text-foreground/80 leading-relaxed"
                     >
                       <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
                       <span>{feature}</span>
@@ -582,18 +625,17 @@ export function PlanSelector({
                   ))}
                 </ul>
 
-                {/* Botão contextual */}
+                {/* Botão de Ação */}
                 {isActivePlan ? (
-                  <div className="inline-flex items-center justify-center rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-xs font-semibold text-muted-foreground cursor-default">
-                    Plano atual
+                  <div className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-muted-foreground cursor-default">
+                    Plano Ativo
                   </div>
                 ) : isCanceling && plan.id === "FREE" ? (
-                  <div className="inline-flex items-center justify-center rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2.5 text-xs font-semibold text-yellow-600">
+                  <div className="inline-flex items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-semibold text-amber-400">
                     Cancelamento em {formatDate(subscriptionInfo.cancelAt)}
                   </div>
                 ) : isDowngrade && isPaid ? (
-                  // Downgrade não é mais permitido — mostrar como indisponível
-                  <div className="inline-flex items-center justify-center rounded-lg border border-border bg-muted/30 px-4 py-2.5 text-xs font-semibold text-muted-foreground cursor-not-allowed">
+                  <div className="inline-flex items-center justify-center rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-xs font-semibold text-muted-foreground/60 cursor-not-allowed">
                     Indisponível
                   </div>
                 ) : (
@@ -602,22 +644,22 @@ export function PlanSelector({
                     <button
                       type="submit"
                       disabled={pending || isCanceling}
-                      className={`inline-flex w-full items-center justify-center gap-1.5 rounded-lg border px-4 py-2.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed ${
-                        isUpgrade
-                          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
-                          : "border-border bg-background text-card-foreground hover:bg-accent hover:text-accent-foreground"
+                      className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isUpgrade || plan.highlight
+                          ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+                          : "border border-white/10 bg-white/5 hover:bg-white/10 text-foreground"
                       }`}
                     >
                       {pending ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : isUpgrade ? (
                         <>
-                          Fazer upgrade
+                          Fazer Upgrade
                           <ArrowRight className="h-3.5 w-3.5" />
                         </>
                       ) : (
                         <>
-                          Mudar para {plan.name}
+                          Assinar {plan.name}
                           <ArrowRight className="h-3.5 w-3.5" />
                         </>
                       )}
@@ -629,21 +671,11 @@ export function PlanSelector({
           })}
         </div>
 
-        {/* Error feedback */}
+        {/* Error / Success feedback */}
         {state?.error && (
-          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {state.error}
-            {state.needsBilling && (
-              <span className="block mt-1 text-xs">
-                Vá até a aba <strong>Perfil</strong> e preencha seus dados de cobrança.
-              </span>
-            )}
-          </div>
-        )}
-
-        {state?.success && (
-          <div className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600">
-            Plano atualizado com sucesso! As alterações serão refletidas em breve.
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{state.error}</span>
           </div>
         )}
       </div>
@@ -656,7 +688,7 @@ export function PlanSelector({
         currentPeriodEnd={subscriptionInfo.currentPeriodEnd}
       />
 
-      {/* Billing Modal — abre quando precisa preencher dados pra assinar */}
+      {/* Billing Modal */}
       <BillingModal
         open={showBillingModal}
         onClose={() => setShowBillingModal(false)}
@@ -666,7 +698,7 @@ export function PlanSelector({
             const formData = new FormData();
             formData.append("plan", pendingPlan);
             formAction(formData);
-            setPendingPlan(null); // Clear after submission
+            setPendingPlan(null);
           } else {
             router.replace("/admin/settings?tab=subscription");
           }

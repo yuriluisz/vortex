@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, CheckCircle2 } from "lucide-react";
 import { cancelSubscriptionAction } from "./actions";
 import type { Plan } from "@prisma/client";
 
@@ -50,109 +50,108 @@ export function CancelDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative my-auto w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-white/15 bg-zinc-950 p-6 shadow-2xl animate-in zoom-in-95 duration-200 z-10 space-y-4">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 rounded-lg p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="absolute top-4 right-4 rounded-xl p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
 
         {confirmed ? (
           // Estado de sucesso
-          <div className="text-center py-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
-              <svg className="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
+          <div className="text-center py-6 space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/20">
+              <CheckCircle2 className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-semibold text-card-foreground mb-2">
-              Assinatura cancelada
+            <h3 className="text-lg font-bold text-foreground">
+              Cancelamento Agendado
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Você mantém acesso ao plano {currentPlan} até{" "}
-              <strong>{formatDate(currentPeriodEnd)}</strong>.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Você continua com acesso total aos recursos do plano {currentPlan} até{" "}
+              <strong className="text-foreground">{formatDate(currentPeriodEnd)}</strong>.
             </p>
           </div>
         ) : (
           // Formulário de confirmação
           <>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="rounded-full bg-destructive/10 p-2.5">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/15 border border-destructive/25 text-destructive flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-card-foreground">
-                  Cancelar assinatura {currentPlan}?
+                <h3 className="text-base font-bold text-foreground">
+                  Cancelar Plano {currentPlan}?
                 </h3>
+                <p className="text-xs text-muted-foreground">
+                  Confirmação de downgrade de assinatura
+                </p>
               </div>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 text-xs text-muted-foreground leading-relaxed pt-2">
               {currentPeriodEnd && (
-                <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-                  Ao cancelar, você <strong>continua com acesso</strong> ao plano{" "}
-                  <strong>{currentPlan}</strong> até{" "}
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 text-foreground/90">
+                  Ao cancelar, você <strong>mantém acesso total</strong> ao plano{" "}
+                  <strong className="text-primary">{currentPlan}</strong> até{" "}
                   <strong>{formatDate(currentPeriodEnd)}</strong>.
                 </div>
               )}
 
-              <div className="text-sm text-muted-foreground">
-                <p className="mb-2">Após essa data, sua conta será rebaixada para o plano Free com:</p>
-                <ul className="space-y-1.5 ml-4">
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-destructive mt-0.5">•</span>
+              <div>
+                <p className="mb-2 font-medium text-foreground">Após essa data, sua conta voltará ao plano Free com:</p>
+                <ul className="space-y-1 pl-2">
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
                     <span>1 campanha ativa</span>
                   </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-destructive mt-0.5">•</span>
-                    <span>3 grupos de WhatsApp</span>
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                    <span>3 grupos de WhatsApp vinculados</span>
                   </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-destructive mt-0.5">•</span>
-                    <span>100 leads/mês</span>
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                    <span>Até 100 leads por mês</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
-                <strong>Atenção:</strong> Se você tiver mais recursos do que o limite do plano Free, o acesso excedente será restringido.
-              </div>
-
-              <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-sm text-blue-700 dark:text-blue-400">
-                <strong>Importante:</strong> Você pode <strong>reativar sua assinatura</strong> a qualquer momento antes do fim do ciclo. Basta ir em "Assinatura" e clicar em "Reativar assinatura".
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-primary text-[11px]">
+                💡 Você pode <strong>reativar sua assinatura com 1 clique</strong> a qualquer momento antes do término do ciclo.
               </div>
             </div>
 
             {error && (
-              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive font-semibold">
                 {error}
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <button
+                type="button"
                 onClick={onClose}
                 disabled={isPending}
-                className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-card-foreground transition-all hover:bg-accent active:scale-[0.97] disabled:opacity-50"
+                className="flex-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2.5 text-xs font-bold text-foreground transition-all active:scale-95 disabled:opacity-50"
               >
-                Manter plano
+                Manter Meu Plano
               </button>
               <button
+                type="button"
                 onClick={handleCancel}
                 disabled={isPending}
-                className="flex-1 rounded-lg bg-destructive px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-destructive/90 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPending ? "Cancelando..." : "Confirmar cancelamento"}
+                {isPending ? "Processando..." : "Confirmar Cancelamento"}
               </button>
             </div>
           </>

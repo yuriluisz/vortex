@@ -447,9 +447,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
   return (
     <div className="flex flex-col h-full w-full">
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ------------------------------------------------------------------- */}
       {/* TOOLBAR                                                           */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ------------------------------------------------------------------- */}
       <div className="flex items-center justify-between px-2.5 sm:px-4 py-2 sm:py-2.5 border-b border-white/10 bg-background/80 backdrop-blur-xl shrink-0 gap-2 relative z-20 shadow-sm">
         {/* Left side */}
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-shrink-0">
@@ -724,9 +724,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ------------------------------------------------------------------- */}
       {/* EDITOR + PREVIEW                                                  */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ------------------------------------------------------------------- */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Code Editor (Monaco) */}
         {(activeTab === "code" || activeTab === "split") && (
@@ -851,9 +851,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
         )}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ------------------------------------------------------------------- */}
       {/* MODALS                                                            */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ------------------------------------------------------------------- */}
 
       {/* Template Picker */}
       {showPicker && (

@@ -1058,3 +1058,66 @@ async function syncCustomerData(customerId: string, tenant: any): Promise<void> 
     console.warn("[SyncCustomer] Falha:", error);
   }
 }
+
+// ============================================================================
+// UPLOAD E REMOÇÃO DE AVATAR / FOTO DE PERFIL
+// ============================================================================
+
+export async function uploadAvatarAction(
+  _state: ActionState,
+  formData: FormData
+): Promise<ActionState & { avatarUrl?: string }> {
+  const { userId, tenantId } = await requireAuth();
+
+  const file = formData.get("avatar") as File | null;
+  if (!file || !(file instanceof File) || file.size === 0) {
+    return { error: "Nenhum arquivo de imagem foi enviado." };
+  }
+
+  // Validação de tamanho (máximo 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "A imagem deve ter no máximo 5MB." };
+  }
+
+  // Validação de tipo
+  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  if (!validTypes.includes(file.type)) {
+    return { error: "Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF." };
+  }
+
+  try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64Data = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl: base64Data },
+    });
+
+    await logAudit("PROFILE_UPDATED", { action: "AVATAR_UPLOADED", size: file.size, type: file.type }, userId, tenantId);
+    revalidatePath("/admin/settings");
+    return { success: true, avatarUrl: base64Data };
+  } catch (error) {
+    console.error("[UploadAvatar] Erro:", error);
+    return { error: "Erro ao salvar foto de perfil." };
+  }
+}
+
+export async function removeAvatarAction(): Promise<ActionState> {
+  const { userId, tenantId } = await requireAuth();
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl: null },
+    });
+
+    await logAudit("PROFILE_UPDATED", { action: "AVATAR_REMOVED" }, userId, tenantId);
+    revalidatePath("/admin/settings");
+    return { success: true };
+  } catch (error) {
+    console.error("[RemoveAvatar] Erro:", error);
+    return { error: "Erro ao remover foto de perfil." };
+  }
+}
