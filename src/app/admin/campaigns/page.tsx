@@ -12,7 +12,13 @@ export default async function CampaignsPage() {
   const campaigns = await prisma.campaign.findMany({
     where: { tenantId: session.tenantId },
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      active: true,
+      views: true,
+      customDomain: true,
       _count: {
         select: { leads: true, groups: true },
       },
@@ -21,4 +27,3 @@ export default async function CampaignsPage() {
 
   return <CampaignsClient initialCampaigns={campaigns} />;
 }
-

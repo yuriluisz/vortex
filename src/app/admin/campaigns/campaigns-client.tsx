@@ -9,21 +9,24 @@ import {
   XCircle,
   Users,
   MessageCircle,
-  ExternalLink,
   Search,
-  Copy,
-  Check,
   LayoutGrid,
   List,
+  Eye,
+  Percent,
+  Edit3,
 } from "lucide-react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { DotGrid } from "@/components/ui/dot-grid";
+import { CopyCampaignLink } from "@/components/admin/copy-campaign-link";
 
 export interface CampaignListItem {
   id: string;
   name: string;
   slug: string;
   active: boolean;
+  views?: number | null;
+  customDomain?: string | null;
   _count: {
     leads: number;
     groups: number;
@@ -38,7 +41,6 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const filteredCampaigns = useMemo(() => {
     return initialCampaigns.filter((campaign) => {
@@ -54,31 +56,21 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
     });
   }, [initialCampaigns, search, filter]);
 
-  const handleCopyLink = (e: React.MouseEvent, campaign: CampaignListItem) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${baseUrl}/${campaign.slug}`;
-
-    navigator.clipboard.writeText(url);
-    setCopiedId(campaign.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   return (
-    <div className="mx-auto max-w-7xl w-full px-1 sm:px-0">
+    <div className="mx-auto max-w-7xl w-full px-1 sm:px-0 space-y-6">
       {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Campanhas</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gerencie e monitore suas campanhas de lançamento em tempo real.
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            Campanhas
+          </h2>
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+            Gerencie e monitore suas páginas de captura e rotação de grupos em tempo real.
           </p>
         </div>
         <Link
           href="/admin/campaigns/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.4)] transition-all hover:bg-primary/90 hover:scale-105 active:scale-[0.97]"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"
         >
           <Plus className="h-4 w-4" />
           Nova Campanha
@@ -87,7 +79,7 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
 
       {/* Toolbar: Search, Filters & View Toggle */}
       {initialCampaigns.length > 0 && (
-        <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -96,17 +88,17 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por nome ou slug..."
-              className="w-full rounded-xl border border-border/60 bg-card/40 backdrop-blur-md pl-10 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-xl border border-border/60 bg-card/60 backdrop-blur-md pl-10 pr-4 py-2 text-xs sm:text-sm text-foreground placeholder-muted-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap sm:flex-nowrap">
             {/* Filter Tabs */}
-            <div className="inline-flex rounded-xl border border-border/60 bg-card/40 backdrop-blur-md p-1 overflow-x-auto max-w-full">
+            <div className="inline-flex rounded-xl border border-border/60 bg-card/60 backdrop-blur-md p-1 overflow-x-auto max-w-full">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                   filter === "all"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -117,7 +109,7 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
               <button
                 type="button"
                 onClick={() => setFilter("active")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                   filter === "active"
                     ? "bg-emerald-500 text-white shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -128,7 +120,7 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
               <button
                 type="button"
                 onClick={() => setFilter("inactive")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                   filter === "inactive"
                     ? "bg-muted text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -139,11 +131,11 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="hidden sm:inline-flex rounded-xl border border-border/60 bg-card/40 backdrop-blur-md p-1">
+            <div className="hidden sm:inline-flex rounded-xl border border-border/60 bg-card/60 backdrop-blur-md p-1">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                title="Grade"
+                title="Visualização em Grade"
                 className={`rounded-lg p-1.5 transition-all ${
                   viewMode === "grid"
                     ? "bg-primary/20 text-primary"
@@ -155,7 +147,7 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
-                title="Lista"
+                title="Visualização em Lista"
                 className={`rounded-lg p-1.5 transition-all ${
                   viewMode === "list"
                     ? "bg-primary/20 text-primary"
@@ -171,90 +163,96 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
 
       {/* Empty State */}
       {initialCampaigns.length === 0 ? (
-        <div className="glass-panel rounded-xl p-8 sm:p-16 text-center relative overflow-hidden">
+        <div className="glass-panel rounded-2xl p-8 sm:p-16 text-center relative overflow-hidden">
           <DotGrid />
           <div className="relative z-10">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 shadow-[0_0_20px_rgba(var(--primary),0.2)] mb-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-[0_0_25px_rgba(var(--primary),0.2)] mb-4">
               <Megaphone className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma campanha encontrada</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto text-sm">
-              Você ainda não criou nenhuma campanha. Comece criando seu primeiro lançamento agora mesmo.
+            <h3 className="text-xl font-bold text-foreground mb-2">Nenhuma campanha cadastrada</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto text-xs sm:text-sm">
+              Você ainda não criou nenhuma página. Crie seu primeiro lançamento agora e comece a capturar leads.
             </p>
             <Link
               href="/admin/campaigns/new"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:scale-105 active:scale-95"
             >
               <Plus className="h-4 w-4" />
-              Criar Campanha
+              Criar Primeira Campanha
             </Link>
           </div>
         </div>
       ) : filteredCampaigns.length === 0 ? (
-        <div className="glass-panel rounded-xl p-12 text-center">
-          <p className="text-sm text-muted-foreground">Nenhuma campanha corresponde à busca &quot;{search}&quot;.</p>
+        <div className="glass-panel rounded-2xl p-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nenhuma campanha encontrada com o termo &quot;{search}&quot;.
+          </p>
         </div>
       ) : viewMode === "grid" ? (
         /* Grid View */
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredCampaigns.map((campaign) => (
-            <Link key={campaign.id} href={`/admin/campaigns/${campaign.id}`} className="group block">
-              <GlowCard className="flex flex-col rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden shadow-sm h-full transition-all duration-300 hover:border-primary/40">
-                {/* Status Bar */}
-                <div
-                  className={`h-1 w-full ${
-                    campaign.active
-                      ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)]"
-                      : "bg-muted-foreground/30"
-                  }`}
-                />
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {filteredCampaigns.map((campaign) => {
+            const viewsCount = campaign.views || 0;
+            const leadsCount = campaign._count.leads;
+            const conversion = viewsCount > 0 ? Math.round((leadsCount / viewsCount) * 100) : 0;
 
-                <div className="p-4 sm:p-6 flex flex-col flex-1 relative z-10">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                        {campaign.name}
-                      </h3>
-                      <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-xs font-medium text-muted-foreground font-mono">
-                        <ExternalLink className="h-3 w-3" />
-                        /{campaign.slug}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => handleCopyLink(e, campaign)}
-                        title="Copiar Link"
-                        className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
-                      >
-                        {copiedId === campaign.id ? (
-                          <Check className="h-3.5 w-3.5 text-emerald-400" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                      {campaign.active ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/20 border border-primary/30 px-2.5 py-1 text-[10px] font-bold text-primary uppercase tracking-wider shadow-[0_0_10px_rgba(var(--primary),0.2)]">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Ativa
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/50 border border-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          <XCircle className="h-3 w-3" />
-                          Inativa
-                        </span>
-                      )}
-                    </div>
+            return (
+              <div
+                key={campaign.id}
+                className="group glass-panel rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-xl hover:border-primary/40 hover:-translate-y-0.5 relative overflow-hidden"
+              >
+                <div>
+                  {/* Status Bar Indicator */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 border border-border/40 px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+                      /{campaign.slug}
+                    </span>
+
+                    {campaign.active ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Ativa
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-muted px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        <XCircle className="h-3 w-3" />
+                        Inativa
+                      </span>
+                    )}
                   </div>
 
-                  <div className="mt-auto grid grid-cols-2 gap-4 border-t border-border/50 pt-4">
+                  {/* Nome da Campanha */}
+                  <Link
+                    href={`/admin/campaigns/${campaign.id}`}
+                    className="text-base font-bold text-foreground group-hover:text-primary transition-colors block line-clamp-1 mb-3"
+                    title={campaign.name}
+                  >
+                    {campaign.name}
+                  </Link>
+
+                  {/* Meta Pills: Views & Conversion */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-muted/60 text-muted-foreground border border-border/40">
+                      <Eye className="h-3 w-3" />
+                      {viewsCount.toLocaleString("pt-BR")} views
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
+                      <Percent className="h-3 w-3" />
+                      {conversion}% conv.
+                    </span>
+                  </div>
+
+                  {/* Estatísticas resumidas */}
+                  <div className="grid grid-cols-2 gap-3 border-t border-border/40 pt-3 mb-4">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-chart-2/10 text-chart-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-chart-1/10 text-chart-1">
                         <Users className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground">Leads</p>
-                        <p className="text-lg font-bold text-foreground tabular-nums">{campaign._count.leads}</p>
+                        <p className="text-[11px] font-medium text-muted-foreground">Leads</p>
+                        <p className="text-base font-bold text-foreground tabular-nums">
+                          {leadsCount.toLocaleString("pt-BR")}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -262,86 +260,112 @@ export function CampaignsClient({ initialCampaigns }: CampaignsClientProps) {
                         <MessageCircle className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground">Grupos</p>
-                        <p className="text-lg font-bold text-foreground tabular-nums">{campaign._count.groups}</p>
+                        <p className="text-[11px] font-medium text-muted-foreground">Grupos</p>
+                        <p className="text-base font-bold text-foreground tabular-nums">
+                          {campaign._count.groups}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </GlowCard>
-            </Link>
-          ))}
+
+                {/* Footer Actions */}
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/40">
+                  <CopyCampaignLink slug={campaign.slug} customDomain={campaign.customDomain} />
+
+                  <div className="flex items-center gap-1.5">
+                    <Link
+                      href={`/admin/campaigns/${campaign.id}/leads`}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                    >
+                      Leads
+                    </Link>
+                    <Link
+                      href={`/admin/campaigns/${campaign.id}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                      Editar
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         /* List View */
-        <div className="glass-panel rounded-xl overflow-hidden shadow-sm">
+        <div className="glass-panel rounded-2xl overflow-hidden shadow-sm border border-border/60">
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] text-left text-sm text-muted-foreground">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground border-b border-border/60">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Campanha</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold text-center">Leads</th>
-                <th className="px-6 py-4 font-semibold text-center">Grupos</th>
-                <th className="px-6 py-4 font-semibold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {filteredCampaigns.map((campaign) => (
-                <tr key={campaign.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-4">
-                    <Link href={`/admin/campaigns/${campaign.id}`} className="block group">
-                      <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                        {campaign.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-mono mt-0.5">/{campaign.slug}</p>
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4">
-                    {campaign.active ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/20 border border-primary/30 px-2.5 py-0.5 text-[10px] font-bold text-primary uppercase">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Ativa
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-muted/50 border border-muted px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground uppercase">
-                        <XCircle className="h-3 w-3" />
-                        Inativa
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-center font-bold text-foreground tabular-nums">
-                    {campaign._count.leads}
-                  </td>
-                  <td className="px-6 py-4 text-center font-bold text-foreground tabular-nums">
-                    {campaign._count.groups}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => handleCopyLink(e, campaign)}
-                        title="Copiar Link"
-                        className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
-                      >
-                        {copiedId === campaign.id ? (
-                          <Check className="h-4 w-4 text-emerald-400" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </button>
-                      <Link
-                        href={`/admin/campaigns/${campaign.id}`}
-                        className="rounded-lg px-3 py-1.5 text-xs font-semibold bg-white/5 border border-white/10 hover:bg-white/10 text-foreground transition-all"
-                      >
-                        Editar
-                      </Link>
-                    </div>
-                  </td>
+            <table className="w-full min-w-[600px] text-left text-sm text-muted-foreground">
+              <thead className="bg-muted/70 text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border/60 font-semibold">
+                <tr>
+                  <th className="px-5 py-3.5">Campanha</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5 text-center">Visitas</th>
+                  <th className="px-5 py-3.5 text-center">Leads</th>
+                  <th className="px-5 py-3.5 text-center">Conversão</th>
+                  <th className="px-5 py-3.5 text-center">Grupos</th>
+                  <th className="px-5 py-3.5 text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {filteredCampaigns.map((campaign) => {
+                  const viewsCount = campaign.views || 0;
+                  const leadsCount = campaign._count.leads;
+                  const conversion = viewsCount > 0 ? Math.round((leadsCount / viewsCount) * 100) : 0;
+
+                  return (
+                    <tr key={campaign.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-5 py-4">
+                        <Link href={`/admin/campaigns/${campaign.id}`} className="block group">
+                          <p className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm">
+                            {campaign.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-mono mt-0.5">/{campaign.slug}</p>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-4">
+                        {campaign.active ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Ativa
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-muted px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground uppercase">
+                            <XCircle className="h-3 w-3" />
+                            Inativa
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-center font-semibold text-foreground tabular-nums text-xs">
+                        {viewsCount.toLocaleString("pt-BR")}
+                      </td>
+                      <td className="px-5 py-4 text-center font-bold text-foreground tabular-nums text-sm">
+                        {leadsCount.toLocaleString("pt-BR")}
+                      </td>
+                      <td className="px-5 py-4 text-center text-xs font-semibold text-primary tabular-nums">
+                        {conversion}%
+                      </td>
+                      <td className="px-5 py-4 text-center font-semibold text-foreground tabular-nums text-xs">
+                        {campaign._count.groups}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <CopyCampaignLink slug={campaign.slug} customDomain={campaign.customDomain} />
+                          <Link
+                            href={`/admin/campaigns/${campaign.id}`}
+                            className="rounded-md px-2.5 py-1 text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-all"
+                          >
+                            Editar
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

@@ -33,9 +33,7 @@ export function CampaignLayoutShell({ campaign, children }: CampaignLayoutShellP
   const isEditorPage = pathname === basePath;
 
   if (isEditorPage) {
-    // Uses absolute positioning to fill the admin shell content area exactly.
-    // The parent div in AdminShell already has `relative z-10`, so this works.
-    return <div className="absolute inset-0 overflow-hidden">{children}</div>;
+    return <div className="flex-1 flex flex-col min-h-0 w-full h-full overflow-hidden">{children}</div>;
   }
 
   // Sub-pages get the classic chrome with header + tabs

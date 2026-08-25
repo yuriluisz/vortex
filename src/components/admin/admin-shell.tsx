@@ -93,6 +93,14 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
   const planType = tenantInfo?.plan as "FREE" | "PRO" | "ULTRA" | undefined;
 
+  const isEditorRoute =
+    pathname === "/admin/campaigns/new" ||
+    (pathname.startsWith("/admin/campaigns/") &&
+      !pathname.endsWith("/leads") &&
+      !pathname.endsWith("/groups") &&
+      !pathname.includes("/leads/") &&
+      !pathname.includes("/groups/"));
+
   return (
     <div className="flex h-dvh w-full max-w-full overflow-hidden bg-black text-white antialiased relative">
       {/* Background global effects */}
@@ -300,9 +308,15 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           return null;
         })()}
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 md:p-8 animate-in fade-in duration-300 relative z-10">
-          {children}
-        </div>
+        {isEditorRoute ? (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative z-10 w-full h-full">
+            {children}
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 md:p-8 animate-in fade-in duration-300 relative z-10">
+            {children}
+          </div>
+        )}
 
         {/* Toast global de WhatsApp desconectado */}
         {tenantInfo && (

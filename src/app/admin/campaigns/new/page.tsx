@@ -48,7 +48,7 @@ export default async function NewCampaignPage({
   }
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 w-full h-full overflow-hidden">
       <CampaignEditor mode="create" plan={plan} campaign={templateData} />
     </div>
   );
