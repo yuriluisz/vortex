@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useTransition, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Search,
@@ -900,7 +901,7 @@ export function WhatsAppChatConsole({
       {/* --------------------------------------------------------------------- */}
       {/* MODAL DE CONFIGURAÇÃO & CONEXÃO WHATSAPP                             */}
       {/* --------------------------------------------------------------------- */}
-      {connectionModalOpen && (
+      {connectionModalOpen && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="relative my-auto w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
@@ -928,7 +929,7 @@ export function WhatsAppChatConsole({
               {/* STEP: CONNECTED */}
               {wizardStep === "connected" && (
                 <div className="text-center space-y-4">
-                  <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                  <div className="h-16 w-16 rounded-full bg-chart-1/10 border border-chart-1/25 text-chart-1 flex items-center justify-center mx-auto shadow-lg shadow-chart-1/20">
                     <Wifi className="w-8 h-8" />
                   </div>
                   <div>
@@ -938,7 +939,7 @@ export function WhatsAppChatConsole({
                     </p>
                   </div>
                   {phone && (
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-sm font-mono text-emerald-400 font-bold">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-sm font-mono text-chart-1 font-bold">
                       {phone}
                     </div>
                   )}
@@ -1026,6 +1027,7 @@ export function WhatsAppChatConsole({
 
                   {qrCodeData ? (
                     <div className="flex justify-center p-4 bg-white rounded-2xl max-w-[240px] mx-auto shadow-xl">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={qrCodeData} alt="QR Code WhatsApp" className="w-full h-auto" />
                     </div>
                   ) : (
@@ -1063,13 +1065,14 @@ export function WhatsAppChatConsole({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* --------------------------------------------------------------------- */}
       {/* MODAL DE DÚVIDAS FREQUENTES (CENTRAL WHATSAPP)                        */}
       {/* --------------------------------------------------------------------- */}
-      {helpModalOpen && (
+      {helpModalOpen && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="relative my-auto w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
@@ -1125,7 +1128,8 @@ export function WhatsAppChatConsole({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

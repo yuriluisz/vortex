@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Settings2,
@@ -590,7 +591,7 @@ export function CampaignSettingsModal({
     }
   };
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xl">
       <div className="bg-zinc-950 border border-white/15 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[94dvh] sm:h-[90vh] max-h-[900px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 relative">
         {/* Header */}
@@ -679,4 +680,6 @@ export function CampaignSettingsModal({
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }

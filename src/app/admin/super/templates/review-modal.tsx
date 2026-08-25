@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, Check, Code2, Eye, FileJson } from "lucide-react";
 import { moderateTemplateAction } from "../actions";
 
@@ -69,9 +70,9 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
     }
   }
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-card rounded-xl shadow-2xl w-[95vw] max-w-7xl h-[92vh] flex flex-col border border-border animate-in fade-in zoom-in-95 duration-200">
+      <div className="glass-panel rounded-2xl shadow-2xl w-[95vw] max-w-7xl h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
@@ -129,7 +130,7 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center h-full text-red-500 text-sm">{error}</div>
+            <div className="flex items-center justify-center h-full text-destructive text-sm">{error}</div>
           ) : view === "preview" ? (
             <iframe
               title="Preview do template"
@@ -150,7 +151,7 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
 
         {/* Footer com ações */}
         <div className="px-6 py-4 border-t border-border">
-          {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
+          {error && <p className="text-xs text-destructive mb-2">{error}</p>}
 
           {showRejectForm ? (
             <div className="flex flex-col gap-2">
@@ -165,7 +166,7 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
                 <button
                   onClick={handleReject}
                   disabled={pending}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 transition-colors disabled:opacity-50"
                 >
                   <X className="w-4 h-4" />
                   {pending ? "Rejeitando..." : "Confirmar Rejeição"}
@@ -187,7 +188,7 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
               <button
                 onClick={() => setShowRejectForm(true)}
                 disabled={pending}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-4 py-2 text-sm font-semibold text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
                 Rejeitar
@@ -195,7 +196,7 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
               <button
                 onClick={handleApprove}
                 disabled={pending}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-chart-1 px-4 py-2 text-sm font-semibold text-white hover:bg-chart-1/90 transition-colors disabled:opacity-50"
               >
                 <Check className="w-4 h-4" />
                 {pending ? "Processando..." : "Aprovar"}
@@ -206,4 +207,6 @@ export function ReviewModal({ slug, templateId, onClose }: ReviewModalProps) {
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }

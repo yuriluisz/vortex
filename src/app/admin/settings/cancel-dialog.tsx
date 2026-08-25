@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, X, CheckCircle2 } from "lucide-react";
 import { cancelSubscriptionAction } from "./actions";
 import type { Plan } from "@prisma/client";
@@ -49,7 +50,7 @@ export function CancelDialog({
     });
   };
 
-  return (
+  const dialog = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
@@ -159,4 +160,6 @@ export function CancelDialog({
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(dialog, document.body) : null;
 }

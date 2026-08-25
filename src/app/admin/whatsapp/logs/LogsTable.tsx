@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { CheckCircle2, XCircle, Clock, X } from "lucide-react";
 
 // ============================================================================
@@ -115,7 +116,7 @@ export function LogsTable({ messages, groupNames, senderNumber }: LogsTableProps
       </div>
 
       {/* Modal de Detalhes */}
-      {selectedMessage && (
+      {selectedMessage && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-2xl rounded-xl glass-panel shadow-lg flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -183,7 +184,8 @@ export function LogsTable({ messages, groupNames, senderNumber }: LogsTableProps
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { AlertCircle, CheckCircle2, Flag, Loader2, X } from "lucide-react";
 
 interface ReportModalProps {
@@ -71,10 +72,10 @@ export default function ReportModal({
     if (e.target === e.currentTarget) onClose();
   }
 
-  return (
+  const modal = (
     <div
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
     >
       <div className="bg-zinc-950 border border-white/15 rounded-2xl p-5 sm:p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto shadow-2xl text-foreground animate-in zoom-in-95 duration-200 relative">
         <button
@@ -182,4 +183,6 @@ export default function ReportModal({
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }

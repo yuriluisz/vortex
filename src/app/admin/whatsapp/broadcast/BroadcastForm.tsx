@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useActionState } from "react";
+import { createPortal } from "react-dom";
 import { Send, Loader2, ChevronDown } from "lucide-react";
 import { sendBroadcastAction } from "../actions";
 import type { BroadcastState } from "../actions";
@@ -241,7 +242,7 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
         </div>
 
         {/* Modal de Confirmação */}
-        {showConfirm && (
+        {showConfirm && typeof window !== "undefined" && createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="mx-4 w-full max-w-md rounded-xl glass-panel p-6 shadow-2xl relative overflow-hidden">
               <h4 className="text-lg font-semibold text-card-foreground mb-2">
@@ -295,7 +296,8 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
                 </form>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>

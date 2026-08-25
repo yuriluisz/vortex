@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import {
   Building2,
   Users,
@@ -149,8 +150,8 @@ export function TenantCard({ tenant }: { tenant: TenantInfo }) {
   return (
     <>
       <div
-        className={`rounded-2xl border bg-card shadow-sm overflow-hidden transition-all duration-200 ${
-          !isActive ? "border-destructive/30 opacity-75" : "border-border"
+        className={`glass-panel rounded-2xl overflow-hidden transition-all duration-200 ${
+          !isActive ? "ring-1 ring-destructive/30 opacity-75" : ""
         }`}
       >
         <div className="p-6">
@@ -320,7 +321,7 @@ function CampaignRow({
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   return (
-    <div className="flex items-center justify-between rounded-lg bg-secondary/50 px-4 py-3 transition-colors hover:bg-secondary/80">
+    <div className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-3 transition-colors hover:bg-secondary/80">
       <div className="flex items-center gap-3 min-w-0">
         <div className={`h-2 w-2 rounded-full flex-shrink-0 ${camp.active ? "bg-chart-1" : "bg-destructive"}`} />
         <div className="min-w-0">
@@ -375,7 +376,7 @@ function UserRow({ user, isPending: parentPending }: { user: UserInfo; tenantId:
   const roleStyle = ROLE_STYLES[currentRole] || ROLE_STYLES.MEMBER;
 
   return (
-    <div className="flex items-center justify-between rounded-lg bg-secondary/50 px-4 py-3 transition-colors hover:bg-secondary/80">
+    <div className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-3 transition-colors hover:bg-secondary/80">
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
           {(user.name || user.email)[0].toUpperCase()}
@@ -418,9 +419,9 @@ function UserRow({ user, isPending: parentPending }: { user: UserInfo; tenantId:
 function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel, isPending, destructive = false }: {
   title: string; message: string; confirmLabel: string; onConfirm: () => void; onCancel: () => void; isPending: boolean; destructive?: boolean;
 }) {
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
-      <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+  const modal = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="glass-panel rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <h3 className="text-lg font-bold text-card-foreground mb-2">{title}</h3>
         <p className="text-sm text-muted-foreground mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
@@ -434,6 +435,8 @@ function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel, isPen
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }
 
 // ============================================================================
@@ -456,9 +459,9 @@ function EmailModal({ tenantId, tenantName, onClose }: { tenantId: string; tenan
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+  const modal = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="glass-panel rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
         {sent ? (
           <div className="text-center py-4">
             <div className="text-4xl mb-4">✅</div>
@@ -498,6 +501,8 @@ function EmailModal({ tenantId, tenantName, onClose }: { tenantId: string; tenan
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }
 
 // ============================================================================
@@ -542,9 +547,9 @@ function EditCampaignModal({ campaignId, onClose }: { campaignId: string; onClos
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-card border border-border rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+  const modal = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="glass-panel rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-bold text-card-foreground mb-1">Editar Campanha</h3>
         <p className="text-sm text-muted-foreground mb-6">Edite os detalhes, HTML ou formulário desta campanha.</p>
 
@@ -608,4 +613,6 @@ function EditCampaignModal({ campaignId, onClose }: { campaignId: string; onClos
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }

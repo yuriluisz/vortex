@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -457,7 +458,7 @@ export function HelpButton({ compact = false }: { compact?: boolean }) {
         <span>Dúvidas</span>
       </button>
 
-      {isOpen && (
+      {isOpen && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
             {/* Header */}
@@ -510,7 +511,8 @@ export function HelpButton({ compact = false }: { compact?: boolean }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

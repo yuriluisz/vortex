@@ -35,10 +35,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING_REVIEW: "bg-yellow-500/10 text-yellow-500",
-  PUBLISHED: "bg-green-500/10 text-green-500",
-  REJECTED: "bg-red-500/10 text-red-500",
-  TAKEN_DOWN: "bg-gray-500/10 text-gray-400",
+  PENDING_REVIEW: "bg-chart-4/10 text-chart-4",
+  PUBLISHED: "bg-chart-1/10 text-chart-1",
+  REJECTED: "bg-destructive/10 text-destructive",
+  TAKEN_DOWN: "bg-muted text-muted-foreground",
   DRAFT: "bg-muted text-muted-foreground",
 };
 
@@ -122,7 +122,7 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
           <Link
             key={tab.key}
             href={`/admin/super/templates?status=${tab.key}`}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
               status === tab.key
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -140,7 +140,7 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
 
       {/* Lista de templates */}
       {templates.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
+        <div className="glass-panel rounded-2xl p-12 text-center">
           <p className="text-muted-foreground">
             Nenhum template com status {"\u201C"}{STATUS_LABELS[status]}{"\u201D"}.
           </p>
@@ -148,7 +148,7 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
       ) : (
         <div className="space-y-4">
           {templates.map((template) => (
-            <div key={template.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div key={template.id} className="glass-panel rounded-2xl p-5">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -195,7 +195,7 @@ export default async function SuperAdminTemplatesPage({ searchParams }: PageProp
                   </div>
 
                   {template.rejectionReason && (
-                    <p className="mt-2 text-xs text-red-500 bg-red-500/5 border border-red-500/20 rounded-lg p-2">
+                    <p className="mt-2 text-xs text-destructive bg-destructive/5 border border-destructive/20 rounded-lg p-2">
                       Motivo: {template.rejectionReason}
                     </p>
                   )}

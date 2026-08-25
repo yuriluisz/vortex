@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, Upload, Sparkles } from "lucide-react";
 import { publishTemplateAction } from "./actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
@@ -61,7 +62,7 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
   const inputClass =
     "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-foreground outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-white/[0.08]";
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 animate-in fade-in duration-200">
       <div className="bg-zinc-950 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col border border-white/15 overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
@@ -232,4 +233,6 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
       </div>
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }

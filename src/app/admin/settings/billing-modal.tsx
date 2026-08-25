@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useActionState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, CheckCircle2, AlertCircle, X, ShieldCheck } from "lucide-react";
 import { saveBillingInfoAction } from "./actions";
 
@@ -41,7 +42,7 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
 
   if (!open) return null;
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200" onClick={onClose} />
@@ -341,4 +342,6 @@ export function BillingModal({ open, onClose, onComplete, currentData }: Billing
       )}
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(modal, document.body) : null;
 }

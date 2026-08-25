@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { X, User, Phone, Smartphone, Calendar, FileJson, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -189,7 +190,7 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
       </div>
 
       {/* Modal de Detalhes do Lead */}
-      {selectedLead && (
+      {selectedLead && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-2xl rounded-xl glass-panel shadow-lg flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -285,7 +286,8 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

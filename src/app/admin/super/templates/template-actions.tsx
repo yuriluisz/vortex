@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Mail,
   Eye,
@@ -133,7 +134,7 @@ export function TemplateActions({
           {/* Overlay para fechar ao clicar fora */}
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
 
-          <div className="absolute right-0 top-full mt-2 z-40 w-64 rounded-xl border border-border bg-card shadow-2xl p-1.5 animate-scale-in origin-top-right">
+          <div className="absolute right-0 top-full mt-2 z-40 w-64 rounded-xl glass-panel shadow-2xl p-1.5 animate-scale-in origin-top-right">
             {/* Seção: Comunicação */}
             <button
               onClick={() => {
@@ -159,12 +160,12 @@ export function TemplateActions({
                 >
                   {isVisible ? (
                     <>
-                      <EyeOff className="w-4 h-4 text-amber-500 shrink-0" />
+                      <EyeOff className="w-4 h-4 text-chart-4 shrink-0" />
                       Remover visibilidade
                     </>
                   ) : (
                     <>
-                      <Eye className="w-4 h-4 text-green-500 shrink-0" />
+                      <Eye className="w-4 h-4 text-chart-1 shrink-0" />
                       Restaurar visibilidade
                     </>
                   )}
@@ -181,12 +182,12 @@ export function TemplateActions({
             >
               {isAuthorBlocked ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-chart-1 shrink-0" />
                   Desbloquear autor
                 </>
               ) : (
                 <>
-                  <Ban className="w-4 h-4 text-red-500 shrink-0" />
+                  <Ban className="w-4 h-4 text-destructive shrink-0" />
                   Bloquear autor de enviar
                 </>
               )}
@@ -201,7 +202,7 @@ export function TemplateActions({
                 setError("");
                 setSuccess("");
               }}
-              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
             >
               <Trash2 className="w-4 h-4 shrink-0" />
               Excluir template
@@ -211,9 +212,9 @@ export function TemplateActions({
       )}
 
       {/* Modal de email */}
-      {showEmail && (
+      {showEmail && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md border border-border p-6 animate-scale-in">
+          <div className="glass-panel rounded-2xl shadow-2xl w-full max-w-md p-6 animate-scale-in">
             <h3 className="text-lg font-semibold text-card-foreground mb-4">
               Enviar email para {authorName || authorEmail}
             </h3>
@@ -231,8 +232,8 @@ export function TemplateActions({
                 rows={4}
                 className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
               />
-              {error && <p className="text-xs text-red-500">{error}</p>}
-              {success && <p className="text-xs text-green-500">{success}</p>}
+              {error && <p className="text-xs text-destructive">{error}</p>}
+              {success && <p className="text-xs text-chart-1">{success}</p>}
               <div className="flex items-center justify-end gap-2">
                 <button
                   onClick={() => setShowEmail(false)}
@@ -251,19 +252,20 @@ export function TemplateActions({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal de exclusão */}
-      {showDelete && (
+      {showDelete && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-card rounded-xl shadow-2xl w-full max-w-sm border border-border p-6 animate-scale-in">
+          <div className="glass-panel rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in">
             <h3 className="text-lg font-semibold text-card-foreground mb-2">Excluir template?</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Esta ação é irreversível. O template e todas as suas versões serão removidos permanentemente.
             </p>
-            {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
-            {success && <p className="text-xs text-green-500 mb-2">{success}</p>}
+            {error && <p className="text-xs text-destructive mb-2">{error}</p>}
+            {success && <p className="text-xs text-chart-1 mb-2">{success}</p>}
             <div className="flex items-center justify-end gap-2">
               <button
                 onClick={() => setShowDelete(false)}
@@ -274,22 +276,23 @@ export function TemplateActions({
               <button
                 onClick={handleDelete}
                 disabled={pending}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 transition-colors disabled:opacity-50"
               >
                 {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 Excluir
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Feedback de sucesso */}
       {success && !showEmail && !showDelete && (
-        <p className="mt-2 text-xs text-green-500">{success}</p>
+        <p className="mt-2 text-xs text-chart-1">{success}</p>
       )}
       {error && !showEmail && !showDelete && (
-        <p className="mt-2 text-xs text-red-500">{error}</p>
+        <p className="mt-2 text-xs text-destructive">{error}</p>
       )}
     </div>
   );

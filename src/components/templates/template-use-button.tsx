@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Loader2, Copy, Sparkles } from "lucide-react";
 
@@ -41,7 +42,7 @@ export function TemplateUseButton({ templateSlug, templateName }: TemplateUseBut
       )}
 
       {/* Modal de Confirmação de Uso do Template */}
-      {showConfirmModal && (
+      {showConfirmModal && typeof window !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
           onClick={(e) => {
@@ -100,7 +101,8 @@ export function TemplateUseButton({ templateSlug, templateName }: TemplateUseBut
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

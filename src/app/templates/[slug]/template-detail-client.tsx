@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Heart, Eye, Copy, ArrowLeft, Maximize2, X } from "lucide-react";
 import Link from "next/link";
 import { TemplatePreview } from "@/components/templates/template-preview";
@@ -188,7 +189,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
       />
 
       {/* Modal Fullscreen */}
-      {showFullscreen && (
+      {showFullscreen && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
           {/* Close button — adaptativo ao tema */}
           <button
@@ -207,7 +208,8 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
               sandbox="allow-scripts"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

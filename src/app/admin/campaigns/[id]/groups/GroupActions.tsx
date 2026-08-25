@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useActionState } from "react";
+import { createPortal } from "react-dom";
 import { RefreshCw, Loader2, PackagePlus } from "lucide-react";
 import { syncGroupAction, bulkCreateGroupsAction } from "@/app/admin/whatsapp/actions";
 import type { BulkCreateState } from "@/app/admin/whatsapp/actions";
@@ -84,7 +85,7 @@ export function BulkCreateButton({ campaignId }: { campaignId: string }) {
       </button>
 
       {/* Modal */}
-      {isOpen && (
+      {isOpen && typeof window !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
             <h4 className="text-lg font-semibold text-card-foreground mb-4">
@@ -220,7 +221,8 @@ export function BulkCreateButton({ campaignId }: { campaignId: string }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

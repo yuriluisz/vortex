@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Search, X, Loader2, Copy, AlertTriangle } from "lucide-react";
 
 interface TemplatePickerProps {
@@ -77,7 +78,7 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
     }
   }
 
-  return (
+  const picker = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-card rounded-xl shadow-2xl w-[98vw] max-w-[1400px] h-[95vh] flex flex-col border border-border animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
@@ -232,4 +233,6 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
       )}
     </div>
   );
+
+  return typeof window !== "undefined" ? createPortal(picker, document.body) : null;
 }
