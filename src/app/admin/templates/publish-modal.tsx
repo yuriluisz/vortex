@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2, Upload } from "lucide-react";
+import { X, Loader2, Upload, Sparkles } from "lucide-react";
 import { publishTemplateAction } from "./actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
+import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 
 interface PublishModalProps {
   campaigns: { id: string; name: string }[];
   onClose: () => void;
 }
 
-const CATEGORIES = [
+const CATEGORIES: { value: TemplateCategory; label: string }[] = [
   { value: "LANDING_PAGE", label: "Landing Page" },
   { value: "SQUEEZE_PAGE", label: "Squeeze Page" },
   { value: "WEBINAR", label: "Webinar" },
@@ -21,7 +22,7 @@ const CATEGORIES = [
   { value: "OTHER", label: "Outro" },
 ];
 
-const THEMES = [
+const THEMES: { value: TemplateTheme; label: string }[] = [
   { value: "DARK", label: "Escuro" },
   { value: "LIGHT", label: "Claro" },
   { value: "COLORFUL", label: "Colorido" },
@@ -30,8 +31,8 @@ const THEMES = [
 export function PublishModal({ campaigns, onClose }: PublishModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("LANDING_PAGE");
-  const [theme, setTheme] = useState("DARK");
+  const [category, setCategory] = useState<TemplateCategory>("LANDING_PAGE");
+  const [theme, setTheme] = useState<TemplateTheme>("DARK");
   const [tags, setTags] = useState("");
   const [sourceCampaignId, setSourceCampaignId] = useState("");
   const [pending, setPending] = useState(false);
@@ -45,55 +46,74 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
       await publishTemplateAction({
         name,
         description,
-        category: category as any,
-        theme: theme as any,
+        category,
+        theme,
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         sourceCampaignId,
       });
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Erro ao publicar.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao publicar.");
       setPending(false);
     }
   }
 
+  const inputClass =
+    "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-foreground outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-white/[0.08]";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-card rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-border animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 animate-in fade-in duration-200">
+      <div className="bg-zinc-950 rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col border border-white/15 overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-card-foreground">Publicar Template</h2>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg transition-colors" aria-label="Fechar">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/40">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">Publicar Template</h2>
+              <p className="text-xs text-muted-foreground">Compartilhe seu design com a comunidade</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-xl hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Fechar"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Campanha origem */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
               Campanha de origem *
-              <FieldTooltip tooltip="O HTML desta campanha será copiado e usado como conteúdo do template. Escolha a campanha com o design que deseja compartilhar." docsAnchor="templates-publicar" />
+              <FieldTooltip
+                tooltip="O HTML desta campanha será copiado e usado como conteúdo do template."
+                docsAnchor="templates-publicar"
+              />
             </label>
             <select
               value={sourceCampaignId}
               onChange={(e) => setSourceCampaignId(e.target.value)}
               required
-              className="w-full px-3 py-2.5 text-sm rounded-lg border border-border bg-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className={inputClass}
             >
-              <option value="">Selecione uma campanha...</option>
+              <option value="" className="bg-zinc-950 text-muted-foreground">Selecione uma campanha...</option>
               {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id} className="bg-zinc-950 text-foreground">
+                  {c.name}
+                </option>
               ))}
             </select>
-            <p className="text-xs text-muted-foreground mt-1">
-              O HTML desta campanha será usado como base do template.
-            </p>
           </div>
 
           {/* Nome */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
               Nome do template *
               <FieldTooltip tooltip="Um nome claro e atrativo para o seu template. Até 120 caracteres." docsAnchor="templates-publicar" />
             </label>
@@ -102,55 +122,59 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="Ex: Landing Page de Lançamento"
-              className="w-full px-3 py-2.5 text-sm rounded-lg border border-border bg-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              placeholder="Ex: Landing Page Masterclass 2026"
+              className={inputClass}
             />
           </div>
 
           {/* Descrição */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
               Descrição
-              <FieldTooltip tooltip="Explique para que tipo de campanha este template é ideal. Até 1000 caracteres. Opcional." docsAnchor="templates-publicar" />
+              <FieldTooltip tooltip="Explique para que tipo de campanha este template é ideal. Opcional." docsAnchor="templates-publicar" />
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Descreva o que este template faz..."
-              className="w-full px-3 py-2.5 text-sm rounded-lg border border-border bg-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+              rows={2}
+              placeholder="Descreva a proposta deste template..."
+              className={`${inputClass} resize-none`}
             />
           </div>
 
           {/* Categoria + Tema */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
                 Categoria
-                <FieldTooltip tooltip="Escolha a categoria que melhor descreve o uso deste template: Landing Page, Squeeze, Webinar, etc." docsAnchor="templates-publicar" />
+                <FieldTooltip tooltip="Escolha a categoria que melhor descreve o uso deste template." docsAnchor="templates-publicar" />
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm rounded-lg border border-border bg-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                onChange={(e) => setCategory(e.target.value as TemplateCategory)}
+                className={inputClass}
               >
                 {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
+                  <option key={c.value} value={c.value} className="bg-zinc-950 text-foreground">
+                    {c.label}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
                 Tema
-                <FieldTooltip tooltip="O estilo visual predominante: Escuro, Claro ou Colorido. Ajuda outros usuários a filtrar." docsAnchor="templates-publicar" />
+                <FieldTooltip tooltip="O estilo visual predominante." docsAnchor="templates-publicar" />
               </label>
               <select
                 value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm rounded-lg border border-border bg-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                onChange={(e) => setTheme(e.target.value as TemplateTheme)}
+                className={inputClass}
               >
                 {THEMES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                  <option key={t.value} value={t.value} className="bg-zinc-950 text-foreground">
+                    {t.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -158,41 +182,52 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5 flex items-center">
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
               Tags (separadas por vírgula)
-              <FieldTooltip tooltip="Palavras-chave para facilitar a busca. Até 20 tags, separadas por vírgula." docsAnchor="templates-publicar" />
+              <FieldTooltip tooltip="Palavras-chave para busca. Até 20 tags." docsAnchor="templates-publicar" />
             </label>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="Ex: lançamento, infoproduto, dark"
-              className="w-full px-3 py-2.5 text-sm rounded-lg border border-border bg-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className={inputClass}
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 bg-red-500/5 border border-red-500/20 rounded-lg p-2.5">{error}</p>
+            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-xl p-3">
+              {error}
+            </p>
           )}
 
           {/* Aviso */}
-          <div className="rounded-lg bg-yellow-500/5 border border-yellow-500/20 p-3 text-xs text-yellow-500">
-            Seu template passará por revisão antes de ser publicado na comunidade.
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 leading-relaxed">
+            💡 <strong>Revisão de Qualidade:</strong> Seu template passará por aprovação técnica antes de ser exibido publicamente na galeria comunitária.
           </div>
 
           {/* Submit */}
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-50 transition-all duration-200 active:scale-[0.98]"
-          >
-            {pending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4" />
-            )}
-            {pending ? "Publicando..." : "Enviar para revisão"}
-          </button>
+          <div className="pt-2 border-t border-white/10 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl border border-white/10 hover:bg-white/5 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={pending}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold text-xs hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.98] shadow-md shadow-primary/20"
+            >
+              {pending ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Upload className="w-3.5 h-3.5" />
+              )}
+              {pending ? "Publicando..." : "Enviar para Revisão"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

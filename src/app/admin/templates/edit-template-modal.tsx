@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Loader2, Save, Code2 } from "lucide-react";
+import { X, Loader2, Save, Code2, Sparkles } from "lucide-react";
 import { saveTemplateEditAction } from "./actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
@@ -67,30 +67,44 @@ export function EditTemplateModal({ template, onClose }: Props) {
     }
   }
 
-  const inputCls = "w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20";
+  const inputCls =
+    "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-foreground outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/20 focus:bg-white/[0.08]";
 
   const modal = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-border p-6 animate-scale-in">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-semibold text-card-foreground">Editar Template</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors" aria-label="Fechar">
-            <X className="w-4 h-4" />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 animate-in fade-in duration-200">
+      <div className="bg-zinc-950 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col border border-white/15 overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/40">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">Editar Template</h3>
+              <p className="text-xs text-muted-foreground">{template.name}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-xl hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Fechar"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Metadados */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
                 Nome *
                 <FieldTooltip tooltip="Nome atrativo para o template. Até 120 caracteres." docsAnchor="templates-editar" />
               </label>
               <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} className={inputCls} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
                 Tags (separadas por vírgula)
                 <FieldTooltip tooltip="Palavras-chave para facilitar a busca. Até 20 tags, separadas por vírgula." docsAnchor="templates-editar" />
               </label>
@@ -99,33 +113,33 @@ export function EditTemplateModal({ template, onClose }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
               Descrição
-              <FieldTooltip tooltip="Explique para que tipo de campanha este template é ideal. Até 1000 caracteres." docsAnchor="templates-editar" />
+              <FieldTooltip tooltip="Explique para que tipo de campanha este template é ideal." docsAnchor="templates-editar" />
             </label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputCls} />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={`${inputCls} resize-none`} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
                 Categoria
                 <FieldTooltip tooltip="Escolha a categoria que melhor descreve o uso deste template." docsAnchor="templates-editar" />
               </label>
               <select value={category} onChange={(e) => setCategory(e.target.value as TemplateCategory)} className={inputCls}>
                 {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
+                  <option key={c.value} value={c.value} className="bg-zinc-950 text-foreground">{c.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1 flex items-center">
+              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
                 Tema
                 <FieldTooltip tooltip="Estilo visual predominante: Escuro, Claro ou Colorido." docsAnchor="templates-editar" />
               </label>
               <select value={theme} onChange={(e) => setTheme(e.target.value as TemplateTheme)} className={inputCls}>
                 {THEMES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                  <option key={t.value} value={t.value} className="bg-zinc-950 text-foreground">{t.label}</option>
                 ))}
               </select>
             </div>
@@ -133,32 +147,40 @@ export function EditTemplateModal({ template, onClose }: Props) {
 
           {/* Editor de HTML */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+            <label className="flex items-center gap-2 text-xs font-semibold text-foreground/80 mb-2">
               <Code2 className="w-4 h-4 text-primary" />
               HTML do template
-              <span className="text-xs text-muted-foreground font-normal">
-                (alterações geram nova versão para análise)
+              <span className="text-[11px] text-muted-foreground font-normal">
+                (alterações no código criam uma nova versão para análise)
               </span>
-              <FieldTooltip tooltip="Alterações no HTML criam uma nova versão e o template volta para 'Em análise'. Metadados são salvos imediatamente." docsAnchor="templates-editar" />
+              <FieldTooltip tooltip="Alterações no HTML criam uma nova versão e o template volta para 'Em análise'." docsAnchor="templates-editar" />
             </label>
             <textarea
               value={html}
               onChange={(e) => setHtml(e.target.value)}
-              rows={14}
+              rows={12}
               spellCheck={false}
-              className="w-full rounded-lg border border-border bg-[#0d1117] text-[13px] text-emerald-300 font-mono leading-relaxed p-4 outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 resize-y"
+              className="w-full rounded-xl border border-white/10 bg-[#090d13] text-[13px] text-emerald-400 font-mono leading-relaxed p-4 outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/20 resize-y shadow-inner"
             />
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-xl p-3">{error}</p>}
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
-            <button type="button" onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-white/10 px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            >
               Cancelar
             </button>
-            <button type="submit" disabled={pending} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
-              {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Salvar alterações
+            <button
+              type="submit"
+              disabled={pending}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all active:scale-[0.98] shadow-md shadow-primary/20 disabled:opacity-50"
+            >
+              {pending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Salvar Alterações
             </button>
           </div>
         </form>

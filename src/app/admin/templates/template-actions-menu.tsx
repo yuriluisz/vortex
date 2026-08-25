@@ -52,8 +52,8 @@ export function TemplateActionsMenu({ templateId, status, template }: TemplateAc
         await deleteTemplateAction(templateId);
       }
       setOpen(false);
-    } catch (e: any) {
-      setError(e.message || "Erro ao executar ação.");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Erro ao executar ação.");
     }
     setPending(null);
   }
@@ -61,59 +61,76 @@ export function TemplateActionsMenu({ templateId, status, template }: TemplateAc
   return (
     <div className="relative" ref={menuRef}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+        className="p-1.5 rounded-xl hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Ações do template"
       >
-        <MoreVertical className="w-4 h-4 text-muted-foreground" />
+        <MoreVertical className="w-4 h-4" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 w-56 rounded-xl border border-border bg-card shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150 origin-top-right">
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-52 rounded-xl border border-white/15 bg-zinc-950/95 backdrop-blur-2xl shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150 origin-top-right space-y-0.5">
           <button
+            type="button"
             onClick={() => {
               setShowEdit(true);
               setOpen(false);
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground/80 hover:bg-muted transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
           >
-            <Pencil className="w-4 h-4" />
-            Editar
+            <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            Editar Metadados / HTML
           </button>
 
           {status === "PUBLISHED" && (
             <button
+              type="button"
               onClick={() => handleAction("hide")}
               disabled={pending !== null}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground/80 hover:bg-muted transition-colors disabled:opacity-50"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left disabled:opacity-50"
             >
-              {pending === "hide" ? <Loader2 className="w-4 h-4 animate-spin" /> : <EyeOff className="w-4 h-4" />}
-              Remover visibilidade
+              {pending === "hide" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
+              Ocultar da Galeria
             </button>
           )}
 
           {status === "TAKEN_DOWN" && (
             <button
+              type="button"
               onClick={() => handleAction("republish")}
               disabled={pending !== null}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground/80 hover:bg-muted transition-colors disabled:opacity-50"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-emerald-400 rounded-lg hover:bg-emerald-500/10 transition-colors text-left disabled:opacity-50"
             >
-              {pending === "republish" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Republicar
+              {pending === "republish" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
+              )}
+              Republicar Template
             </button>
           )}
 
           <button
+            type="button"
             onClick={() => handleAction("delete")}
             disabled={pending !== null}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-destructive rounded-lg hover:bg-destructive/10 transition-colors text-left disabled:opacity-50"
           >
-            {pending === "delete" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-            Excluir
+            {pending === "delete" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5 text-destructive" />
+            )}
+            Excluir Template
           </button>
 
           {error && (
-            <p className="px-3 py-2 text-xs text-red-500 border-t border-border/50">{error}</p>
+            <p className="px-3 py-2 text-xs text-destructive border-t border-white/10">{error}</p>
           )}
         </div>
       )}
