@@ -25,6 +25,7 @@ import {
   Users,
   MessageCircle,
   LayoutTemplate,
+  X,
 } from "lucide-react";
 import { TemplatePicker } from "@/components/templates/template-picker";
 import {
@@ -40,6 +41,7 @@ import {
   deleteCampaignAction,
   checkCustomHostnameStatusAction,
 } from "@/app/admin/actions";
+import { CopyCampaignLink } from "@/components/admin/copy-campaign-link";
 import Link from "next/link";
 
 // ============================================================================
@@ -542,19 +544,28 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-1.5">
+            {(settings.slug || campaign?.slug) && (
+              <CopyCampaignLink
+                slug={settings.slug || campaign?.slug || ""}
+                customDomain={controls?.customDomain || campaign?.customDomain}
+              />
+            )}
+
             {mode === "edit" && campaign && (
               <>
                 <Link
                   href={`/admin/campaigns/${campaign.id}/leads`}
-                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
                 >
-                  Leads
+                  <Users className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <span className="hidden sm:inline">Leads</span>
                 </Link>
                 <Link
                   href={`/admin/campaigns/${campaign.id}/groups`}
-                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
                 >
-                  Grupos
+                  <MessageCircle className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <span className="hidden sm:inline">Grupos</span>
                 </Link>
               </>
             )}
@@ -562,9 +573,10 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
             <button
               type="button"
               onClick={() => setShowPicker(true)}
-              className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95"
+              className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
             >
-              Templates
+              <LayoutTemplate className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span className="hidden sm:inline">Templates</span>
             </button>
 
             <button
@@ -620,7 +632,17 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               </button>
 
               {mobileMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[170px] rounded-xl border border-white/15 bg-zinc-950/95 backdrop-blur-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[180px] rounded-xl border border-white/15 bg-zinc-950/95 backdrop-blur-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 space-y-1">
+                  {(settings.slug || campaign?.slug) && (
+                    <div className="pb-1 mb-1 border-b border-white/10">
+                      <CopyCampaignLink
+                        slug={settings.slug || campaign?.slug || ""}
+                        customDomain={controls?.customDomain || campaign?.customDomain}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 transition-colors"
+                      />
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -677,6 +699,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               )}
             </div>
           </div>
+
 
           {/* Primary Save button */}
           <button
@@ -889,8 +912,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isPending}
-                className="px-4 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
               >
+                <X className="w-4 h-4" />
                 Cancelar
               </button>
               <button
