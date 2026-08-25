@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Send, Settings, History } from "lucide-react";
+import { MessageSquare, FileText, QrCode } from "lucide-react";
 
 const TABS = [
-  { segment: "/broadcast", label: "Disparos", icon: Send },
-  { segment: "/logs", label: "Histórico e Logs", icon: History },
-  { segment: "/config", label: "Configurações", icon: Settings },
+  { segment: "/broadcast", label: "Central de Disparos", icon: MessageSquare },
+  { segment: "/logs", label: "Logs & Relatórios", icon: FileText },
+  { segment: "/config", label: "Conexão WhatsApp", icon: QrCode },
 ];
 
 export function WhatsAppTabs() {
@@ -15,8 +15,8 @@ export function WhatsAppTabs() {
   const basePath = `/admin/whatsapp`;
 
   return (
-    <div className="mb-8 border-b border-border overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-      <nav className="-mb-px flex space-x-8 min-w-max">
+    <div className="mb-6 border-b border-border/60 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <nav className="-mb-px flex space-x-2 sm:space-x-3 min-w-max pb-2 px-1">
         {TABS.map((tab) => {
           const tabPath = `${basePath}${tab.segment}`;
           const isActive = pathname.startsWith(tabPath);
@@ -25,10 +25,10 @@ export function WhatsAppTabs() {
             <Link
               key={tab.segment}
               href={tabPath}
-              className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2 transition-colors ${
+              className={`whitespace-nowrap py-2 px-3.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all duration-200 ${
                 isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:border-border hover:text-foreground/80"
+                  ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
               <tab.icon className="h-4 w-4" />

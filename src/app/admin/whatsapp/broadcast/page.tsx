@@ -1,29 +1,21 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { BroadcastForm } from "./BroadcastForm";
+import { WhatsAppChatConsole } from "@/components/admin/whatsapp-chat-console";
 
-/**
- * /admin/whatsapp/broadcast — Página de disparos de mensagens.
- * Só acessível se WhatsApp está conectado.
- */
 export default async function BroadcastPage() {
   const session = await getSession();
   if (!session?.email || !session.tenantId) {
     redirect("/admin/login");
   }
 
-  // Verificar conexão
+  // Buscar status da instância WhatsApp
   const instance = await prisma.evolutionInstance.findUnique({
     where: { tenantId: session.tenantId },
-    select: { status: true, phoneNumber: true },
+    select: { status: true, phoneNumber: true, instanceName: true },
   });
 
-  if (!instance || instance.status !== "CONNECTED") {
-    redirect("/admin/whatsapp/config");
-  }
-
-  // Buscar campanhas ativas com grupos
+  // Buscar campanhas com grupos ativos
   const campaigns = await prisma.campaign.findMany({
     where: {
       tenantId: session.tenantId,
@@ -48,23 +40,32 @@ export default async function BroadcastPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  return (
-    <div className="mx-auto max-w-5xl">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Envie mensagens para os grupos das suas campanhas.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 rounded-full bg-chart-1/10 px-4 py-2 text-sm text-chart-1 font-medium">
-          <span className="h-2 w-2 rounded-full bg-chart-1 animate-pulse" />
-          Conectado • {instance.phoneNumber}
-        </div>
-      </div>
+  // Buscar histórico de mensagens
+  const recentMessages = await prisma.groupMessage.findMany({
+    where: { tenantId: session.tenantId },
+    orderBy: { sentAt: "asc" },
+    take: 150,
+  });
 
-      {/* Broadcast Form */}
-      <BroadcastForm campaigns={campaigns} />
+  const formattedMessages = recentMessages.map((m) => ({
+    id: m.id,
+    campaignId: m.campaignId,
+    content: m.content,
+    targetType: m.targetType,
+    groupIds: m.groupIds,
+    status: m.status,
+    sentAt: m.sentAt.toISOString(),
+    results: m.results as Record<string, string> | null,
+  }));
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0 w-full h-full overflow-hidden">
+      <WhatsAppChatConsole
+        campaigns={campaigns}
+        initialMessages={formattedMessages}
+        instanceStatus={instance?.status || "DISCONNECTED"}
+        phoneNumber={instance?.phoneNumber}
+      />
     </div>
   );
 }

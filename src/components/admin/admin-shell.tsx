@@ -93,8 +93,10 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
 
   const planType = tenantInfo?.plan as "FREE" | "PRO" | "ULTRA" | undefined;
 
-  const isEditorRoute =
+  const isFullBleedRoute =
     pathname === "/admin/campaigns/new" ||
+    pathname === "/admin/whatsapp/broadcast" ||
+    pathname === "/admin/whatsapp" ||
     (pathname.startsWith("/admin/campaigns/") &&
       !pathname.endsWith("/leads") &&
       !pathname.endsWith("/groups") &&
@@ -308,7 +310,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
           return null;
         })()}
 
-        {isEditorRoute ? (
+        {isFullBleedRoute ? (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative z-10 w-full h-full">
             {children}
           </div>

@@ -418,8 +418,103 @@ function FAQAccordionItem({ item }: { item: FAQItem }) {
 }
 
 // ============================================================================
-// MAIN: HelpFAB Component
+// MAIN: HelpButton (para topo do WhatsApp) & HelpFAB (flutuante nas demais telas)
 // ============================================================================
+
+export function HelpButton({ compact = false }: { compact?: boolean }) {
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+  const faq = getFAQForPath(pathname);
+
+  // Fechar com Escape
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleEsc);
+    }
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [isOpen]);
+
+  // Fechar ao navegar
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className={
+          compact
+            ? "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-xs font-semibold text-muted-foreground hover:text-foreground transition-all shadow-sm active:scale-95"
+            : "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5 hover:text-white"
+        }
+      >
+        <HelpCircle className="h-3.5 w-3.5 text-primary" />
+        <span>Dúvidas</span>
+      </button>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="bg-primary/10 border-b border-primary/20 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+                  <MessageCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Dúvidas Frequentes
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {faq.title}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* FAQ Content */}
+            <div className="flex-1 overflow-y-auto divide-y divide-white/5 p-2">
+              {faq.items.map((item, idx) => (
+                <FAQAccordionItem key={idx} item={item} />
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-white/10 bg-black/40 flex items-center justify-between gap-3">
+              <Link
+                href="/admin/docs"
+                onClick={() => setIsOpen(false)}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                Ver documentação completa →
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-foreground transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export function HelpFAB() {
   const pathname = usePathname();
@@ -457,7 +552,12 @@ export function HelpFAB() {
     setIsOpen(false);
   }, [pathname]);
 
-  if (pathname?.startsWith("/admin/docs")) {
+  // Não renderizar o botão flutuante na interface do WhatsApp nem na docs
+  if (
+    pathname?.startsWith("/admin/docs") ||
+    pathname === "/admin/whatsapp/broadcast" ||
+    pathname === "/admin/whatsapp"
+  ) {
     return null;
   }
 

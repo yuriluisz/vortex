@@ -459,6 +459,84 @@ export async function sendBroadcastAction(
   };
 }
 
+export async function retryFailedBroadcastAction(
+  messageId: string
+): Promise<{ success: boolean; sentCount?: number; failedCount?: number; error?: string }> {
+  const { userId, tenantId } = await requireUltra();
+
+  const message = await prisma.groupMessage.findUnique({
+    where: { id: messageId },
+  });
+
+  if (!message || message.tenantId !== tenantId) {
+    return { success: false, error: "Mensagem não encontrada." };
+  }
+
+  const resultsObj = (message.results as Record<string, string>) || {};
+  const failedGroupIds = Object.keys(resultsObj).filter((gid) => resultsObj[gid] === "FAILED");
+
+  if (failedGroupIds.length === 0) {
+    return { success: false, error: "Não há grupos pendentes ou com falha para reenvio." };
+  }
+
+  const instance = await prisma.evolutionInstance.findUnique({
+    where: { tenantId },
+    select: { instanceName: true, status: true },
+  });
+
+  if (!instance || instance.status !== "CONNECTED") {
+    return { success: false, error: "WhatsApp não está conectado." };
+  }
+
+  const groups = await prisma.group.findMany({
+    where: {
+      id: { in: failedGroupIds },
+      tenantId,
+      active: true,
+      groupJid: { not: null },
+    },
+    select: { id: true, groupJid: true, name: true },
+  });
+
+  let sentCount = 0;
+  let failedCount = 0;
+  const updatedResults = { ...resultsObj };
+
+  for (const group of groups) {
+    if (!group.groupJid) continue;
+    try {
+      await sendTextMessage(instance.instanceName, group.groupJid, message.content);
+      updatedResults[group.id] = "OK";
+      sentCount++;
+    } catch {
+      updatedResults[group.id] = "FAILED";
+      failedCount++;
+    }
+  }
+
+  const overallFailed = Object.values(updatedResults).filter((v) => v === "FAILED").length;
+  const overallSent = Object.values(updatedResults).filter((v) => v === "OK").length;
+  const newStatus = overallFailed === 0 ? "SENT" : overallSent === 0 ? "FAILED" : "PARTIAL";
+
+  await prisma.groupMessage.update({
+    where: { id: messageId },
+    data: {
+      status: newStatus,
+      results: updatedResults,
+    },
+  });
+
+  await logAudit(
+    "GROUP_MESSAGE_SENT",
+    { messageId, sentCount, failedCount, isRetry: true },
+    userId,
+    tenantId
+  );
+
+  revalidatePath("/admin/whatsapp/broadcast");
+  return { success: true, sentCount, failedCount };
+}
+
 // ============================================================================
 // SYNC — Sincronizar grupo individual
 // ============================================================================
