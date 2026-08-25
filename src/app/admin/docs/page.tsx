@@ -62,6 +62,7 @@ const CHAPTERS: Chapter[] = [
   { id: "dashboard", title: "Conhecendo o Painel", icon: LayoutDashboard, part: "parte-1" },
   { id: "lista-campanhas", title: "Lista de Campanhas", icon: Megaphone, part: "parte-2" },
   { id: "criar-campanha", title: "Criando uma Campanha", icon: Zap, part: "parte-2" },
+  { id: "compartilhamento", title: "Compartilhamento de Campanhas", icon: Share2, part: "parte-2" },
   { id: "detalhes-campanha", title: "Detalhes da Campanha", icon: Eye, part: "parte-2" },
   { id: "grupos", title: "Grupos de WhatsApp", icon: MessageCircle, part: "parte-2" },
   { id: "leads", title: "Leads Capturados", icon: Users, part: "parte-2" },
@@ -69,6 +70,7 @@ const CHAPTERS: Chapter[] = [
   { id: "broadcast", title: "Disparos em Massa", icon: Send, part: "parte-3" },
   { id: "logs", title: "Histórico e Logs", icon: History, part: "parte-3" },
   { id: "perfil", title: "Perfil da Empresa", icon: Building2, part: "parte-4" },
+  { id: "equipe", title: "Equipe e Workspaces", icon: Users, part: "parte-4" },
   { id: "cobranca", title: "Dados de Cobrança", icon: CreditCard, part: "parte-4" },
   { id: "conta", title: "Conta e Segurança", icon: User, part: "parte-4" },
   { id: "planos", title: "Planos e Assinatura", icon: Shield, part: "parte-4" },
@@ -445,31 +447,19 @@ export default function AdminDocsPage() {
 
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                A página de Campanhas lista todas as suas campanhas (ativas e
-                inativas). Cada card mostra:
+                A página de Campanhas organiza todas as páginas de captura em duas abas principais:
               </p>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>
-                  <strong className="text-foreground">Nome</strong> — o título
-                  da campanha
+                  <strong className="text-foreground">Minhas Campanhas</strong> — páginas criadas diretamente no seu workspace ativo.
                 </li>
                 <li>
-                  <strong className="text-foreground">Slug</strong> — o
-                  endereço público (ex:{" "}
-                  <code className="font-mono text-xs">/meu-lancamento</code>)
-                </li>
-                <li>
-                  <strong className="text-foreground">Status</strong> — badge
-                  verde para Ativa ou cinza para Inativa
-                </li>
-                <li>
-                  <strong className="text-foreground">Leads e Grupos</strong> —
-                  contagem total de leads e grupos associados
+                  <strong className="text-foreground">Compartilhadas Comigo</strong> — campanhas que parceiros ou clientes compartilharam com você, exibindo o proprietário e o seu nível de acesso (<span className="text-indigo-400 font-semibold">Editor</span> ou <span className="text-emerald-400 font-semibold">Visualizador</span>).
                 </li>
               </ul>
+
               <p className="text-sm">
-                Clique em qualquer card para acessar os detalhes daquela
-                campanha.
+                Cada card exibe o status (Ativa/Inativa), total de leads capturados, grupos em rotação e atalhos rápidos para Editar, Leads, Grupos e Compartilhar.
               </p>
             </div>
           </section>
@@ -752,6 +742,46 @@ export default function AdminDocsPage() {
                   Você pode adicionar grupos de WhatsApp depois na aba
                   &quot;Grupos WhatsApp&quot; dentro dos detalhes da campanha. Não precisa configurar tudo agora.
                 </Tip>
+              </div>
+            </div>
+          </section>
+
+          {/* Cap 5: Compartilhamento de Campanhas */}
+          <section id="compartilhamento" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <Share2 className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">
+                5. Compartilhamento de Campanhas
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                O Vórtex+ permite compartilhar campanhas específicas com parceiros e gestores de tráfego sem dar acesso a todo o seu workspace ou faturamento:
+              </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Share2 className="h-4 w-4 text-primary" />
+                  Níveis de Acesso
+                </h3>
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                  <li>
+                    <strong className="text-foreground">Editor:</strong> Ideal para gestores de tráfego. Pode visualizar métricas, exportar leads, gerenciar grupos do WhatsApp, alterar HTML e atualizar pixels de rastreamento (Meta Pixel e Google Tag Manager). Por segurança, o convidado <strong>não pode excluir a campanha</strong>.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Visualizador:</strong> Ideal para clientes e investidores. Visualização em tempo real de dashboards, métricas e relatórios, sem permissão de edição.
+                  </li>
+                </ul>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium">Como Convidar</h3>
+                <ol className="list-decimal pl-5 space-y-2 text-sm">
+                  <li>Na listagem de campanhas ou no editor, clique no botão <strong>Compartilhar</strong>.</li>
+                  <li>Digite o e-mail do colaborador e escolha o papel (<strong>Editor</strong> ou <strong>Visualizador</strong>).</li>
+                  <li>Clique em <strong>Convidar</strong>. O convidado receberá um e-mail de notificação. Se ele ainda não tiver conta, poderá definir sua senha pelo link exclusivo.</li>
+                </ol>
               </div>
             </div>
           </section>
@@ -1402,12 +1432,56 @@ export default function AdminDocsPage() {
             </div>
           </section>
 
+          {/* Cap: Equipe e Workspaces */}
+          <section id="equipe" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <Users className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">
+                Equipe e Workspaces
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                O Vórtex+ oferece suporte nativo a múltiplos workspaces e gerenciamento de equipe para você colaborar com sócios e membros da sua operação:
+              </p>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  Alternador de Workspace (Tenant Switcher)
+                </h3>
+                <p>
+                  No topo da barra lateral esquerda, clique no nome do workspace atual para abrir o dropdown de workspaces acessíveis. Você pode alternar instantaneamente entre a sua conta principal e workspaces de clientes ou equipes em que foi convidado, sem precisar deslogar.
+                </p>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Gerenciando Membros da Equipe
+                </h3>
+                <p>
+                  Acesse <strong>Configurações &gt; Equipe do Workspace</strong> para convidar membros:
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong className="text-foreground">Admin:</strong> Acesso total às campanhas, leads, grupos, configurações e convites do workspace.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Membro:</strong> Acesso de operação às campanhas e leads do workspace.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
           {/* Cap 12: Cobrança */}
           <section id="cobranca" className="scroll-mt-8 space-y-6 mb-12">
             <div className="flex items-center gap-3 pb-2 border-b border-border">
               <CreditCard className="w-5 h-5 text-primary" />
               <h2 className="text-xl font-semibold">
-                12. Dados de Cobrança
+                Dados de Cobrança
               </h2>
             </div>
 

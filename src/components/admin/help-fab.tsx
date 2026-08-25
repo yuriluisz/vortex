@@ -68,6 +68,12 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         docsAnchor: "campanha-ativar-pausar",
       },
       {
+        question: "Como funciona o compartilhamento de campanhas?",
+        answer:
+          "Clique no botão Compartilhar no card da campanha para convidar gestores por e-mail como Editor (pode editar páginas e pixels) ou Visualizador (apenas leitura). As campanhas compartilhadas com você ficam na aba 'Compartilhadas Comigo'.",
+        docsAnchor: "compartilhamento",
+      },
+      {
         question: "Quantas campanhas posso ter?",
         answer:
           "Depende do seu plano: Free permite 1, Pro permite 10 e Ultra é ilimitado. Veja a página de Assinatura nas Configurações.",
@@ -85,10 +91,10 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         docsAnchor: "campo-slug",
       },
       {
-        question: "O que é o Meta Pixel ID?",
+        question: "O que é o Google Tag Manager ID e Meta Pixel?",
         answer:
-          "É o identificador do pixel do Meta para Facebook ou Instagram. Se informado, o Vórtex+ dispara eventos de conversão automaticamente quando um lead se cadastra.",
-        docsAnchor: "campo-pixel",
+          "Permite rastrear conversões. O Vórtex+ dispara eventos de conversão no Meta Pixel e envia generate_lead e join_group ao dataLayer do Google Tag Manager automaticamente.",
+        docsAnchor: "campo-gtm",
       },
       {
         question: "Como funciona o Domínio Customizado?",
@@ -295,6 +301,12 @@ const FAQ_DATA: Record<string, PageFAQ> = {
         answer:
           "Não imediatamente. Ao cancelar, você mantém acesso até o final do ciclo pago. Depois, a conta volta para o plano Free.",
         docsAnchor: "planos-cancelar",
+      },
+      {
+        question: "Como convidar membros para a equipe do workspace?",
+        answer:
+          "Na aba 'Equipe do Workspace', informe o e-mail do colaborador e selecione o papel (Admin ou Membro). O convidado terá acesso a todas as campanhas e leads deste workspace.",
+        docsAnchor: "equipe",
       },
       {
         question: "O que são dados de cobrança?",
