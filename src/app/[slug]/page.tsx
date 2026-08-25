@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HtmlRenderer from "./HtmlRenderer";
 import MetaPixel from "@/components/MetaPixel";
+import GoogleTagManager from "@/components/GoogleTagManager";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
@@ -70,6 +71,9 @@ export default async function CampaignPage({ params }: PageProps) {
     <>
       {/* Meta Pixel — injeção dinâmica */}
       <MetaPixel pixelId={campaign.pixelId} />
+
+      {/* Google Tag Manager — injeção dinâmica */}
+      <GoogleTagManager gtmId={campaign.gtmId} />
 
       {/* Renderizar HTML customizado com slot do formulário */}
       <HtmlRenderer

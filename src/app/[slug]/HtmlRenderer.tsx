@@ -128,6 +128,19 @@ function CustomForm({
       // silencioso
     }
 
+    // Disparar evento generate_lead no Google Tag Manager
+    try {
+      const w = window as unknown as { dataLayer?: Array<Record<string, unknown>> };
+      w.dataLayer = w.dataLayer || [];
+      w.dataLayer.push({
+        event: "generate_lead",
+        campaign_id: campaignId,
+        campaign_slug: slug,
+      });
+    } catch {
+      // silencioso
+    }
+
     const executeSubmit = () => {
       startTransition(async () => {
         const result = await submitLeadAction(undefined, formData);

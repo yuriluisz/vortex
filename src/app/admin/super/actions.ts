@@ -443,6 +443,18 @@ const CampaignEditSchema = z.object({
       "O slug deve conter apenas letras minúsculas, números e hífens"
     ),
   pixelId: z.string().optional(),
+  gtmId: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const cleaned = val.trim().toUpperCase();
+      return cleaned || undefined;
+    })
+    .refine(
+      (val) => !val || /^GTM-[A-Z0-9]+$/.test(val),
+      "O Google Tag Manager ID deve seguir o formato GTM-XXXXXXX"
+    ),
   rawHtml: z.string().min(1, "O HTML base é obrigatório."),
   formSchema: z.string().refine(
     (val) => {
@@ -479,6 +491,7 @@ export async function updateCampaignSuperAction(
     name: formData.get("name"),
     slug: formData.get("slug"),
     pixelId: formData.get("pixelId") || undefined,
+    gtmId: formData.get("gtmId") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
   });
@@ -490,7 +503,7 @@ export async function updateCampaignSuperAction(
     };
   }
 
-  const { name, slug, pixelId, rawHtml, formSchema } = parsed.data;
+  const { name, slug, pixelId, gtmId, rawHtml, formSchema } = parsed.data;
 
   // Verificar slug único dentro do tenant (ignorando a própria campanha)
   const existing = await prisma.campaign.findUnique({
@@ -507,6 +520,7 @@ export async function updateCampaignSuperAction(
         name,
         slug,
         pixelId,
+        gtmId,
         rawHtml,
         formSchema: JSON.parse(formSchema),
       },

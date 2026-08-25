@@ -55,6 +55,7 @@ interface CampaignData {
   rawHtml: string;
   formSchema: unknown;
   pixelId: string | null;
+  gtmId: string | null;
   customDomain: string | null;
   active: boolean;
   protected: boolean;
@@ -196,6 +197,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
     name: campaign?.name || "",
     slug: campaign?.slug || "",
     pixelId: campaign?.pixelId || "",
+    gtmId: campaign?.gtmId || "",
     customDomain: campaign?.customDomain || "",
     formSchema: campaign?.formSchema ? JSON.stringify(campaign.formSchema) : DEFAULT_FORM_SCHEMA,
     metaTitle: campaign?.metaTitle || "",
@@ -342,6 +344,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
           rawHtml: html,
           formSchema: settings.formSchema,
           pixelId: settings.pixelId || undefined,
+          gtmId: settings.gtmId || undefined,
           customDomain: settings.customDomain || undefined,
           metaTitle: settings.metaTitle || undefined,
           metaDescription: settings.metaDescription || undefined,

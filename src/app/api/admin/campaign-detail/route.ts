@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
       name: true,
       slug: true,
       pixelId: true,
+      gtmId: true,
       rawHtml: true,
       formSchema: true,
     },

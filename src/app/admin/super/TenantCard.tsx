@@ -513,7 +513,7 @@ function EditCampaignModal({ campaignId, onClose }: { campaignId: string; onClos
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ success?: boolean; error?: string; fieldErrors?: Record<string, string[]> } | null>(null);
   const [campaign, setCampaign] = useState<{
-    id: string; name: string; slug: string; pixelId: string | null; rawHtml: string; formSchema: string;
+    id: string; name: string; slug: string; pixelId: string | null; gtmId: string | null; rawHtml: string; formSchema: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -528,6 +528,7 @@ function EditCampaignModal({ campaignId, onClose }: { campaignId: string; onClos
             name: data.campaign.name,
             slug: data.campaign.slug,
             pixelId: data.campaign.pixelId,
+            gtmId: data.campaign.gtmId,
             rawHtml: data.campaign.rawHtml,
             formSchema: JSON.stringify(data.campaign.formSchema, null, 2),
           });
@@ -580,10 +581,19 @@ function EditCampaignModal({ campaignId, onClose }: { campaignId: string; onClos
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="sup-pixelId" className="block text-sm font-medium text-foreground/80">Meta Pixel ID</label>
-              <input id="sup-pixelId" name="pixelId" type="text" defaultValue={campaign.pixelId || ""}
-                className="w-full rounded-lg border border-input bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="sup-pixelId" className="block text-sm font-medium text-foreground/80">Meta Pixel ID</label>
+                <input id="sup-pixelId" name="pixelId" type="text" defaultValue={campaign.pixelId || ""}
+                  className="w-full rounded-lg border border-input bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="sup-gtmId" className="block text-sm font-medium text-foreground/80">Google Tag Manager ID</label>
+                <input id="sup-gtmId" name="gtmId" type="text" defaultValue={campaign.gtmId || ""}
+                  placeholder="GTM-XXXXXXX"
+                  className="w-full rounded-lg border border-input bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+              </div>
             </div>
 
             <div className="space-y-2">

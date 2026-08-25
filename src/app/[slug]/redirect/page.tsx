@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getActiveGroupForCampaign } from "@/lib/rotator";
 import MetaPixel from "@/components/MetaPixel";
+import GoogleTagManager from "@/components/GoogleTagManager";
 import RedirectClient from "./RedirectClient";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
@@ -36,7 +37,7 @@ export default async function RedirectPage({ params }: PageProps) {
   // Buscar campanha (slug agora é único por tenant, não global)
   const campaign = await prisma.campaign.findFirst({
     where: { slug, active: true },
-    select: { id: true, pixelId: true, tenantId: true, protected: true, accessCode: true, customDomain: true },
+    select: { id: true, pixelId: true, gtmId: true, tenantId: true, protected: true, accessCode: true, customDomain: true },
   });
 
   if (!campaign) {
@@ -70,6 +71,13 @@ export default async function RedirectPage({ params }: PageProps) {
       <MetaPixel
         pixelId={campaign.pixelId}
         trackEvent="CompleteRegistration"
+        redirectUrl={group?.url}
+      />
+
+      {/* Google Tag Manager — injeção + evento join_group */}
+      <GoogleTagManager
+        gtmId={campaign.gtmId}
+        trackEvent="join_group"
         redirectUrl={group?.url}
       />
 

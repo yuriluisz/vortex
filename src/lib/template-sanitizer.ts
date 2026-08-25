@@ -75,6 +75,8 @@ const SENSITIVE_DATA_PATTERNS: RegExp[] = [
   /\b(\+?55\s?)?\(?\d{2}\)?\s?\d{4,5}-?\d{4}\b/g,
   // Meta Pixel IDs (números de 8-15 dígitos)
   /\b\d{8,15}\b/g,
+  // Google Tag Manager Container IDs (ex: GTM-XXXXXXX)
+  /\bGTM-[A-Z0-9]+\b/gi,
   // Tokens de acesso (UUIDs)
   /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
 ];

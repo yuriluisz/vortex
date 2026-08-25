@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getActiveGroupForCampaign } from "@/lib/rotator";
 import MetaPixel from "@/components/MetaPixel";
+import GoogleTagManager from "@/components/GoogleTagManager";
 import RedirectClient from "@/app/[slug]/redirect/RedirectClient";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
@@ -32,7 +33,7 @@ export default async function ProtectedRedirectPage({ params }: PageProps) {
   // Buscar campanha pelo accessCode
   const campaign = await prisma.campaign.findFirst({
     where: { accessCode: code, active: true },
-    select: { id: true, pixelId: true, tenantId: true, slug: true, protected: true },
+    select: { id: true, pixelId: true, gtmId: true, tenantId: true, slug: true, protected: true },
   });
 
   if (!campaign || !campaign.protected) {
@@ -56,6 +57,13 @@ export default async function ProtectedRedirectPage({ params }: PageProps) {
       <MetaPixel
         pixelId={campaign.pixelId}
         trackEvent="CompleteRegistration"
+        redirectUrl={group?.url}
+      />
+
+      {/* Google Tag Manager — injeção + evento join_group */}
+      <GoogleTagManager
+        gtmId={campaign.gtmId}
+        trackEvent="join_group"
         redirectUrl={group?.url}
       />
 

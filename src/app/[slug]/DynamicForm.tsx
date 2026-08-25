@@ -52,6 +52,19 @@ export default function DynamicForm({
       // Silencioso
     }
 
+    // Disparar evento generate_lead no Google Tag Manager
+    try {
+      const w = window as unknown as { dataLayer?: Array<Record<string, unknown>> };
+      w.dataLayer = w.dataLayer || [];
+      w.dataLayer.push({
+        event: "generate_lead",
+        campaign_id: campaignId,
+        campaign_slug: slug,
+      });
+    } catch {
+      // Silencioso
+    }
+
     const grecaptcha = (window as unknown as {
       grecaptcha?: {
         ready: (cb: () => void) => void;

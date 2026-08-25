@@ -340,6 +340,7 @@ model Campaign {
   rawHtml    String   @db.Text
   formSchema Json
   pixelId    String?
+  gtmId      String?
   active     Boolean  @default(true)
   views      Int      @default(0)
 

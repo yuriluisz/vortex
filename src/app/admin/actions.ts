@@ -57,6 +57,18 @@ const CampaignSchema = z.object({
       "O slug deve conter apenas letras minúsculas, números e hífens"
     ),
   pixelId: z.string().optional(),
+  gtmId: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const cleaned = val.trim().toUpperCase();
+      return cleaned || undefined;
+    })
+    .refine(
+      (val) => !val || /^GTM-[A-Z0-9]+$/.test(val),
+      "O Google Tag Manager ID deve seguir o formato GTM-XXXXXXX"
+    ),
   customDomain: z
     .string()
     .optional()
@@ -118,6 +130,7 @@ export async function createCampaignAction(
     name: formData.get("name"),
     slug: formData.get("slug"),
     pixelId: formData.get("pixelId") || undefined,
+    gtmId: formData.get("gtmId") || undefined,
     customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
@@ -138,7 +151,7 @@ export async function createCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl, metaTitle, metaDescription, ogImageUrl, faviconUrl } = parsed.data;
+  const { name, slug, pixelId, gtmId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl, metaTitle, metaDescription, ogImageUrl, faviconUrl } = parsed.data;
 
   const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
   const canCustomize = canCustomizeLink(plan);
@@ -172,6 +185,7 @@ export async function createCampaignAction(
         name,
         slug,
         pixelId,
+        gtmId,
         customDomain: finalCustomDomain,
         rawHtml,
         formSchema: JSON.parse(formSchema),
@@ -278,6 +292,7 @@ export async function updateCampaignAction(
     name: formData.get("name"),
     slug: formData.get("slug"),
     pixelId: formData.get("pixelId") || undefined,
+    gtmId: formData.get("gtmId") || undefined,
     customDomain: formData.get("customDomain") || undefined,
     rawHtml: formData.get("rawHtml"),
     formSchema: formData.get("formSchema"),
@@ -298,7 +313,7 @@ export async function updateCampaignAction(
     };
   }
 
-  const { name, slug, pixelId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl, metaTitle, metaDescription, ogImageUrl, faviconUrl } = parsed.data;
+  const { name, slug, pixelId, gtmId, customDomain, rawHtml, formSchema, groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl, metaTitle, metaDescription, ogImageUrl, faviconUrl } = parsed.data;
   const canCustomize = canCustomizeLink(plan);
   const finalMetaTitle = canCustomize ? (metaTitle || null) : null;
   const finalMetaDescription = canCustomize ? (metaDescription || null) : null;
@@ -335,6 +350,7 @@ export async function updateCampaignAction(
         name,
         slug,
         pixelId,
+        gtmId,
         customDomain: finalCustomDomain,
         rawHtml,
         formSchema: JSON.parse(formSchema),
@@ -806,6 +822,18 @@ const SaveCampaignSchema = z.object({
     "Formato JSON inválido para o Schema do formulário"
   ),
   pixelId: z.string().optional(),
+  gtmId: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const cleaned = val.trim().toUpperCase();
+      return cleaned || undefined;
+    })
+    .refine(
+      (val) => !val || /^GTM-[A-Z0-9]+$/.test(val),
+      "O Google Tag Manager ID deve seguir o formato GTM-XXXXXXX"
+    ),
   customDomain: z
     .string()
     .optional()
@@ -850,7 +878,7 @@ export async function saveCampaignAction(
   }
 
   const {
-    name, slug, rawHtml, formSchema, pixelId, customDomain,
+    name, slug, rawHtml, formSchema, pixelId, gtmId, customDomain,
     metaTitle, metaDescription, ogImageUrl, faviconUrl,
     groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl,
   } = parsed.data;
@@ -866,6 +894,7 @@ export async function saveCampaignAction(
     name,
     slug,
     pixelId: pixelId || null,
+    gtmId: gtmId || null,
     customDomain: finalCustomDomain,
     rawHtml,
     formSchema: JSON.parse(formSchema),

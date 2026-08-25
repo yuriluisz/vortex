@@ -52,6 +52,7 @@ export default async function CampaignDetailsPage({
         rawHtml: campaign.rawHtml,
         formSchema: campaign.formSchema,
         pixelId: campaign.pixelId,
+        gtmId: campaign.gtmId,
         customDomain: campaign.customDomain,
         active: campaign.active,
         protected: campaign.protected,

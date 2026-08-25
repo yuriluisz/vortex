@@ -26,6 +26,7 @@ export interface CampaignSettings {
   name: string;
   slug: string;
   pixelId: string;
+  gtmId: string;
   customDomain: string;
   formSchema: string;
   metaTitle: string;
@@ -242,45 +243,6 @@ export function CampaignSettingsModal({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label htmlFor="settings-customDomain" className="block text-sm font-medium text-foreground/80 flex items-center">
-              Domínio Customizado
-              <FieldTooltip tooltip="Use um domínio próprio (ex: campanha.meudominio.com.br). Requer apontamento DNS." docsAnchor="campo-dominio" />
-            </label>
-            <div className="relative">
-              <input
-                id="settings-customDomain"
-                type="text"
-                value={settings.customDomain}
-                onChange={(e) =>
-                  updateField(
-                    "customDomain",
-                    e.target.value
-                      .toLowerCase()
-                      .replace(/^https?:\/\//i, "")
-                      .replace(/\/+$/, "")
-                      .replace(/\s+/g, "")
-                  )
-                }
-                placeholder={plan === "ULTRA" ? "Ex: campanha.meudominio.com.br" : "Disponível apenas no plano ULTRA"}
-                disabled={plan !== "ULTRA"}
-                className={plan !== "ULTRA" ? disabledInputClass : inputClass}
-              />
-              {plan !== "ULTRA" && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-2 py-1 rounded-full">
-                    Ultra
-                  </span>
-                </div>
-              )}
-            </div>
-            {plan === "ULTRA" && (
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Apontamento DNS: crie uma entrada <strong>CNAME</strong> no seu provedor apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
             <label htmlFor="settings-pixelId" className="block text-sm font-medium text-foreground/80 flex items-center">
               Meta Pixel ID
               <FieldTooltip tooltip="ID do pixel do Meta para rastreamento de conversões em anúncios do Facebook/Instagram." docsAnchor="campo-pixel" />
@@ -294,6 +256,60 @@ export function CampaignSettingsModal({
               className={inputClass}
             />
           </div>
+
+          <div className="space-y-2">
+            <label htmlFor="settings-gtmId" className="block text-sm font-medium text-foreground/80 flex items-center">
+              Google Tag Manager ID
+              <FieldTooltip tooltip="ID do contêiner do Google Tag Manager (ex: GTM-XXXXXXX) para disparar tags de GA4, Google Ads e eventos de conversão." docsAnchor="campo-gtm" />
+            </label>
+            <input
+              id="settings-gtmId"
+              type="text"
+              value={settings.gtmId}
+              onChange={(e) => updateField("gtmId", e.target.value.toUpperCase().trim())}
+              placeholder="Ex: GTM-XXXXXXX"
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="settings-customDomain" className="block text-sm font-medium text-foreground/80 flex items-center">
+            Domínio Customizado
+            <FieldTooltip tooltip="Use um domínio próprio (ex: campanha.meudominio.com.br). Requer apontamento DNS." docsAnchor="campo-dominio" />
+          </label>
+          <div className="relative">
+            <input
+              id="settings-customDomain"
+              type="text"
+              value={settings.customDomain}
+              onChange={(e) =>
+                updateField(
+                  "customDomain",
+                  e.target.value
+                    .toLowerCase()
+                    .replace(/^https?:\/\//i, "")
+                    .replace(/\/+$/, "")
+                    .replace(/\s+/g, "")
+                )
+              }
+              placeholder={plan === "ULTRA" ? "Ex: campanha.meudominio.com.br" : "Disponível apenas no plano ULTRA"}
+              disabled={plan !== "ULTRA"}
+              className={plan !== "ULTRA" ? disabledInputClass : inputClass}
+            />
+            {plan !== "ULTRA" && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-2 py-1 rounded-full">
+                  Ultra
+                </span>
+              </div>
+            )}
+          </div>
+          {plan === "ULTRA" && (
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Apontamento DNS: crie uma entrada <strong>CNAME</strong> no seu provedor apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>
+            </p>
+          )}
         </div>
       </div>
 

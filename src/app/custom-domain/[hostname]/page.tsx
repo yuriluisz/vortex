@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HtmlRenderer from "../../[slug]/HtmlRenderer";
 import MetaPixel from "@/components/MetaPixel";
+import GoogleTagManager from "@/components/GoogleTagManager";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
@@ -89,6 +90,7 @@ export default async function DomainCampaignPage({ params }: PageProps) {
   return (
     <>
       <MetaPixel pixelId={campaign.pixelId} />
+      <GoogleTagManager gtmId={campaign.gtmId} />
       <HtmlRenderer
         rawHtml={campaign.rawHtml}
         campaignId={campaign.id}

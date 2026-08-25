@@ -613,6 +613,10 @@ export default function PublicDocsPage() {
                         <strong className="text-foreground">Meta Pixel ID</strong>{" "}
                         — Opcional. Se você utiliza anúncios no Facebook ou Instagram, insira o ID do seu pixel. O Vórtex+ disparará eventos de conversão automaticamente quando um lead se cadastrar.
                       </li>
+                      <li id="campo-gtm">
+                        <strong className="text-foreground">Google Tag Manager ID</strong>{" "}
+                        — Opcional. Insira o ID do seu contêiner GTM (ex: <code>GTM-XXXXXXX</code>). O Vórtex+ injeta as tags e envia eventos automáticos ao <code>dataLayer</code> (<code>generate_lead</code> no cadastro e <code>join_group</code> no redirecionamento).
+                      </li>
                     </ul>
 
                     {/* SEO Section */}
