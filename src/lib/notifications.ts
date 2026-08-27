@@ -1,12 +1,18 @@
 import "server-only";
 import { Resend } from "resend";
-import { renderVortexEmail } from "@/lib/email-template";
+import {
+  renderVortexEmail,
+  renderEmailMetadataCard,
+  renderEmailCallout,
+  EmailBadgeType,
+} from "@/lib/email-template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
+export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
+export const ADMIN_ALERT_EMAIL = process.env.ADMIN_ALERT_EMAIL || "suporte@vortexpages.online";
 
 /**
- * Envia um email genérico via Resend.
+ * Envia um email genérico via Resend (função central de envio do sistema).
  */
 export async function sendEmail({
   to,
@@ -32,7 +38,7 @@ export async function sendEmail({
 }
 
 /**
- * Envia email de report de conteúdo para o suporte.
+ * Envia email de report de conteúdo para o suporte/moderação.
  */
 export async function sendReportEmail({
   reporterEmail,
@@ -57,19 +63,29 @@ export async function sendReportEmail({
   const title = isTemplate ? "Template" : "Campanha";
   const subjectLabel = isTemplate ? "Template" : "Campanha";
 
+  const metadataCard = renderEmailMetadataCard([
+    { label: title, value: `${campaignName} (${campaignSlug})`, highlight: true },
+    { label: isTemplate ? "Criador" : "Tenant", value: tenantSlug },
+    { label: "Denunciante", value: reporterEmail },
+    { label: "Data / Hora", value: now },
+  ]);
+
+  const messageCallout = renderEmailCallout({
+    title: "Mensagem da Denúncia:",
+    message,
+    variant: "neutral",
+  });
+
   const html = renderVortexEmail({
     title: `Denúncia de Conteúdo: ${title}`,
     category: "Moderação & Segurança",
     badgeType: "danger",
     bodyHtml: `
-      <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; margin-bottom: 20px;">
-        <p style="margin: 0 0 8px; color: #d1d5db;"><strong>${title}:</strong> ${campaignName} (<code style="color: #818cf8;">${campaignSlug}</code>)</p>
-        <p style="margin: 0 0 8px; color: #d1d5db;"><strong>${isTemplate ? "Criador" : "Tenant"}:</strong> ${tenantSlug}</p>
-        <p style="margin: 0 0 8px; color: #d1d5db;"><strong>Denunciante:</strong> ${reporterEmail}</p>
-        <p style="margin: 0; color: #9ca3af; font-size: 13px;"><strong>Data/Hora:</strong> ${now}</p>
-      </div>
-      <h3 style="font-size: 15px; color: #f3f4f6; margin: 0 0 10px;">Mensagem da Denúncia:</h3>
-      <div style="background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 16px; white-space: pre-wrap; color: #e5e7eb; font-size: 14px;">${message}</div>
+      <p style="margin: 0 0 14px; color: #d1d5db;">
+        Uma nova denúncia de conteúdo foi registrada por um usuário na plataforma:
+      </p>
+      ${metadataCard}
+      ${messageCallout}
     `,
     cta: {
       label: "Abrir Painel do Super Admin",
@@ -79,7 +95,7 @@ export async function sendReportEmail({
   });
 
   return sendEmail({
-    to: "yulusica@gmail.com",
+    to: ADMIN_ALERT_EMAIL,
     subject: `[Report] ${subjectLabel}: ${campaignSlug} — ${campaignName}`,
     html,
   });
@@ -104,6 +120,12 @@ export async function sendGracePeriodWarningEmail({
       ? "ÚLTIMO AVISO: Seu plano será rebaixado amanhã!"
       : `Seu pagamento está vencido — regularize em ${daysRemaining} dias`;
 
+  const warningCallout = renderEmailCallout({
+    title: "Atenção ao Prazo:",
+    message: `Você tem ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""} para regularizar a assinatura antes do rebaixamento automático.`,
+    variant: "warning",
+  });
+
   const html = renderVortexEmail({
     title: "Aviso de Pagamento Pendente",
     category: "Assinatura & Faturamento",
@@ -113,13 +135,9 @@ export async function sendGracePeriodWarningEmail({
       <p style="margin: 0 0 16px; color: #9ca3af;">
         Identificamos que o pagamento da mensalidade do seu plano <strong>${planName}</strong> está vencido.
       </p>
-      <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0;">
-        <span style="font-size: 18px; font-weight: 700; color: #facc15;">
-          Você tem ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""} para regularizar antes do rebaixamento.
-        </span>
-      </div>
+      ${warningCallout}
       <p style="margin: 0; color: #9ca3af; font-size: 14px;">
-        Após este período, seu plano será rebaixado para <strong>Free</strong> e campanhas/grupos excedentes serão pausados automaticamente para evitar interrupção total.
+        Após este período, seu plano será rebaixado para <strong>Free</strong> e campanhas/grupos excedentes serão pausados temporariamente para evitar interrupção total dos seus serviços.
       </p>
     `,
     cta: {
@@ -127,7 +145,7 @@ export async function sendGracePeriodWarningEmail({
       url: "https://app.vortexpages.online/admin/settings",
       variant: "warning",
     },
-    footerNote: "Caso já tenha realizado o pagamento via PIX ou Boleto, a compensação pode levar até 1 dia útil.",
+    footerNote: "Caso já tenha realizado o pagamento via PIX ou Boleto, a compensação bancária pode levar até 1 dia útil.",
   });
 
   return sendEmail({
@@ -153,61 +171,72 @@ export async function sendTemplateStatusEmail({
   status: "PUBLISHED" | "REJECTED" | "TAKEN_DOWN";
   reason?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  const config = {
+  const config: Record<
+    "PUBLISHED" | "REJECTED" | "TAKEN_DOWN",
+    {
+      subject: string;
+      category: string;
+      badgeType: EmailBadgeType;
+      title: string;
+      message: string;
+      ctaVariant: "primary" | "warning" | "danger";
+    }
+  > = {
     PUBLISHED: {
       subject: `✅ Seu template "${templateName}" foi publicado!`,
       category: "Comunidade de Templates",
-      badgeType: "success" as const,
+      badgeType: "success",
       title: "Template Aprovado & Publicado!",
-      message: `Seu template <strong>${templateName}</strong> foi aprovado e agora está disponível na galeria da comunidade para milhares de criadores.`,
-      ctaVariant: "primary" as const,
+      message: `Seu template <strong>${templateName}</strong> foi aprovado e agora está disponível na galeria pública da comunidade para milhares de criadores.`,
+      ctaVariant: "primary",
     },
     REJECTED: {
       subject: `❌ Seu template "${templateName}" precisa de ajustes`,
       category: "Moderação de Templates",
-      badgeType: "danger" as const,
+      badgeType: "danger",
       title: "Template Não Aprovado",
-      message: `Seu template <strong>${templateName}</strong> não atendeu a todos os critérios de qualidade e segurança da nossa diretriz. Você pode ajustar e reenviar a qualquer momento.`,
-      ctaVariant: "danger" as const,
+      message: `Seu template <strong>${templateName}</strong> precisa de alguns ajustes para atender aos critérios de qualidade da plataforma. Você pode editá-lo e reenviar a qualquer momento.`,
+      ctaVariant: "danger",
     },
     TAKEN_DOWN: {
       subject: `⚠️ Seu template "${templateName}" foi removido`,
       category: "Moderação de Templates",
-      badgeType: "warning" as const,
+      badgeType: "warning",
       title: "Template Removido da Galeria",
-      message: `Seu template <strong>${templateName}</strong> foi removido da comunidade pública.`,
-      ctaVariant: "warning" as const,
+      message: `Seu template <strong>${templateName}</strong> foi despublicado da galeria da comunidade.`,
+      ctaVariant: "warning",
     },
-  }[status];
+  };
+
+  const currentConfig = config[status];
+
+  const reasonCallout = reason
+    ? renderEmailCallout({
+        title: "Feedback da Equipe de Moderação:",
+        message: reason,
+        variant: currentConfig.badgeType,
+      })
+    : "";
 
   const html = renderVortexEmail({
-    title: config.title,
-    category: config.category,
-    badgeType: config.badgeType,
+    title: currentConfig.title,
+    category: currentConfig.category,
+    badgeType: currentConfig.badgeType,
     bodyHtml: `
       <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${authorName}</strong>,</p>
-      <p style="margin: 0 0 16px; color: #9ca3af;">${config.message}</p>
-      ${
-        reason
-          ? `
-        <div style="background: #111827; border: 1px solid #1f2937; border-left: 4px solid #6366f1; border-radius: 8px; padding: 16px; margin: 20px 0;">
-          <strong style="color: #f3f4f6; font-size: 14px;">Feedback da Equipe de Moderação:</strong>
-          <p style="margin: 8px 0 0; color: #d1d5db; font-size: 14px; white-space: pre-wrap;">${reason}</p>
-        </div>
-      `
-          : ""
-      }
+      <p style="margin: 0 0 16px; color: #9ca3af;">${currentConfig.message}</p>
+      ${reasonCallout}
     `,
     cta: {
       label: "Acompanhar Meus Templates",
       url: "https://app.vortexpages.online/admin/templates",
-      variant: config.ctaVariant,
+      variant: currentConfig.ctaVariant,
     },
   });
 
   return sendEmail({
     to,
-    subject: config.subject,
+    subject: currentConfig.subject,
     html,
   });
 }
@@ -226,8 +255,14 @@ export async function sendDowngradeEmail({
 }): Promise<{ success: boolean; error?: string }> {
   const reasonText =
     reason === "INADIMPLENCIA"
-      ? "falta de compensação do pagamento"
+      ? "falta de compensação do pagamento da mensalidade"
       : "solicitação de cancelamento da assinatura";
+
+  const limitsCard = renderEmailMetadataCard([
+    { label: "Campanhas Ativas", value: "1 campanha (a mais recente)" },
+    { label: "Grupos de WhatsApp", value: "Até 3 grupos em rotação" },
+    { label: "Limite Mensal de Leads", value: "Até 100 leads / mês" },
+  ]);
 
   const html = renderVortexEmail({
     title: "Plano Alterado para Free",
@@ -236,18 +271,14 @@ export async function sendDowngradeEmail({
     bodyHtml: `
       <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${tenantName}</strong>,</p>
       <p style="margin: 0 0 16px; color: #9ca3af;">
-        Seu plano foi rebaixado para <strong>Free</strong> devido a ${reasonText}.
+        Seu plano foi alterado para <strong>Free</strong> devido a ${reasonText}.
       </p>
-      <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin: 20px 0;">
-        <h4 style="margin: 0 0 12px; font-size: 14px; color: #f3f4f6;">Seus novos limites ativos:</h4>
-        <ul style="margin: 0; padding-left: 20px; color: #9ca3af; font-size: 14px; line-height: 1.8;">
-          <li>1 campanha ativa (a mais recente criada)</li>
-          <li>3 grupos de WhatsApp com rotação ativa</li>
-          <li>Limite mensal de até 100 leads</li>
-        </ul>
-      </div>
+      <p style="margin: 0 0 8px; color: #f3f4f6; font-weight: 600; font-size: 14px;">
+        Seus novos limites ativos:
+      </p>
+      ${limitsCard}
       <p style="margin: 0; color: #9ca3af; font-size: 14px;">
-        Seus dados e leads anteriores continuam salvos e você pode reativar seu plano PRO ou ULTRA a qualquer momento para desbloquear capacidade ilimitada.
+        Seus dados e leads anteriores continuam preservados com segurança. Você pode reativar seu plano PRO ou ULTRA a qualquer momento para desbloquear capacidade ilimitada.
       </p>
     `,
     cta: {

@@ -3,11 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { Resend } from "resend";
-import { renderVortexEmail } from "@/lib/email-template";
+import { sendEmail } from "@/lib/notifications";
+import { renderVortexEmail, renderEmailMetadataCard } from "@/lib/email-template";
 import { z } from "zod";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ShareCampaignSchema = z.object({
   campaignId: z.string().uuid("ID de campanha inválido"),
@@ -95,35 +93,34 @@ export async function shareCampaignAction(
 
     const permissionLabel = parsed.data.permission === "EDIT" ? "Editor" : "Visualizador";
 
+    const metadataCard = renderEmailMetadataCard([
+      { label: "Campanha", value: campaign.name, highlight: true },
+      { label: "Permissão de Acesso", value: permissionLabel },
+      { label: "Compartilhado por", value: session.email },
+    ]);
+
     const emailHtml = renderVortexEmail({
-      title: "Você recebeu acesso a uma Campanha",
-      category: "Colaboração",
+      title: "Acesso Compartilhado à Campanha",
+      category: "Colaboração & Gestão",
       badgeType: "primary",
       bodyHtml: `
-        <p style="margin: 0 0 12px; color: #d1d5db;">
-          Olá! O usuário <strong>${session.email}</strong> compartilhou a campanha <strong>${campaign.name}</strong> com você no Vórtex.
+        <p style="margin: 0 0 14px; color: #d1d5db;">
+          Olá! O usuário <strong>${session.email}</strong> concedeu a você acesso à campanha <strong>${campaign.name}</strong> no Vórtex+:
         </p>
-        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; margin: 16px 0;">
-          <p style="margin: 0 0 6px; color: #9ca3af; font-size: 13px;">Campanha:</p>
-          <p style="margin: 0 0 12px; color: #ffffff; font-size: 16px; font-weight: 700;">${campaign.name}</p>
-          <p style="margin: 0 0 6px; color: #9ca3af; font-size: 13px;">Seu Nível de Acesso:</p>
-          <p style="margin: 0; color: #818cf8; font-size: 14px; font-weight: 600;">${permissionLabel}</p>
-        </div>
+        ${metadataCard}
         <p style="margin: 0; color: #9ca3af; font-size: 14px;">
-          ${existingUser ? "Acesse seu painel para acompanhar as métricas, leads e grupos." : "Clique no botão abaixo para criar sua senha e acessar o dashboard."}
+          ${existingUser ? "Acesse seu painel para acompanhar as métricas, leads capturados e grupos associados." : "Clique no botão abaixo para criar sua senha de acesso e visualizar a campanha."}
         </p>
       `,
       cta: {
-        label: existingUser ? "Acessar Campanha" : "Aceitar Convite e Criar Senha",
+        label: existingUser ? "Acessar Campanha" : "Aceitar Convite e Acessar",
         url: inviteUrl,
         variant: "primary",
       },
       footerNote: "Se você não conhece o remetente ou não esperava este convite, pode ignorar esta mensagem.",
     });
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
-    await resend.emails.send({
-      from: fromEmail,
+    await sendEmail({
       to: cleanEmail,
       subject: `Acesso compartilhado: ${campaign.name} — Vórtex+`,
       html: emailHtml,

@@ -8,6 +8,11 @@ import type { Plan } from "@/lib/prisma-types";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { enforceDowngrade } from "@/lib/subscription-guard";
 import { sendEmail } from "@/lib/notifications";
+import {
+  renderVortexEmail,
+  renderEmailCallout,
+  renderEmailMetadataCard,
+} from "@/lib/email-template";
 import { updateTemplateStatus } from "@/services/template.service";
 import { z } from "zod";
 
@@ -193,21 +198,43 @@ export async function sendTenantEmailAction(
     select: { name: true, slug: true },
   });
 
+  const infoCard = renderEmailMetadataCard([
+    { label: "Workspace / Tenant", value: `${tenant?.name || tenantId} (${tenant?.slug || tenantId})` },
+    { label: "Destinatário", value: adminUser.name || "Administrador", highlight: true },
+  ]);
+
+  const messageCallout = renderEmailCallout({
+    title: "Mensagem da Administração:",
+    message,
+    variant: "primary",
+  });
+
+  const html = renderVortexEmail({
+    title: subject,
+    category: "Administração",
+    badgeType: "primary",
+    bodyHtml: `
+      <p style="margin: 0 0 16px; color: #d1d5db;">
+        Olá <strong>${adminUser.name || "Administrador"}</strong>,
+      </p>
+      <p style="margin: 0 0 14px; color: #9ca3af;">
+        Você recebeu um comunicado oficial da equipe de administração do Vórtex+:
+      </p>
+      ${infoCard}
+      ${messageCallout}
+    `,
+    cta: {
+      label: "Acessar Meu Painel",
+      url: "https://app.vortexpages.online/admin",
+      variant: "primary",
+    },
+    footerNote: "Esta é uma notificação administrativa oficial referente à sua conta no Vórtex+.",
+  });
+
   const result = await sendEmail({
     to: adminUser.email,
     subject: `[Vórtex+] ${subject}`,
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-        <h1 style="font-size: 20px; font-weight: 700; color: #ffffff;">Vórtex+ — Administração</h1>
-        <p>Olá <strong>${adminUser.name || "Administrador"}</strong>,</p>
-        <p style="background: #171717; border: 1px solid #262626; border-radius: 8px; padding: 16px; white-space: pre-wrap;">${message}</p>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 24px 0;" />
-        <p style="font-size: 12px; color: #525252;">
-          Tenant: ${tenant?.name || tenantId} (${tenant?.slug || tenantId})<br/>
-          Esta é uma mensagem administrativa do Vórtex+.
-        </p>
-      </div>
-    `,
+    html,
   });
 
   await logAudit(
@@ -306,21 +333,43 @@ export async function sendTemplateAuthorEmailAction(
     throw new Error("Template não encontrado.");
   }
 
+  const templateCard = renderEmailMetadataCard([
+    { label: "Template", value: template.name, highlight: true },
+    { label: "Autor", value: template.author.name || "Criador" },
+  ]);
+
+  const messageCallout = renderEmailCallout({
+    title: "Mensagem da Moderação:",
+    message,
+    variant: "warning",
+  });
+
+  const html = renderVortexEmail({
+    title: subject,
+    category: "Moderação de Templates",
+    badgeType: "warning",
+    bodyHtml: `
+      <p style="margin: 0 0 16px; color: #d1d5db;">
+        Olá <strong>${template.author.name || "Criador"}</strong>,
+      </p>
+      <p style="margin: 0 0 14px; color: #9ca3af;">
+        A equipe de moderação do Vórtex+ enviou uma mensagem a respeito do seu template na comunidade:
+      </p>
+      ${templateCard}
+      ${messageCallout}
+    `,
+    cta: {
+      label: "Ver Meus Templates",
+      url: "https://app.vortexpages.online/admin/templates",
+      variant: "primary",
+    },
+    footerNote: "Esta mensagem foi enviada pela equipe de curadoria e moderação da comunidade Vórtex+.",
+  });
+
   const result = await sendEmail({
     to: template.author.email,
     subject: `[Vórtex+] ${subject}`,
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #e5e5e5; border-radius: 12px;">
-        <h1 style="font-size: 20px; font-weight: 700; color: #ffffff;">Vórtex+ — Moderação de Template</h1>
-        <p>Olá <strong>${template.author.name || "usuário"}</strong>,</p>
-        <p>Em relação ao seu template <strong>${template.name}</strong>:</p>
-        <p style="background: #171717; border: 1px solid #262626; border-radius: 8px; padding: 16px; white-space: pre-wrap;">${message}</p>
-        <hr style="border: none; border-top: 1px solid #262626; margin: 24px 0;" />
-        <p style="font-size: 12px; color: #525252;">
-          Esta é uma mensagem administrativa do Vórtex+.
-        </p>
-      </div>
-    `,
+    html,
   });
 
   await logAudit(

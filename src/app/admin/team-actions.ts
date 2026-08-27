@@ -3,12 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { getSession, switchTenantSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { Resend } from "resend";
-import { renderVortexEmail } from "@/lib/email-template";
+import { sendEmail } from "@/lib/notifications";
+import { renderVortexEmail, renderEmailMetadataCard } from "@/lib/email-template";
 import { z } from "zod";
 import { redirect } from "next/navigation";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const InviteMemberSchema = z.object({
   email: z.string().email("E-mail inválido").toLowerCase().trim(),
@@ -87,35 +85,34 @@ export async function inviteTeamMemberAction(
 
     const roleLabel = parsed.data.role === "ADMIN" ? "Admin" : "Membro";
 
+    const metadataCard = renderEmailMetadataCard([
+      { label: "Workspace", value: tenant.name, highlight: true },
+      { label: "Função na Equipe", value: roleLabel },
+      { label: "Convidado por", value: session.email },
+    ]);
+
     const emailHtml = renderVortexEmail({
       title: "Convite para Equipe do Workspace",
-      category: "Equipe",
+      category: "Equipe & Colaboração",
       badgeType: "primary",
       bodyHtml: `
-        <p style="margin: 0 0 12px; color: #d1d5db;">
-          Olá! Você foi convidado por <strong>${session.email}</strong> para fazer parte do workspace <strong>${tenant.name}</strong> no Vórtex.
+        <p style="margin: 0 0 14px; color: #d1d5db;">
+          Olá! Você foi convidado para colaborar no workspace <strong>${tenant.name}</strong> no Vórtex+:
         </p>
-        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; margin: 16px 0;">
-          <p style="margin: 0 0 6px; color: #9ca3af; font-size: 13px;">Workspace:</p>
-          <p style="margin: 0 0 12px; color: #ffffff; font-size: 16px; font-weight: 700;">${tenant.name}</p>
-          <p style="margin: 0 0 6px; color: #9ca3af; font-size: 13px;">Papel na Equipe:</p>
-          <p style="margin: 0; color: #818cf8; font-size: 14px; font-weight: 600;">${roleLabel}</p>
-        </div>
+        ${metadataCard}
         <p style="margin: 0; color: #9ca3af; font-size: 14px;">
-          ${existingUser ? "Você pode alternar entre seus workspaces diretamente no menu da barra lateral." : "Clique no botão abaixo para criar sua conta e acessar o workspace."}
+          ${existingUser ? "Você já possui uma conta no Vórtex+. Basta acessar para alternar entre seus workspaces diretamente no menu." : "Clique no botão abaixo para criar sua conta gratuita e acessar o workspace."}
         </p>
       `,
       cta: {
-        label: existingUser ? "Acessar Workspace" : "Criar Conta e Acessar",
+        label: existingUser ? "Acessar Workspace" : "Aceitar Convite e Acessar",
         url: inviteUrl,
         variant: "primary",
       },
       footerNote: "Se você não reconhece este convite, pode ignorar esta mensagem com segurança.",
     });
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
-    await resend.emails.send({
-      from: fromEmail,
+    await sendEmail({
       to: cleanEmail,
       subject: `Convite para a equipe: ${tenant.name} — Vórtex+`,
       html: emailHtml,

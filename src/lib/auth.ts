@@ -1,10 +1,9 @@
 import "server-only";
 
 import { redis } from "@/lib/redis";
-import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from "@/lib/notifications";
+import { renderVortexEmail, renderEmailOtpBox } from "@/lib/email-template";
 
 const OTP_TTL_SECONDS = 300; // 5 minutos
 const OTP_KEY_PREFIX = "auth:otp:";
@@ -83,42 +82,34 @@ export async function verifyOTP(
   return true;
 }
 
-import { renderVortexEmail } from "@/lib/email-template";
-
 export async function sendOTPEmail(
   email: string,
   otp: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const fromEmail =
-      process.env.RESEND_FROM_EMAIL || "Vórtex+ <onboarding@resend.dev>";
+    const otpBox = renderEmailOtpBox(otp, 5);
 
     const html = renderVortexEmail({
-      title: "Seu Código de Verificação 2FA",
+      title: "Seu Código de Acesso",
       category: "Segurança de Acesso",
       badgeType: "primary",
       bodyHtml: `
         <p style="margin: 0 0 16px; color: #d1d5db;">
-          Utilize o código de segurança abaixo para confirmar sua identidade e acessar o painel administrativo:
+          Utilize o código de segurança abaixo para confirmar sua identidade e acessar a plataforma:
         </p>
-        <div style="background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
-          <span class="code-block" style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${otp}</span>
-        </div>
-        <p style="margin: 0; color: #9ca3af; font-size: 14px;">
-          ⏱️ Este código expira em <strong>5 minutos</strong> e é de uso único.
+        ${otpBox}
+        <p style="margin: 0; color: #94a3b8; font-size: 13px; text-align: center;">
+          Se você não solicitou este código, ignore esta mensagem com segurança.
         </p>
       `,
-      footerNote: "Nunca compartilhe este código com ninguém. Se você não solicitou este acesso, sua senha pode estar segura, mas recomendamos verificar sua conta.",
+      footerNote: "Nunca compartilhe este código com ninguém. A equipe do Vórtex+ nunca solicitará sua senha ou código por chat.",
     });
 
-    await resend.emails.send({
-      from: fromEmail,
+    return await sendEmail({
       to: email,
       subject: "Seu código de verificação — Vórtex+",
       html,
     });
-
-    return { success: true };
   } catch (error) {
     console.error("Failed to send OTP email:", error);
     return {
