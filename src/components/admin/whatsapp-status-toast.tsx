@@ -49,22 +49,31 @@ export function WhatsAppStatusToast({ plan }: WhatsAppStatusToastProps) {
   useEffect(() => {
     if (!isUltra) return;
 
-     
-    checkStatus();
-    const interval = setInterval(checkStatus, 30_000);
+    let ignore = false;
+    const runCheck = async () => {
+      if (!ignore) {
+        await checkStatus();
+      }
+    };
 
-    return () => clearInterval(interval);
+    runCheck();
+    const interval = setInterval(runCheck, 30_000);
+
+    return () => {
+      ignore = true;
+      clearInterval(interval);
+    };
   }, [isUltra, checkStatus]);
 
   // Animação de entrada
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isOffline && !isDismissed && !isOnConfigPage) {
-      const timer = setTimeout(() => setIsVisible(true), 100);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => setIsVisible(true), 100);
     } else {
-       
-      setIsVisible(false);
+      timer = setTimeout(() => setIsVisible(false), 0);
     }
+    return () => clearTimeout(timer);
   }, [isOffline, isDismissed, isOnConfigPage]);
 
   if (!isUltra || !isOffline || isDismissed || isOnConfigPage) {

@@ -6,13 +6,21 @@ import { prisma } from "../lib/prisma";
 vi.mock("server-only", () => ({}));
 
 // Mock do Redis e Prisma
-vi.mock("../lib/redis", () => ({
-  redis: {
+const { mockRedisInstance } = vi.hoisted(() => {
+  const mock = {
     get: vi.fn(),
     set: vi.fn(),
     incrementIfNotFull: vi.fn(),
     defineCommand: vi.fn(),
-  },
+  };
+  return { mockRedisInstance: mock };
+});
+
+vi.mock("../lib/redis", () => ({
+  redis: mockRedisInstance,
+  createRedisConnection: vi.fn(() => mockRedisInstance),
+  defaultRedisOptions: {},
+  getRedisUrl: vi.fn(() => "redis://localhost:6379"),
 }));
 
 vi.mock("../lib/prisma", () => ({

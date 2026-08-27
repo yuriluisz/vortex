@@ -1,6 +1,6 @@
 import { Worker, Job } from "bullmq";
-import Redis from "ioredis";
 import { prisma } from "../lib/prisma";
+import { createRedisConnection } from "../lib/redis";
 
 // Tipos esperados nos payloads dos jobs
 interface LeadJobData {
@@ -50,7 +50,7 @@ const leadsWorker = new Worker<LeadJobData>(
     }
   },
   {
-    connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
+    connection: createRedisConnection({ lazyConnect: false }),
     concurrency: 20,
   }
 );
@@ -83,7 +83,7 @@ const viewsWorker = new Worker<ViewJobData>(
     }
   },
   {
-    connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
+    connection: createRedisConnection({ lazyConnect: false }),
     concurrency: 50,
   }
 );
@@ -213,7 +213,7 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
     await logAudit("GROUP_AUTO_CREATED", { campaignId, groupName: nextName, groupJid }, undefined, tenantId);
   },
   {
-    connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
+    connection: createRedisConnection({ lazyConnect: false }),
     concurrency: 1, // Não queremos criar o mesmo grupo em paralelo
   }
 );
@@ -236,7 +236,7 @@ const webhooksWorker = new Worker<any>(
     }
   },
   {
-    connection: new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null }),
+    connection: createRedisConnection({ lazyConnect: false }),
     concurrency: 10, // Podemos processar vários webhooks simultaneamente
   }
 );

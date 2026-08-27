@@ -6,14 +6,7 @@ import {
   X,
   UserPlus,
   Trash2,
-  Check,
   Loader2,
-  Shield,
-  Eye,
-  Edit3,
-  Copy,
-  Clock,
-  Sparkles,
 } from "lucide-react";
 import {
   shareCampaignAction,
@@ -53,14 +46,26 @@ export function CampaignShareModal({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (isOpen && campaignId) {
-      setLoadingShares(true);
-      setError(null);
-      setSuccessMsg(null);
-      getCampaignSharesAction(campaignId)
-        .then((res) => setShares(res as ShareItem[]))
-        .finally(() => setLoadingShares(false));
-    }
+    if (!isOpen || !campaignId) return;
+
+    let ignore = false;
+    getCampaignSharesAction(campaignId)
+      .then((res) => {
+        if (!ignore) {
+          setShares(res as ShareItem[]);
+          setLoadingShares(false);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "Erro ao carregar compartilhamentos.");
+          setLoadingShares(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [isOpen, campaignId]);
 
   if (!isOpen) return null;

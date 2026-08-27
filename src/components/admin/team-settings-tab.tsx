@@ -47,7 +47,18 @@ export function TeamSettingsTab() {
   };
 
   useEffect(() => {
-    loadMembers();
+    let ignore = false;
+    getTeamMembersAction()
+      .then((res) => {
+        if (!ignore) setMembers(res as MemberItem[]);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const handleInvite = (e: React.FormEvent) => {

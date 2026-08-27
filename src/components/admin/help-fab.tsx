@@ -451,8 +451,12 @@ export function HelpButton({ compact = false }: { compact?: boolean }) {
   }, [isOpen]);
 
   // Fechar ao navegar
+  const prevPathname = useRef(pathname);
   useEffect(() => {
-    setIsOpen(false);
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      setIsOpen(false);
+    }
   }, [pathname]);
 
   return (
@@ -562,8 +566,12 @@ export function HelpFAB() {
   }, [isOpen]);
 
   // Fechar ao navegar
+  const prevPathname = useRef(pathname);
   useEffect(() => {
-    setIsOpen(false);
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      setIsOpen(false);
+    }
   }, [pathname]);
 
   // Não renderizar o botão flutuante na interface do WhatsApp nem na docs
