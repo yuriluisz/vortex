@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { z } from "zod";
 import { sendReportEmail } from "@/lib/notifications";
 import { rateLimit } from "@/lib/rate-limit";
+
+const ReportSchema = z.object({
+  reporterEmail: z.string().email("Email inválido."),
+  message: z.string().min(10, "A mensagem deve ter pelo menos 10 caracteres."),
+  campaignSlug: z.string().min(1, "Slug da campanha é obrigatório."),
+  campaignName: z.string().optional(),
+  tenantSlug: z.string().optional(),
+  contentType: z.enum(["campaign", "template"]).optional().default("campaign"),
+});
 
 /**
  * POST /api/report
@@ -24,29 +34,14 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { reporterEmail, message, campaignSlug, campaignName, tenantSlug, contentType } = body;
+    const parsed = ReportSchema.safeParse(body);
 
-    // Validação básica
-    if (!reporterEmail || !message || !campaignSlug) {
-      return NextResponse.json(
-        { error: "Campos obrigatórios: reporterEmail, message, campaignSlug" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message || "Dados inválidos.";
+      return NextResponse.json({ error: firstError }, { status: 400 });
     }
 
-    if (!reporterEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reporterEmail)) {
-      return NextResponse.json(
-        { error: "Email inválido." },
-        { status: 400 }
-      );
-    }
-
-    if (message.length < 10) {
-      return NextResponse.json(
-        { error: "A mensagem deve ter pelo menos 10 caracteres." },
-        { status: 400 }
-      );
-    }
+    const { reporterEmail, message, campaignSlug, campaignName, tenantSlug, contentType } = parsed.data;
 
     const result = await sendReportEmail({
       reporterEmail,

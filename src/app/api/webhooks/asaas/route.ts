@@ -2,9 +2,33 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PLAN_LIMITS } from "@/lib/plans";
 import type { Plan } from "@/lib/prisma-types";
+import type { Prisma } from "@prisma/client";
 
 // Grace period: 5 dias
 const GRACE_PERIOD_DAYS = 5;
+
+interface AsaasPaymentPayload {
+  id?: string;
+  customer?: string;
+  subscription?: string;
+  value?: number;
+  netValue?: number;
+  status?: string;
+  billingType?: string;
+}
+
+interface AsaasSubscriptionPayload {
+  id?: string;
+  customer?: string;
+  value?: number;
+  status?: string;
+}
+
+interface AsaasWebhookBody {
+  event: string;
+  payment?: AsaasPaymentPayload;
+  subscription?: AsaasSubscriptionPayload;
+}
 
 /**
  * GET — Health-check / validação do webhook pelo ASAAS.
@@ -49,17 +73,18 @@ export async function POST(req: Request) {
     // ================================================================
     const rawBody = await req.text();
 
-    let payload: any;
+    let payload: AsaasWebhookBody;
     try {
-      payload = JSON.parse(rawBody);
+      payload = JSON.parse(rawBody) as AsaasWebhookBody;
     } catch {
       console.error("[Asaas Webhook] ❌ JSON inválido");
       return NextResponse.json({ received: true });
     }
 
-
-
-    const event: string = payload.event;
+    const event = payload?.event;
+    if (!event) {
+      return NextResponse.json({ received: true });
+    }
     console.log(`[Asaas Webhook] Evento: ${event}`);
 
     // ================================================================
@@ -71,15 +96,15 @@ export async function POST(req: Request) {
 
     // Eventos de pagamento
     if (payload.payment) {
-      customerId = payload.payment.customer;
-      paymentId = payload.payment.id;
+      customerId = payload.payment.customer || null;
+      paymentId = payload.payment.id || null;
       subscriptionId = payload.payment.subscription || null;
     }
 
     // Eventos de assinatura
     if (payload.subscription) {
-      customerId = payload.subscription.customer;
-      subscriptionId = payload.subscription.id;
+      customerId = payload.subscription.customer || null;
+      subscriptionId = payload.subscription.id || null;
     }
 
     if (!customerId) {
@@ -123,7 +148,7 @@ export async function POST(req: Request) {
       const planToActivate = tenant.pendingPlan || tenant.plan;
       const planLimits = PLAN_LIMITS[planToActivate as Plan];
 
-      const updateData: Record<string, any> = {
+      const updateData: Prisma.TenantUpdateInput = {
         plan: planToActivate,
         subscriptionStatus: "ACTIVE",
         currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 dias

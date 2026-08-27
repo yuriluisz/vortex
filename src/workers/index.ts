@@ -1,6 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { prisma } from "../lib/prisma";
 import { createRedisConnection } from "../lib/redis";
+import type { Prisma } from "@prisma/client";
 
 // Tipos esperados nos payloads dos jobs
 interface LeadJobData {
@@ -9,7 +10,7 @@ interface LeadJobData {
   name: string | null;
   whatsapp: string;
   answers?: Record<string, string>;
-  metadata: any;
+  metadata?: Prisma.InputJsonValue;
   datadb: string;
   horadb: string;
 }
@@ -221,18 +222,38 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
 // ============================================================================
 // WORKER: WEBHOOKS QUEUE (EVOLUTION API)
 // ============================================================================
-const webhooksWorker = new Worker<any>(
+interface EvolutionGroupParticipantPayload {
+  event: "group-participants.update";
+  instance: string;
+  data: {
+    groupJid: string;
+    action: "add" | "remove" | string;
+    participants: (string | { id?: string })[];
+  };
+}
+
+interface EvolutionConnectionPayload {
+  event: "connection.update";
+  instance: string;
+  data: {
+    state: string;
+  };
+}
+
+type EvolutionWebhookJobData = EvolutionGroupParticipantPayload | EvolutionConnectionPayload;
+
+const webhooksWorker = new Worker<EvolutionWebhookJobData>(
   "webhooks-queue",
-  async (job: Job<any>) => {
+  async (job: Job<EvolutionWebhookJobData>) => {
     const body = job.data;
-    const event = body.event as string;
+    const event = body.event;
 
     console.log(`[Worker - Webhooks] Processando evento: ${event}`);
 
-    if (event === "group-participants.update") {
-      await processGroupParticipants(body);
-    } else if (event === "connection.update") {
-      await processConnectionUpdate(body);
+    if (event === "group-participants.update" && "participants" in body.data) {
+      await processGroupParticipants(body as EvolutionGroupParticipantPayload);
+    } else if (event === "connection.update" && "state" in body.data) {
+      await processConnectionUpdate(body as EvolutionConnectionPayload);
     }
   },
   {
@@ -242,7 +263,7 @@ const webhooksWorker = new Worker<any>(
 );
 
 // Lógica de processamento de participantes
-async function processGroupParticipants(payload: any) {
+async function processGroupParticipants(payload: EvolutionGroupParticipantPayload) {
   const { instance: instanceName, data } = payload;
   const { groupJid, action, participants } = data;
 
@@ -265,6 +286,7 @@ async function processGroupParticipants(payload: any) {
 
   if (action === "add") {
     const { extractPhoneVariants, matchesPhoneNumber, cleanDigits } = await import("../lib/phone-utils");
+    const matchedLeadIds: string[] = [];
 
     for (const participant of participants) {
       const rawId = typeof participant === "string" ? participant : participant?.id || "";
@@ -300,53 +322,63 @@ async function processGroupParticipants(payload: any) {
       );
 
       if (matchedLead) {
-        await prisma.lead.update({
-          where: { id: matchedLead.id },
-          data: { status: "JOINED", joinedAt: new Date(), groupId: group.id },
-        });
+        matchedLeadIds.push(matchedLead.id);
       }
     }
-    
-    // Atualizamos a contagem do banco de dados
-    await prisma.group.update({
-      where: { id: group.id },
-      data: { currentCount: { increment: participants.length } },
-    });
+
+    // Transação atômica para atualizar leads e contagem consolidada
+    await prisma.$transaction([
+      ...matchedLeadIds.map((leadId) =>
+        prisma.lead.update({
+          where: { id: leadId },
+          data: { status: "JOINED", joinedAt: new Date(), groupId: group.id },
+        })
+      ),
+      prisma.group.update({
+        where: { id: group.id },
+        data: { currentCount: { increment: participants.length } },
+      }),
+    ]);
     
   } else if (action === "remove") {
     const { extractPhoneVariants, cleanDigits } = await import("../lib/phone-utils");
-
     const newCount = Math.max(0, group.currentCount - participants.length);
-    await prisma.group.update({ where: { id: group.id }, data: { currentCount: newCount } });
 
-    for (const participant of participants) {
+    const orClauses = participants.flatMap((participant) => {
       const rawId = typeof participant === "string" ? participant : participant?.id || "";
-      if (!rawId) continue;
-
+      if (!rawId) return [];
       const rawPhone = rawId.split("@")[0].split(":")[0];
       const digits = cleanDigits(rawPhone);
-      if (!digits || digits.length < 8) continue;
-
+      if (!digits || digits.length < 8) return [];
       const variants = extractPhoneVariants(rawPhone);
       const base8 = digits.slice(-8);
+      return [
+        ...variants.map((v) => ({ whatsapp: v })),
+        { whatsapp: { contains: base8 } },
+      ];
+    });
 
-      await prisma.lead.updateMany({
-        where: {
-          tenantId,
-          groupId: group.id,
-          status: "JOINED",
-          OR: [
-            ...variants.map((v) => ({ whatsapp: v })),
-            { whatsapp: { contains: base8 } },
-          ],
-        },
-        data: { status: "NOT_JOINED" },
-      });
-    }
+    // Transação atômica para atualizar grupo e status dos leads
+    await prisma.$transaction([
+      prisma.group.update({ where: { id: group.id }, data: { currentCount: newCount } }),
+      ...(orClauses.length > 0
+        ? [
+            prisma.lead.updateMany({
+              where: {
+                tenantId,
+                groupId: group.id,
+                status: "JOINED",
+                OR: orClauses,
+              },
+              data: { status: "NOT_JOINED" },
+            }),
+          ]
+        : []),
+    ]);
   }
 }
 
-async function processConnectionUpdate(payload: any) {
+async function processConnectionUpdate(payload: EvolutionConnectionPayload) {
   const { instance: instanceName, data } = payload;
   const { state } = data;
 

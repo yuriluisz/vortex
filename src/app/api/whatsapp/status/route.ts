@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getConnectionState } from "@/lib/evolution";
-
-const COOKIE_NAME = "vortex_admin_session";
 
 /**
  * GET /api/whatsapp/status
@@ -14,9 +11,7 @@ const COOKIE_NAME = "vortex_admin_session";
  */
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const cookie = cookieStore.get(COOKIE_NAME)?.value;
-    const session = await decrypt(cookie);
+    const session = await getSession();
 
     if (!session?.tenantId) {
       return NextResponse.json(

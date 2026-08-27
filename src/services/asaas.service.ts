@@ -42,7 +42,7 @@ function validateConfig(): void {
   }
 }
 
-async function asaasFetch(endpoint: string, options: RequestInit = {}) {
+async function asaasFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   validateConfig();
 
   const url = `${ASAAS_API_URL}${endpoint}`;
@@ -72,10 +72,10 @@ async function asaasFetch(endpoint: string, options: RequestInit = {}) {
     logAsaas("error", `Erro na API ASAAS: ${method} ${endpoint}`, {
       status: response.status,
       statusText: response.statusText,
-      errors: data.errors,
+      errors: data?.errors,
     });
 
-    const errorMessages = data.errors?.map((e: any) => e.description).join(" | ") || "";
+    const errorMessages = data?.errors?.map((e: { description?: string }) => e.description).filter(Boolean).join(" | ") || "";
     throw new Error(
       errorMessages
         ? `ASAAS: ${errorMessages}`
@@ -85,10 +85,10 @@ async function asaasFetch(endpoint: string, options: RequestInit = {}) {
 
   logAsaas("info", `Resposta OK: ${method} ${endpoint}`, {
     status: response.status,
-    responseKeys: Object.keys(data),
+    responseKeys: data ? Object.keys(data) : [],
   });
 
-  return data;
+  return data as T;
 }
 
 // ============================================================================
@@ -119,7 +119,7 @@ export async function createCustomer(
 ) {
   logAsaas("info", "Criando customer", { name, email, hasBillingData: !!billingData });
 
-  const body: Record<string, any> = { name, email };
+  const body: Record<string, unknown> = { name, email };
 
   if (billingData?.cpfCnpj) {
     body.cpfCnpj = billingData.cpfCnpj;
@@ -172,7 +172,7 @@ export async function updateCustomer(
 ) {
   logAsaas("info", "Atualizando customer", { customerId });
 
-  const body: Record<string, any> = {
+  const body: Record<string, unknown> = {
     cpfCnpj: billingData.cpfCnpj,
     personType: billingData.personType === "JURIDICA" ? "JURIDICA" : "FISICA",
   };
