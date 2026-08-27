@@ -50,7 +50,7 @@ export function SyncLeadsButton({ campaignId, tenantId }: { campaignId: string; 
 
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 bg-card border border-border px-5 py-4 rounded-xl shadow-2xl max-w-sm">
+        <div className="fixed top-6 right-6 z-[100] flex items-center gap-3 bg-card border border-border px-5 py-4 rounded-xl shadow-2xl max-w-sm animate-in fade-in slide-in-from-top-2 duration-200">
           {toast.type === "success" ? (
             <div className="rounded-full bg-emerald-500/10 p-1.5 flex-shrink-0">
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />

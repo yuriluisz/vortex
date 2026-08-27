@@ -82,10 +82,10 @@ export function WhatsAppStatusToast({ plan }: WhatsAppStatusToastProps) {
 
   return (
     <div
-      className={`fixed bottom-22 right-6 z-[100] transition-all duration-500 ease-out ${
+      className={`fixed top-6 right-6 z-[100] transition-all duration-500 ease-out ${
         isVisible
           ? "translate-y-0 opacity-100 scale-100"
-          : "translate-y-4 opacity-0 scale-95"
+          : "-translate-y-4 opacity-0 scale-95"
       }`}
     >
       <div
