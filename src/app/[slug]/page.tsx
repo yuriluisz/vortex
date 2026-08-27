@@ -7,8 +7,7 @@ import GoogleTagManager from "@/components/GoogleTagManager";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
-
-export const revalidate = 60; // 60 segundos (Edge Cache para CDN)
+export const dynamic = "force-dynamic";
 interface PageProps {
   params: Promise<{ slug: string }>;
 }

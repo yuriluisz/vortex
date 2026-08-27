@@ -9,6 +9,8 @@ import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ hostname: string }>;
 }

@@ -11,6 +11,7 @@ import { requireTenantOwnership } from "@/lib/tenant-guard";
 import { canCustomizeLink } from "@/lib/campaign-meta";
 import type { Plan } from "@/lib/prisma-types";
 import { addCustomHostname, removeCustomHostname, getCustomHostnameStatus } from "@/services/cloudflare.service";
+import { invalidateCampaignCache } from "@/lib/campaign-cache";
 
 // ============================================================================
 // SEGURANÇA: Validação de sessão reutilizável
@@ -249,6 +250,7 @@ export async function saveCampaignAction(
       await addCustomHostname(finalCustomDomain);
     }
 
+    await invalidateCampaignCache(campaignId);
     await logAudit("CAMPAIGN_UPDATED", { campaignId, slug, name }, userId, tenantId);
   } catch (error) {
     console.error(error);
@@ -287,6 +289,7 @@ export async function deleteCampaignAction(id: string) {
 
   const campaignToDelete = await prisma.campaign.findUnique({ where: { id }, select: { customDomain: true } });
   await prisma.campaign.delete({ where: { id } });
+  await invalidateCampaignCache(id);
 
   if (campaignToDelete?.customDomain) {
     await removeCustomHostname(campaignToDelete.customDomain);
@@ -311,6 +314,7 @@ export async function toggleCampaignStatusAction(
     where: { id },
     data: { active },
   });
+  await invalidateCampaignCache(id);
 
   await logAudit(
     "CAMPAIGN_UPDATED",
@@ -348,6 +352,7 @@ export async function toggleCampaignProtectionAction(
     where: { id: campaignId },
     data,
   });
+  await invalidateCampaignCache(campaignId);
 
   await logAudit(
     "CAMPAIGN_UPDATED",
