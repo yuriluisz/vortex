@@ -115,7 +115,6 @@ function CustomForm({
     setError("");
 
     if (isPreview || campaignId === "preview") {
-      alert("✅ Modo Preview: Botão 1-Click testado com sucesso! Ao publicar a campanha, ele contabilizará o clique e redirecionará para o grupo de WhatsApp.");
       return;
     }
 

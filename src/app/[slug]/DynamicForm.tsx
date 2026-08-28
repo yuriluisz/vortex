@@ -43,7 +43,6 @@ export default function DynamicForm({
     e.preventDefault();
 
     if (isPreview || campaignId === "preview") {
-      alert("✅ Modo Preview: Formulário testado com sucesso! Ao publicar a campanha, ele salvará o lead e redirecionará para o grupo de WhatsApp.");
       return;
     }
     const form = e.currentTarget;
