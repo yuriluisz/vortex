@@ -19,6 +19,7 @@ interface DynamicFormProps {
   slug: string;
   formSchema: FormField[];
   isCustomDomain?: boolean;
+  isPreview?: boolean;
 }
 
 export default function DynamicForm({
@@ -26,6 +27,7 @@ export default function DynamicForm({
   slug,
   formSchema,
   isCustomDomain = false,
+  isPreview = false,
 }: DynamicFormProps) {
   const [state, formAction, pending] = useActionState<LeadFormState, FormData>(
     submitLeadAction,
@@ -39,6 +41,11 @@ export default function DynamicForm({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (isPreview || campaignId === "preview") {
+      alert("✅ Modo Preview: Formulário testado com sucesso! Ao publicar a campanha, ele salvará o lead e redirecionará para o grupo de WhatsApp.");
+      return;
+    }
     const form = e.currentTarget;
     const formData = new FormData(form);
 

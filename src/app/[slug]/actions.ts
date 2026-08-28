@@ -34,12 +34,15 @@ export async function submitLeadAction(
   const slug = formData.get("slug") as string;
   const isCustomDomain = formData.get("isCustomDomain") === "true";
 
+  const rawName = formData.get("name");
+  const rawWhatsapp = formData.get("whatsapp");
+
   // Validação base
   const parsed = LeadSchema.safeParse({
     campaignId,
     slug,
-    name: formData.get("name") || undefined,
-    whatsapp: formData.get("whatsapp"),
+    name: typeof rawName === "string" && rawName.trim() ? rawName.trim() : undefined,
+    whatsapp: typeof rawWhatsapp === "string" && rawWhatsapp.trim() ? rawWhatsapp.trim() : undefined,
   });
 
   if (!parsed.success) {

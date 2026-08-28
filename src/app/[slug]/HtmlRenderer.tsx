@@ -96,11 +96,13 @@ function CustomForm({
   campaignId,
   slug,
   isCustomDomain,
+  isPreview = false,
 }: {
   children: React.ReactNode;
   campaignId: string;
   slug: string;
   isCustomDomain: boolean;
+  isPreview?: boolean;
 }) {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -111,6 +113,11 @@ function CustomForm({
     e.preventDefault();
     e.stopPropagation();
     setError("");
+
+    if (isPreview || campaignId === "preview") {
+      alert("✅ Modo Preview: Botão 1-Click testado com sucesso! Ao publicar a campanha, ele contabilizará o clique e redirecionará para o grupo de WhatsApp.");
+      return;
+    }
 
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -265,6 +272,7 @@ export default function HtmlRenderer({
             slug={slug}
             formSchema={formSchema}
             isCustomDomain={isCustomDomain}
+            isPreview={isPreview}
           />
         );
       }
@@ -278,7 +286,12 @@ export default function HtmlRenderer({
       ) {
         // Preservar 100% do conteúdo interno do form (inputs, labels, botões)
         return (
-          <CustomForm campaignId={campaignId} slug={slug} isCustomDomain={isCustomDomain}>
+          <CustomForm
+            campaignId={campaignId}
+            slug={slug}
+            isCustomDomain={isCustomDomain}
+            isPreview={isPreview}
+          >
             {domToReact(domNode.children as any, options)}
           </CustomForm>
         );
