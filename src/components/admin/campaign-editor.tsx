@@ -292,14 +292,53 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
   // ── Iframe Mount State ──
   const [iframePortalRoot, setIframePortalRoot] = useState<HTMLElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  const syncPortalRoot = useCallback((iframe: HTMLIFrameElement | null) => {
+    if (!iframe) return false;
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (doc) {
+        const root = doc.getElementById("portal-root");
+        if (root) {
+          setIframePortalRoot((prev) => (prev === root ? prev : root));
+          return true;
+        }
+      }
+    } catch {
+      // Ignora erro cross-origin
+    }
+    return false;
+  }, []);
 
   const handleIframeLoad = useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
-    const doc = e.currentTarget.contentDocument;
-    if (doc) {
-      const root = doc.getElementById("portal-root");
-      if (root) setIframePortalRoot(root);
+    syncPortalRoot(e.currentTarget);
+  }, [syncPortalRoot]);
+
+  const setIframeRef = useCallback((node: HTMLIFrameElement | null) => {
+    iframeRef.current = node;
+    if (node) {
+      if (!syncPortalRoot(node)) {
+        node.addEventListener("load", () => syncPortalRoot(node), { once: true });
+      }
+    } else {
+      setIframePortalRoot(null);
     }
-  }, []);
+  }, [syncPortalRoot]);
+
+  useEffect(() => {
+    if (activeTab === "code") return;
+    if (iframeRef.current && !iframePortalRoot) {
+      if (!syncPortalRoot(iframeRef.current)) {
+        const timer = setInterval(() => {
+          if (syncPortalRoot(iframeRef.current)) {
+            clearInterval(timer);
+          }
+        }, 50);
+        return () => clearInterval(timer);
+      }
+    }
+  }, [activeTab, iframePortalRoot, syncPortalRoot]);
 
   // ── FormSchema Parser ──
   const parsedFormSchema = useMemo(() => {
@@ -876,6 +915,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               }`}
             >
               <iframe
+                ref={setIframeRef}
                 srcDoc={PREVIEW_BASE_DOCUMENT}
                 onLoad={handleIframeLoad}
                 title="Preview"
