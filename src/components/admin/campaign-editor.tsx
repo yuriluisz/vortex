@@ -177,6 +177,36 @@ const PREVIEW_BASE_DOCUMENT = `<!DOCTYPE html>
     /* Ensure forms inherit color for dark themes */
     input,select,textarea,button{font-family:inherit;color:inherit}
   </style>
+  <script>
+    // Interceptar cliques para rolagem suave em âncoras (#) e impedir navegação indesejada do iframe
+    document.addEventListener('click', function(e) {
+      var link = e.target.closest('a');
+      if (!link) return;
+      var href = link.getAttribute('href');
+      if (!href) return;
+
+      if (href.startsWith('#')) {
+        e.preventDefault();
+        e.stopPropagation();
+        var targetId = href.substring(1);
+        var targetEl = targetId ? (document.getElementById(targetId) || document.querySelector(href)) : null;
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (href === '#' || href === '#inicio') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        return false;
+      }
+
+      if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//') || href.startsWith('tel:') || href.startsWith('mailto:')) {
+        link.setAttribute('target', '_blank');
+      } else {
+        // Prevenir rotas relativas de navegarem o iframe para o painel admin
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
 </head>
 <body><div id="portal-root"></div></body>
 </html>`;
@@ -850,7 +880,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                 onLoad={handleIframeLoad}
                 title="Preview"
                 className="w-full h-full bg-white"
-                sandbox="allow-scripts allow-same-origin allow-forms"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />
               {iframePortalRoot && createPortal(
                 <HtmlRenderer
