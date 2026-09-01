@@ -62,8 +62,12 @@ export default async function proxy(request: NextRequest) {
     !hostname.includes("trycloudflare.com") &&
     !hostname.includes("vercel.app")
   ) {
+    // 🔒 Produção exige validação do segredo para evitar spoofing direto de cabeçalho Host
+    if (process.env.NODE_ENV === "production" && (!expectedSecret || vortexSecret !== expectedSecret)) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
     // Fallback: se não veio X-Vortex-Host mas o Hostname é diferente, tenta reescrever
-    // Nota: Isso é um fallback caso o Worker falhe em mandar o header, ou acesso direto.
     const url = new URL(`/custom-domain/${hostname}${pathname}`, request.url);
     
     const requestHeaders = new Headers(request.headers);

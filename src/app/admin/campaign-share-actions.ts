@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { sendEmail } from "@/lib/notifications";
-import { renderVortexEmail, renderEmailMetadataCard } from "@/lib/email-template";
+import { renderVortexEmail, renderEmailMetadataCard, escapeHtml } from "@/lib/email-template";
 import { z } from "zod";
 
 const ShareCampaignSchema = z.object({
@@ -29,6 +29,9 @@ export async function shareCampaignAction(
   const session = await getSession();
   if (!session?.userId || !session.tenantId) {
     return { error: "Não autorizado." };
+  }
+  if (session.role === "MEMBER") {
+    return { error: "Apenas administradores podem gerenciar compartilhamentos de campanhas." };
   }
 
   const parsed = ShareCampaignSchema.safeParse({ campaignId, email, permission });
@@ -105,7 +108,7 @@ export async function shareCampaignAction(
       badgeType: "primary",
       bodyHtml: `
         <p style="margin: 0 0 14px; color: #d1d5db;">
-          Olá! O usuário <strong>${session.email}</strong> concedeu a você acesso à campanha <strong>${campaign.name}</strong> no Vórtex+:
+          Olá! O usuário <strong>${escapeHtml(session.email)}</strong> concedeu a você acesso à campanha <strong>${escapeHtml(campaign.name)}</strong> no Vórtex+:
         </p>
         ${metadataCard}
         <p style="margin: 0; color: #9ca3af; font-size: 14px;">
@@ -151,6 +154,9 @@ export async function revokeCampaignShareAction(shareId: string): Promise<ShareA
   const session = await getSession();
   if (!session?.userId || !session.tenantId) {
     return { error: "Não autorizado." };
+  }
+  if (session.role === "MEMBER") {
+    return { error: "Apenas administradores podem gerenciar compartilhamentos de campanhas." };
   }
 
   const share = await prisma.campaignShare.findUnique({

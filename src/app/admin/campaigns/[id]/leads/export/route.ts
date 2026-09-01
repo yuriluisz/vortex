@@ -67,8 +67,14 @@ export async function GET(
 
   const escapeCSV = (val: any) => {
     if (val === null || val === undefined) return "";
-    const str = String(val);
-    if (str.includes(",") || str.includes("\\n") || str.includes('"')) {
+    let str = String(val);
+
+    // Previne CSV / Formula Injection (DDE) desarmando comandos de planilha (=, +, -, @, \t, \r)
+    if (/^[=+\-@\t\r]/.test(str)) {
+      str = `'${str}`;
+    }
+
+    if (str.includes(",") || str.includes("\n") || str.includes("\r") || str.includes('"')) {
       return `"${str.replace(/"/g, '""')}"`;
     }
     return str;
@@ -99,7 +105,7 @@ export async function GET(
     return row.map(escapeCSV).join(",");
   });
 
-  const csv = [headers.join(","), ...rows].join("\\n");
+  const csv = [headers.join(","), ...rows].join("\n");
 
   const now = new Date().toISOString().split("T")[0];
   const filename = `leads-${campaign.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${now}.csv`;

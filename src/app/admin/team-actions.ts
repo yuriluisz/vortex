@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession, switchTenantSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { sendEmail } from "@/lib/notifications";
-import { renderVortexEmail, renderEmailMetadataCard } from "@/lib/email-template";
+import { renderVortexEmail, renderEmailMetadataCard, escapeHtml } from "@/lib/email-template";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 
@@ -28,6 +28,10 @@ export async function inviteTeamMemberAction(
   const session = await getSession();
   if (!session?.userId || !session.tenantId) {
     return { error: "Não autorizado." };
+  }
+
+  if (session.role === "MEMBER") {
+    return { error: "Apenas administradores podem convidar membros para a equipe." };
   }
 
   const parsed = InviteMemberSchema.safeParse({ email, role });
@@ -97,7 +101,7 @@ export async function inviteTeamMemberAction(
       badgeType: "primary",
       bodyHtml: `
         <p style="margin: 0 0 14px; color: #d1d5db;">
-          Olá! Você foi convidado para colaborar no workspace <strong>${tenant.name}</strong> no Vórtex+:
+          Olá! Você foi convidado para colaborar no workspace <strong>${escapeHtml(tenant.name)}</strong> no Vórtex+:
         </p>
         ${metadataCard}
         <p style="margin: 0; color: #9ca3af; font-size: 14px;">
@@ -142,6 +146,10 @@ export async function removeTeamMemberAction(memberId: string): Promise<TeamActi
   const session = await getSession();
   if (!session?.userId || !session.tenantId) {
     return { error: "Não autorizado." };
+  }
+
+  if (session.role === "MEMBER") {
+    return { error: "Apenas administradores podem remover membros da equipe." };
   }
 
   const member = await prisma.tenantMember.findUnique({

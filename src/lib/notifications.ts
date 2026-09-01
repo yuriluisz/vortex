@@ -4,6 +4,7 @@ import {
   renderVortexEmail,
   renderEmailMetadataCard,
   renderEmailCallout,
+  escapeHtml,
   EmailBadgeType,
 } from "@/lib/email-template";
 
@@ -131,9 +132,9 @@ export async function sendGracePeriodWarningEmail({
     category: "Assinatura & Faturamento",
     badgeType: "warning",
     bodyHtml: `
-      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${tenantName}</strong>,</p>
+      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${escapeHtml(tenantName)}</strong>,</p>
       <p style="margin: 0 0 16px; color: #9ca3af;">
-        Identificamos que o pagamento da mensalidade do seu plano <strong>${planName}</strong> está vencido.
+        Identificamos que o pagamento da mensalidade do seu plano <strong>${escapeHtml(planName)}</strong> está vencido.
       </p>
       ${warningCallout}
       <p style="margin: 0; color: #9ca3af; font-size: 14px;">
@@ -171,6 +172,7 @@ export async function sendTemplateStatusEmail({
   status: "PUBLISHED" | "REJECTED" | "TAKEN_DOWN";
   reason?: string;
 }): Promise<{ success: boolean; error?: string }> {
+  const safeTemplateName = escapeHtml(templateName);
   const config: Record<
     "PUBLISHED" | "REJECTED" | "TAKEN_DOWN",
     {
@@ -183,27 +185,27 @@ export async function sendTemplateStatusEmail({
     }
   > = {
     PUBLISHED: {
-      subject: `✅ Seu template "${templateName}" foi publicado!`,
+      subject: `✅ Seu template "${safeTemplateName}" foi publicado!`,
       category: "Comunidade de Templates",
       badgeType: "success",
       title: "Template Aprovado & Publicado!",
-      message: `Seu template <strong>${templateName}</strong> foi aprovado e agora está disponível na galeria pública da comunidade para milhares de criadores.`,
+      message: `Seu template <strong>${safeTemplateName}</strong> foi aprovado e agora está disponível na galeria pública da comunidade para milhares de criadores.`,
       ctaVariant: "primary",
     },
     REJECTED: {
-      subject: `❌ Seu template "${templateName}" precisa de ajustes`,
+      subject: `❌ Seu template "${safeTemplateName}" precisa de ajustes`,
       category: "Moderação de Templates",
       badgeType: "danger",
       title: "Template Não Aprovado",
-      message: `Seu template <strong>${templateName}</strong> precisa de alguns ajustes para atender aos critérios de qualidade da plataforma. Você pode editá-lo e reenviar a qualquer momento.`,
+      message: `Seu template <strong>${safeTemplateName}</strong> precisa de alguns ajustes para atender aos critérios de qualidade da plataforma. Você pode editá-lo e reenviar a qualquer momento.`,
       ctaVariant: "danger",
     },
     TAKEN_DOWN: {
-      subject: `⚠️ Seu template "${templateName}" foi removido`,
+      subject: `⚠️ Seu template "${safeTemplateName}" foi removido`,
       category: "Moderação de Templates",
       badgeType: "warning",
       title: "Template Removido da Galeria",
-      message: `Seu template <strong>${templateName}</strong> foi despublicado da galeria da comunidade.`,
+      message: `Seu template <strong>${safeTemplateName}</strong> foi despublicado da galeria da comunidade.`,
       ctaVariant: "warning",
     },
   };
@@ -223,7 +225,7 @@ export async function sendTemplateStatusEmail({
     category: currentConfig.category,
     badgeType: currentConfig.badgeType,
     bodyHtml: `
-      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${authorName}</strong>,</p>
+      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${escapeHtml(authorName)}</strong>,</p>
       <p style="margin: 0 0 16px; color: #9ca3af;">${currentConfig.message}</p>
       ${reasonCallout}
     `,
@@ -269,7 +271,7 @@ export async function sendDowngradeEmail({
     category: "Assinatura & Limites",
     badgeType: "warning",
     bodyHtml: `
-      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${tenantName}</strong>,</p>
+      <p style="margin: 0 0 16px; color: #d1d5db;">Olá <strong>${escapeHtml(tenantName)}</strong>,</p>
       <p style="margin: 0 0 16px; color: #9ca3af;">
         Seu plano foi alterado para <strong>Free</strong> devido a ${reasonText}.
       </p>

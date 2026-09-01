@@ -29,6 +29,26 @@ interface HtmlRendererProps {
   isPreview?: boolean;
 }
 
+const ALLOWED_IFRAME_HOSTS = [
+  "youtube.com",
+  "www.youtube.com",
+  "youtu.be",
+  "player.vimeo.com",
+  "vimeo.com",
+  "www.vimeo.com",
+];
+
+function isSafeIframeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_IFRAME_HOSTS.some(
+      (allowed) => parsed.hostname === allowed || parsed.hostname.endsWith(`.${allowed}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Extrai apenas o conteúdo interno do <body> do HTML da campanha,
  * removendo <html>, <head> e <body> para evitar conflito com o
@@ -47,7 +67,7 @@ function extractBodyContent(html: string): string {
         .trim();
 
   // 🔒 Sanitizar: permite HTML de layout mas bloqueia scripts e event handlers
-  return DOMPurify.sanitize(raw, {
+  let sanitized = DOMPurify.sanitize(raw, {
     ADD_TAGS: ["style", "link", "iframe", "form", "input", "select", "textarea", "button", "label", "option", "optgroup", "fieldset", "legend"],
     ADD_ATTR: [
       "target", "rel", "data-vortex-form-slot", "data-vortex-custom-form",
@@ -64,6 +84,17 @@ function extractBodyContent(html: string): string {
       "formtarget", "formnovalidate", "formenctype",
     ],
   });
+
+  // 🔒 Filtrar iframes: permite apenas hosts aprovados (ex: YouTube, Vimeo)
+  sanitized = sanitized.replace(
+    /<iframe\b[^>]*\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>/gi,
+    (match, dq, sq, unquoted) => {
+      const src = dq || sq || unquoted || "";
+      return isSafeIframeUrl(src) ? match : "";
+    }
+  );
+
+  return sanitized;
 }
 
 /**

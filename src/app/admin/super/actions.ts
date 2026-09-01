@@ -12,6 +12,7 @@ import {
   renderVortexEmail,
   renderEmailCallout,
   renderEmailMetadataCard,
+  escapeHtml,
 } from "@/lib/email-template";
 import { updateTemplateStatus } from "@/services/template.service";
 import { z } from "zod";
@@ -215,7 +216,7 @@ export async function sendTenantEmailAction(
     badgeType: "primary",
     bodyHtml: `
       <p style="margin: 0 0 16px; color: #d1d5db;">
-        Olá <strong>${adminUser.name || "Administrador"}</strong>,
+        Olá <strong>${escapeHtml(adminUser.name || "Administrador")}</strong>,
       </p>
       <p style="margin: 0 0 14px; color: #9ca3af;">
         Você recebeu um comunicado oficial da equipe de administração do Vórtex+:
@@ -350,7 +351,7 @@ export async function sendTemplateAuthorEmailAction(
     badgeType: "warning",
     bodyHtml: `
       <p style="margin: 0 0 16px; color: #d1d5db;">
-        Olá <strong>${template.author.name || "Criador"}</strong>,
+        Olá <strong>${escapeHtml(template.author.name || "Criador")}</strong>,
       </p>
       <p style="margin: 0 0 14px; color: #9ca3af;">
         A equipe de moderação do Vórtex+ enviou uma mensagem a respeito do seu template na comunidade:

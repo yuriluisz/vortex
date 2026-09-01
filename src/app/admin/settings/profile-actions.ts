@@ -35,10 +35,10 @@ const RESERVED_NAMES = [
  */
 function isReservedName(name: string, email: string): boolean {
   const normalized = name.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase() || "yulusica@gmail.com";
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase() || process.env.ADMIN_ALERT_EMAIL?.toLowerCase();
 
-  // Admin pode usar qualquer nome reservado
-  if (email.toLowerCase() === adminEmail) return false;
+  // Admin configurado pode usar qualquer nome reservado
+  if (adminEmail && email.toLowerCase() === adminEmail) return false;
 
   // Verifica correspondência exata ou parcial
   for (const reserved of RESERVED_NAMES) {
@@ -112,10 +112,28 @@ const PublicProfileSchema = z.object({
     .refine((val) => /^[a-z0-9-]+$/.test(val), "O handle deve conter apenas letras minúsculas, números e hífens"),
   bio: z.string().max(500).optional(),
   publicProfile: z.boolean().optional(),
-  profileWebsite: z.string().url("URL inválida").optional().or(z.literal("")),
-  profileInstagram: z.string().url("URL inválida").optional().or(z.literal("")),
-  profileYoutube: z.string().url("URL inválida").optional().or(z.literal("")),
-  profileWhatsapp: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileWebsite: z
+    .string()
+    .url("URL inválida")
+    .refine((v) => !v || /^https?:\/\//i.test(v), "A URL deve iniciar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
+  profileInstagram: z
+    .string()
+    .url("URL inválida")
+    .refine((v) => !v || /^https?:\/\//i.test(v), "A URL deve iniciar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
+  profileYoutube: z
+    .string()
+    .url("URL inválida")
+    .refine((v) => !v || /^https?:\/\//i.test(v), "A URL deve iniciar com http:// ou https://")
+    .optional()
+    .or(z.literal("")),
+  profileWhatsapp: z
+    .string()
+    .optional()
+    .or(z.literal("")),
 });
 
 const EmailChangeSchema = z.object({
@@ -136,6 +154,10 @@ export async function updateProfileAction(
   formData: FormData
 ): Promise<ActionState> {
   const { userId, tenantId, tenantSlug, email, role, plan } = await requireAuth();
+
+  if (role === "MEMBER") {
+    return { error: "Apenas administradores podem alterar os dados da empresa." };
+  }
 
   const parsed = ProfileSchema.safeParse({
     companyName: formData.get("companyName"),

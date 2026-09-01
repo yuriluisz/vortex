@@ -5,7 +5,7 @@ function getHeaders(): Record<string, string> {
   const key = process.env.CLOUDFLARE_API_KEY;
   const email = process.env.CLOUDFLARE_EMAIL;
 
-  if (token && token !== "seu_token_aqui") {
+  if (token) {
     return {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

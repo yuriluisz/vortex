@@ -208,6 +208,23 @@ export function renderVortexEmail({
 }
 
 /**
+ * Escapa caracteres especiais HTML para prevenir XSS e injeção de HTML em e-mails.
+ */
+export function escapeHtml(str: string | null | undefined): string {
+  if (!str) return "";
+  return String(str).replace(/[&<>"']/g, (m) => {
+    switch (m) {
+      case "&": return "&amp;";
+      case "<": return "&lt;";
+      case ">": return "&gt;";
+      case '"': return "&quot;";
+      case "'": return "&#039;";
+      default: return m;
+    }
+  });
+}
+
+/**
  * Renderiza uma caixa de dados chave-valor padronizada para e-mails.
  */
 export function renderEmailMetadataCard(
@@ -218,10 +235,10 @@ export function renderEmailMetadataCard(
       (item, idx) => `
     <div style="margin-bottom: ${idx === items.length - 1 ? "0" : "10px"};">
       <span style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 2px;">
-        ${item.label}
+        ${escapeHtml(item.label)}
       </span>
       <span style="font-size: 14px; font-weight: ${item.highlight ? "700" : "500"}; color: ${item.highlight ? "#818cf8" : "#f1f5f9"};">
-        ${item.value}
+        ${escapeHtml(item.value)}
       </span>
     </div>
   `
@@ -245,7 +262,7 @@ export function renderEmailOtpBox(code: string, expirationMinutes = 5): string {
         Código de Verificação
       </span>
       <div class="code-block" style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; line-height: 1.2;">
-        ${code}
+        ${escapeHtml(code)}
       </div>
       <div style="margin-top: 12px; font-size: 12px; color: #94a3b8;">
         ⏱️ Válido por <strong>${expirationMinutes} minutos</strong> (uso único)
@@ -272,10 +289,10 @@ export function renderEmailCallout({
     <div style="background-color: ${badge.bg}; border: 1px solid ${badge.border}; border-radius: 10px; padding: 16px 18px; margin: 20px 0;">
       ${
         title
-          ? `<strong style="display: block; font-size: 13px; font-weight: 700; color: ${badge.text}; margin-bottom: 6px;">${title}</strong>`
+          ? `<strong style="display: block; font-size: 13px; font-weight: 700; color: ${badge.text}; margin-bottom: 6px;">${escapeHtml(title)}</strong>`
           : ""
       }
-      <div style="font-size: 14px; color: #e2e8f0; line-height: 1.5; white-space: pre-wrap;">${message}</div>
+      <div style="font-size: 14px; color: #e2e8f0; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(message)}</div>
     </div>
   `.trim();
 }

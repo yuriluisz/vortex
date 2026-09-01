@@ -4,6 +4,7 @@ import {
   renderEmailMetadataCard,
   renderEmailOtpBox,
   renderEmailCallout,
+  escapeHtml,
 } from "@/lib/email-template";
 
 describe("Email Template System", () => {
@@ -60,5 +61,26 @@ describe("Email Template System", () => {
 
     expect(callout).toContain("Atenção:");
     expect(callout).toContain("Seu pagamento vence em 3 dias.");
+  });
+
+  it("should escape malicious HTML in metadata card and callout to prevent email injection", () => {
+    expect(escapeHtml("<script>alert('xss')</script>")).toBe("&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;");
+
+    const card = renderEmailMetadataCard([
+      { label: "<script>hack</script>", value: '<img src=x onerror="alert(1)">' },
+    ]);
+    expect(card).not.toContain("<script>");
+    expect(card).toContain("&lt;script&gt;hack&lt;/script&gt;");
+    expect(card).not.toContain("<img");
+    expect(card).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
+
+    const callout = renderEmailCallout({
+      title: "<h1>Malicious</h1>",
+      message: "<a href='https://phishing.com'>Click</a>",
+    });
+    expect(callout).not.toContain("<h1>");
+    expect(callout).toContain("&lt;h1&gt;Malicious&lt;/h1&gt;");
+    expect(callout).not.toContain("<a href=");
+    expect(callout).toContain("&lt;a href=&#039;https://phishing.com&#039;&gt;Click&lt;/a&gt;");
   });
 });

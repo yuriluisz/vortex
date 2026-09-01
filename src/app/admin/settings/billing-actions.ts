@@ -79,7 +79,11 @@ export async function saveBillingInfoAction(
   state: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { tenantId } = await requireAuth();
+  const { tenantId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    return { error: "Apenas administradores podem alterar os dados de cobrança." };
+  }
 
   const parsed = BillingInfoSchema.safeParse({
     personType: formData.get("personType"),
@@ -235,7 +239,11 @@ export async function changePlanCheckoutAction(
   state: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { plan: currentPlan, tenantId, userId } = await requireAuth();
+  const { plan: currentPlan, tenantId, userId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    return { error: "Apenas administradores podem alterar o plano da assinatura." };
+  }
 
   const parsed = PlanChangeSchema.safeParse({
     plan: formData.get("plan"),
@@ -356,7 +364,11 @@ export async function changePlanCheckoutAction(
 }
 
 export async function cancelSubscriptionAction(): Promise<ActionState> {
-  const { tenantId, userId } = await requireAuth();
+  const { tenantId, userId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    return { error: "Apenas administradores podem cancelar a assinatura." };
+  }
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -408,7 +420,11 @@ export async function cancelSubscriptionAction(): Promise<ActionState> {
 }
 
 export async function reactivateSubscriptionAction(): Promise<ActionState> {
-  const { tenantId, userId } = await requireAuth();
+  const { tenantId, userId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    return { error: "Apenas administradores podem reativar a assinatura." };
+  }
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },

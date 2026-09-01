@@ -5,7 +5,7 @@ import { RefreshCw, CheckCircle2, AlertCircle, X } from "lucide-react";
 import { syncCampaignLeadsAction } from "./actions";
 import { useRouter } from "next/navigation";
 
-export function SyncLeadsButton({ campaignId, tenantId }: { campaignId: string; tenantId: string }) {
+export function SyncLeadsButton({ campaignId }: { campaignId: string; tenantId?: string }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const router = useRouter();
@@ -21,7 +21,7 @@ export function SyncLeadsButton({ campaignId, tenantId }: { campaignId: string; 
     setIsSyncing(true);
     setToast(null);
     try {
-      const result = await syncCampaignLeadsAction(campaignId, tenantId);
+      const result = await syncCampaignLeadsAction(campaignId);
       
       if (result.success) {
         setToast({ type: "success", message: `Sincronização concluída: ${result.totalSynced} leads foram sincronizados.` });

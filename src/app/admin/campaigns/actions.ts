@@ -79,7 +79,13 @@ const SaveCampaignSchema = z.object({
     },
     "Formato JSON inválido para o Schema do formulário"
   ),
-  pixelId: z.string().optional(),
+  pixelId: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || /^\d+$/.test(val.trim()),
+      "O Pixel ID deve conter apenas números"
+    ),
   gtmId: z
     .string()
     .optional()
@@ -282,7 +288,12 @@ export async function saveCampaignAction(
 }
 
 export async function deleteCampaignAction(id: string) {
-  const { userId, tenantId } = await requireAuth();
+  const { userId, tenantId, role } = await requireAuth();
+
+  // 🔒 RBAC: Apenas ADMIN/SUPER_ADMIN podem excluir campanhas
+  if (role === "MEMBER") {
+    throw new Error("Apenas administradores podem excluir campanhas.");
+  }
 
   const result = await requireTenantOwnership(prisma.campaign, id, tenantId, "Campanha");
   if (result.error) throw new Error(result.error.error);
@@ -305,7 +316,11 @@ export async function toggleCampaignStatusAction(
   id: string,
   active: boolean
 ) {
-  const { userId, tenantId } = await requireAuth();
+  const { userId, tenantId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    throw new Error("Apenas administradores podem alterar o status da campanha.");
+  }
 
   const result = await requireTenantOwnership(prisma.campaign, id, tenantId, "Campanha");
   if (result.error) throw new Error(result.error.error);
@@ -331,7 +346,11 @@ export async function toggleCampaignProtectionAction(
   campaignId: string,
   protected_: boolean
 ) {
-  const { userId, tenantId } = await requireAuth();
+  const { userId, tenantId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    throw new Error("Apenas administradores podem alterar a proteção da campanha.");
+  }
 
   const result = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
   if (result.error) throw new Error(result.error.error);

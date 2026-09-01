@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { logAudit } from "@/lib/audit";
 import { publishTemplate, updateTemplateVersion } from "@/services/template.service";
 import { sanitizeTemplateHtml } from "@/lib/template-sanitizer";
+import { hasFeature } from "@/lib/plans";
+import type { Plan } from "@/lib/prisma-types";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
@@ -24,6 +26,12 @@ export async function publishTemplateAction(input: {
   const session = await getSession();
   if (!session?.email || !session.userId || !session.tenantId) {
     throw new Error("Não autenticado.");
+  }
+
+  // 🔒 Plan Limit Check: Validar se o plano do tenant autoriza publicação de templates
+  const plan = (session.plan || "FREE") as Plan;
+  if (!hasFeature(plan, "publishTemplates")) {
+    throw new Error("A publicação de templates na comunidade está disponível apenas nos planos PRO e ULTRA.");
   }
 
   if (!input.name.trim()) throw new Error("Nome é obrigatório.");

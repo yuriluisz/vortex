@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/session";
+import { createSession, getSession } from "@/lib/session";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { redirect } from "next/navigation";
@@ -76,7 +76,18 @@ export async function acceptInviteAction(
     include: { tenant: true },
   });
 
-  if (!user) {
+  if (user) {
+    // 🔒 Previne Account Takeover: se já existe, exigir senha correta ou sessão ativa do usuário
+    const currentSession = await getSession();
+    const isMatchingSession = currentSession?.email?.toLowerCase() === user.email.toLowerCase();
+
+    if (!isMatchingSession) {
+      const isPasswordValid = await bcrypt.compare(parsed.data.password, user.passwordHash);
+      if (!isPasswordValid) {
+        return { error: "Esta conta já existe. Informe a senha cadastrada para aceitar o convite." };
+      }
+    }
+  } else {
     // Criar tenant pessoal para o novo usuário
     const cleanSlug = name
       .toLowerCase()

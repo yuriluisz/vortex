@@ -114,7 +114,7 @@ export async function loginAction(
     return {
       step: "email",
       mode: "login",
-      error: "Esta conta foi bloqueada. Entre em contato com o suporte: yulusica@gmail.com",
+      error: "Esta conta foi bloqueada. Entre em contato com o suporte da plataforma.",
     };
   }
 
@@ -345,7 +345,7 @@ export async function verifyOTPAction(
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, blocked: true },
   });
 
   if (!user) {
@@ -353,6 +353,14 @@ export async function verifyOTPAction(
       step: "email",
       mode: "login",
       error: "Usuário não encontrado.",
+    };
+  }
+
+  if (user.blocked) {
+    return {
+      step: "email",
+      mode: "login",
+      error: "Esta conta foi bloqueada. Entre em contato com o suporte da plataforma.",
     };
   }
 

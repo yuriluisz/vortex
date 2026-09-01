@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { requireTenantOwnership } from "@/lib/tenant-guard";
 import {
   fetchGroupParticipants,
   fetchGroupByInviteCode,
@@ -10,7 +12,18 @@ import {
   cleanDigits,
 } from "@/lib/evolution";
 
-export async function syncCampaignLeadsAction(campaignId: string, tenantId: string) {
+export async function syncCampaignLeadsAction(campaignId: string) {
+  const session = await getSession();
+  if (!session?.userId || !session.tenantId) {
+    return { success: false, error: "Não autorizado." };
+  }
+  const tenantId = session.tenantId;
+
+  const ownership = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
+  if (ownership.error) {
+    return { success: false, error: ownership.error.error };
+  }
+
   // 1. Obter a instância da Evolution API do tenant
   const instance = await prisma.evolutionInstance.findUnique({
     where: { tenantId },

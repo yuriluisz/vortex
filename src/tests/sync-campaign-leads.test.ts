@@ -4,8 +4,16 @@ import { prisma } from "../lib/prisma";
 import * as evolution from "../lib/evolution";
 
 vi.mock("server-only", () => ({}));
+vi.mock("../lib/session", () => ({
+  getSession: vi.fn(),
+}));
+vi.mock("../lib/tenant-guard", () => ({
+  requireTenantOwnership: vi.fn(),
+}));
+
 vi.mock("../lib/prisma", () => ({
   prisma: {
+    campaign: {},
     evolutionInstance: {
       findUnique: vi.fn(),
     },
@@ -30,15 +38,43 @@ vi.mock("../lib/evolution", async () => {
   };
 });
 
+import { getSession } from "../lib/session";
+import { requireTenantOwnership } from "../lib/tenant-guard";
+
 describe("syncCampaignLeadsAction", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    (getSession as any).mockResolvedValue({
+      userId: "user-1",
+      email: "user@test.com",
+      tenantId: "tenant-1",
+      role: "ADMIN",
+    });
+    (requireTenantOwnership as any).mockResolvedValue({ error: null });
+  });
+
+  it("should fail if user is not authenticated", async () => {
+    (getSession as any).mockResolvedValueOnce(null);
+
+    const result = await syncCampaignLeadsAction("camp-1");
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Não autorizado");
+  });
+
+  it("should fail if campaign does not belong to tenant", async () => {
+    (requireTenantOwnership as any).mockResolvedValueOnce({
+      error: { error: "Campanha não encontrada ou sem permissão." },
+    });
+
+    const result = await syncCampaignLeadsAction("camp-1");
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Campanha não encontrada");
   });
 
   it("should fail if instance is not connected", async () => {
     (prisma.evolutionInstance.findUnique as any).mockResolvedValueOnce(null);
 
-    const result = await syncCampaignLeadsAction("camp-1", "tenant-1");
+    const result = await syncCampaignLeadsAction("camp-1");
     expect(result.success).toBe(false);
     expect(result.error).toContain("WhatsApp não está conectado");
   });
@@ -76,7 +112,7 @@ describe("syncCampaignLeadsAction", () => {
     (prisma.group.update as any).mockResolvedValue({});
     (prisma.lead.updateMany as any).mockResolvedValue({ count: 0 });
 
-    const result = await syncCampaignLeadsAction("camp-1", "tenant-1");
+    const result = await syncCampaignLeadsAction("camp-1");
 
     expect(result.success).toBe(true);
     expect(result.totalSynced).toBe(1);
@@ -123,7 +159,7 @@ describe("syncCampaignLeadsAction", () => {
     (prisma.group.update as any).mockResolvedValue({});
     (prisma.lead.updateMany as any).mockResolvedValue({ count: 0 });
 
-    const result = await syncCampaignLeadsAction("camp-1", "tenant-1");
+    const result = await syncCampaignLeadsAction("camp-1");
 
     expect(result.success).toBe(true);
     expect(result.totalSynced).toBe(1);
@@ -172,7 +208,7 @@ describe("syncCampaignLeadsAction", () => {
     (prisma.lead.update as any).mockResolvedValue({});
     (prisma.lead.updateMany as any).mockResolvedValue({ count: 0 });
 
-    const result = await syncCampaignLeadsAction("camp-1", "tenant-1");
+    const result = await syncCampaignLeadsAction("camp-1");
 
     expect(result.success).toBe(true);
     expect(result.totalSynced).toBe(1);

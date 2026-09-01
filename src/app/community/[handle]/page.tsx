@@ -66,7 +66,7 @@ export default async function CommunityProfilePage({
               </a>
             )}
             {links.whatsapp && (
-              <a href={`https://wa.me/${links.whatsapp}`} target="_blank" rel="noopener noreferrer"
+              <a href={links.whatsapp.startsWith("http") ? links.whatsapp : `https://wa.me/${links.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer"
                 className="p-2 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors" title="WhatsApp">
                 <MessageCircle className="w-5 h-5" />
               </a>

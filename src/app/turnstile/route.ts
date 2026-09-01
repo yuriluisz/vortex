@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const theme = searchParams.get("theme") || "dark";
+  const rawTheme = searchParams.get("theme");
+  const theme = rawTheme === "light" || rawTheme === "auto" ? rawTheme : "dark";
   const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY;
 
   if (!siteKey) {
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script>
     window.onTurnstileSuccess = function(token) {
-      window.parent.postMessage({ type: 'TURNSTILE_SUCCESS', token: token }, '*');
+      window.parent.postMessage({ type: 'TURNSTILE_SUCCESS', token: token }, window.location.origin);
     };
   </script>
 </body>

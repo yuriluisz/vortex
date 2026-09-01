@@ -23,21 +23,40 @@ export async function getUserTenant(userId: string) {
       tenantId: true,
       role: true,
       tenant: { select: { id: true, name: true, slug: true, plan: true, active: true } },
+      tenantMemberships: {
+        where: { tenant: { active: true } },
+        include: { tenant: { select: { id: true, name: true, slug: true, plan: true, active: true } } },
+        take: 1,
+      },
     },
   });
 
-  if (!user?.tenant) return null;
+  if (!user) return null;
 
-  // 🔒 S1: Bloquear login se o tenant estiver inativo (desativado pelo super admin)
-  if (!user.tenant.active) return null;
+  // 1. Tenant direto (owner)
+  if (user.tenant && user.tenant.active) {
+    return {
+      tenantId: user.tenant.id,
+      tenantName: user.tenant.name,
+      tenantSlug: user.tenant.slug,
+      plan: user.tenant.plan,
+      role: user.role,
+    };
+  }
 
-  return {
-    tenantId: user.tenant.id,
-    tenantName: user.tenant.name,
-    tenantSlug: user.tenant.slug,
-    plan: user.tenant.plan,
-    role: user.role,
-  };
+  // 2. Tenant via TenantMembership (membro convidado)
+  const membership = user.tenantMemberships[0];
+  if (membership?.tenant && membership.tenant.active) {
+    return {
+      tenantId: membership.tenant.id,
+      tenantName: membership.tenant.name,
+      tenantSlug: membership.tenant.slug,
+      plan: membership.tenant.plan,
+      role: membership.role,
+    };
+  }
+
+  return null;
 }
 
 // ============================================================================

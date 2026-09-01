@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { logAudit } from "@/lib/audit";
-import { hasFeature } from "@/lib/plans";
+import { hasFeature, canCreateResource } from "@/lib/plans";
 import type { Plan } from "@/lib/prisma-types";
 import {
   createInstance,
@@ -21,6 +21,7 @@ import {
   updateGroupPicture,
 } from "@/lib/evolution";
 import { syncGroupParticipants, resolveGroupJids } from "@/lib/evolution-sync";
+import { requireTenantOwnership } from "@/lib/tenant-guard";
 
 // ============================================================================
 // AUTH + ULTRA GUARD
@@ -546,6 +547,12 @@ export async function syncGroupAction(
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   const { tenantId } = await requireUltra();
 
+  // 🔒 IDOR Prevention: Validar que o grupo pertence ao tenant autenticado
+  const ownership = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
+  if (ownership.error) {
+    return { success: false, error: ownership.error.error };
+  }
+
   const instance = await prisma.evolutionInstance.findUnique({
     where: { tenantId },
     select: { instanceName: true, status: true },
@@ -597,7 +604,7 @@ export async function bulkCreateGroupsAction(
   state: BulkCreateState,
   formData: FormData
 ): Promise<BulkCreateState> {
-  const { userId, tenantId } = await requireUltra();
+  const { userId, tenantId, plan } = await requireUltra();
 
   const parsed = BulkCreateSchema.safeParse({
     campaignId: formData.get("campaignId"),
@@ -633,6 +640,13 @@ export async function bulkCreateGroupsAction(
 
   if (!campaign || campaign.tenantId !== tenantId) {
     return { error: "Campanha não encontrada." };
+  }
+
+  // Verificar limite do plano para a criação em lote
+  const currentCount = await prisma.group.count({ where: { tenantId } });
+  const limitCheck = canCreateResource(plan, "groups", currentCount + quantity - 1);
+  if (!limitCheck.allowed) {
+    return { error: limitCheck.reason };
   }
 
   // Buscar instância para criar no WhatsApp se possível

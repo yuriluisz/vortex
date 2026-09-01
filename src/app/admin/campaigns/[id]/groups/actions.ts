@@ -251,7 +251,10 @@ export async function createWhatsAppGroupAction(
 }
 
 export async function deleteGroupAction(groupId: string, campaignId: string) {
-  const { userId, tenantId } = await requireAuth();
+  const { userId, tenantId, role } = await requireAuth();
+
+  // 🔒 RBAC: Apenas ADMIN/SUPER_ADMIN podem excluir grupos
+  if (role === "MEMBER") throw new Error("Apenas administradores podem excluir grupos.");
 
   const result = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
   if (result.error) throw new Error(result.error.error);
@@ -268,7 +271,10 @@ export async function toggleGroupStatusAction(
   campaignId: string,
   active: boolean
 ) {
-  const { tenantId } = await requireAuth();
+  const { tenantId, role } = await requireAuth();
+
+  // 🔒 RBAC: Apenas ADMIN/SUPER_ADMIN podem alterar status de grupos
+  if (role === "MEMBER") throw new Error("Apenas administradores podem alterar grupos.");
 
   const result = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
   if (result.error) throw new Error(result.error.error);
@@ -286,7 +292,10 @@ export async function updateGroupUrlAction(
   campaignId: string,
   url: string
 ) {
-  const { tenantId } = await requireAuth();
+  const { tenantId, role } = await requireAuth();
+
+  // 🔒 RBAC: Apenas ADMIN/SUPER_ADMIN podem alterar URL de grupos
+  if (role === "MEMBER") throw new Error("Apenas administradores podem alterar grupos.");
 
   const result = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
   if (result.error) throw new Error(result.error.error);
@@ -309,7 +318,11 @@ export async function updateCampaignGroupSettingsAction(
   state: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { userId, tenantId } = await requireAuth();
+  const { userId, tenantId, role } = await requireAuth();
+
+  if (role === "MEMBER") {
+    return { error: "Apenas administradores podem alterar configurações de grupo." };
+  }
 
   const result = await requireTenantOwnership(prisma.campaign, campaignId, tenantId, "Campanha");
   if (result.error) return result.error;
