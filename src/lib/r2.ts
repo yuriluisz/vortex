@@ -25,6 +25,29 @@ export const r2Client = new S3Client({
 });
 
 /**
+ * Sanitiza e valida chaves do Cloudflare R2 / S3.
+ * Previne ataques de Directory/Path Traversal (ex: ../, \, chaves com barras iniciais, ou caracteres de injeção).
+ */
+export function sanitizeR2Key(key: string): string {
+  if (!key || typeof key !== "string") {
+    throw new Error("Chave R2 inválida: deve ser uma string não vazia.");
+  }
+
+  const trimmed = key.trim();
+
+  if (trimmed.includes("..") || trimmed.includes("\\") || trimmed.startsWith("/")) {
+    throw new Error(`Chave R2 inválida ou suspeita de path traversal: "${key}"`);
+  }
+
+  const SAFE_KEY_REGEX = /^[a-zA-Z0-9_.\-\/]+$/;
+  if (!SAFE_KEY_REGEX.test(trimmed)) {
+    throw new Error(`Chave R2 contém caracteres não permitidos: "${key}"`);
+  }
+
+  return trimmed;
+}
+
+/**
  * Faz upload de um buffer de gravação (normalmente gzip) para o R2
  */
 export async function uploadReplayPayload(
@@ -32,17 +55,18 @@ export async function uploadReplayPayload(
   buffer: Buffer,
   contentType: string = "application/gzip"
 ): Promise<string> {
+  const safeKey = sanitizeR2Key(key);
   await r2Client.send(
     new PutObjectCommand({
       Bucket: R2_BUCKET,
-      Key: key,
+      Key: safeKey,
       Body: buffer,
       ContentType: contentType,
       ContentEncoding: contentType === "application/gzip" ? "gzip" : undefined,
     })
   );
 
-  return key;
+  return safeKey;
 }
 
 /**
@@ -50,10 +74,11 @@ export async function uploadReplayPayload(
  */
 export async function getReplayPayload(key: string): Promise<Buffer | null> {
   try {
+    const safeKey = sanitizeR2Key(key);
     const response = await r2Client.send(
       new GetObjectCommand({
         Bucket: R2_BUCKET,
-        Key: key,
+        Key: safeKey,
       })
     );
 
@@ -71,10 +96,11 @@ export async function getReplayPayload(key: string): Promise<Buffer | null> {
  */
 export async function deleteReplayPayload(key: string): Promise<boolean> {
   try {
+    const safeKey = sanitizeR2Key(key);
     await r2Client.send(
       new DeleteObjectCommand({
         Bucket: R2_BUCKET,
-        Key: key,
+        Key: safeKey,
       })
     );
     return true;
@@ -92,17 +118,18 @@ export async function uploadImageToR2(
   buffer: Buffer,
   contentType: string
 ): Promise<string> {
+  const safeKey = sanitizeR2Key(key);
   await r2Client.send(
     new PutObjectCommand({
       Bucket: R2_BUCKET,
-      Key: key,
+      Key: safeKey,
       Body: buffer,
       ContentType: contentType,
       CacheControl: "public, max-age=31536000, immutable",
     })
   );
 
-  return `${R2_PUBLIC_URL}/${key}`;
+  return `${R2_PUBLIC_URL}/${safeKey}`;
 }
 
 /**
@@ -120,10 +147,11 @@ export async function deleteFileFromR2(keyOrUrl: string): Promise<boolean> {
   }
 
   try {
+    const safeKey = sanitizeR2Key(key);
     await r2Client.send(
       new DeleteObjectCommand({
         Bucket: R2_BUCKET,
-        Key: key,
+        Key: safeKey,
       })
     );
     return true;

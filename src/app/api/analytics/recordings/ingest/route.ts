@@ -56,6 +56,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
     }
 
+    const SESSION_ID_REGEX = /^[a-zA-Z0-9_-]{1,128}$/;
+    const CAMPAIGN_ID_REGEX = /^[a-zA-Z0-9_-]{1,64}$/;
+    if (
+      typeof body.sessionId !== "string" ||
+      !SESSION_ID_REGEX.test(body.sessionId) ||
+      typeof body.campaignId !== "string" ||
+      !CAMPAIGN_ID_REGEX.test(body.campaignId)
+    ) {
+      return NextResponse.json({ error: "Identificador de sessão ou campanha inválido." }, { status: 400 });
+    }
+
     const {
       campaignId,
       sessionId,

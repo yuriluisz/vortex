@@ -71,4 +71,8 @@ export const RATE_LIMITS = {
   CAMPAIGN_CREATION: { windowSeconds: 3600, maxRequests: 10 } as RateLimitConfig,
   /** Criação de grupo: 20 por hora por tenant */
   GROUP_CREATION: { windowSeconds: 3600, maxRequests: 20 } as RateLimitConfig,
+  /** Upload de avatar: 5 por minuto por usuário */
+  AVATAR_UPLOAD: { windowSeconds: 60, maxRequests: 5 } as RateLimitConfig,
+  /** Publicação de template: 10 por minuto por usuário */
+  TEMPLATE_PUBLISH: { windowSeconds: 60, maxRequests: 10 } as RateLimitConfig,
 };

@@ -1,6 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { prisma } from "../lib/prisma";
 import { createRedisConnection } from "../lib/redis";
+import { isSafePublicUrl } from "../lib/ssrf-guard";
 import type { Prisma } from "@prisma/client";
 
 // Tipos esperados nos payloads dos jobs
@@ -175,16 +176,33 @@ const groupsWorker = new Worker<AutoCreateGroupData>(
             await updateGroupDescription(evolutionInstance.instanceName, result.id, campaign.groupDescription);
           }
 
-          // 5. Atualiza a Imagem do Grupo (Baixa da URL e converte para Base64)
+          // 5. Atualiza a Imagem do Grupo (Baixa da URL com proteção contra SSRF e converte para Base64)
           if (campaign.groupImageUrl) {
             try {
-              const imgRes = await fetch(campaign.groupImageUrl);
-              const arrayBuffer = await imgRes.arrayBuffer();
-              const base64Image = Buffer.from(arrayBuffer).toString('base64');
-              // O WhatsApp espera algo como: "data:image/jpeg;base64,..." ou apenas base64? 
-              // Evolution API geralmente aceita apenas o base64 puro ou com o mimetype. 
-              // Se falhar, você ajusta o prefixo no painel da evolution ou aqui.
-              await updateGroupPicture(evolutionInstance.instanceName, result.id, `data:${imgRes.headers.get("content-type") || "image/jpeg"};base64,${base64Image}`);
+              const isSafe = await isSafePublicUrl(campaign.groupImageUrl);
+              if (!isSafe) {
+                console.warn(`[Worker - Groups] URL insegura bloqueada pelo SSRF guard: ${campaign.groupImageUrl}`);
+              } else {
+                const imgRes = await fetch(campaign.groupImageUrl, {
+                  signal: AbortSignal.timeout(5000),
+                });
+
+                const contentLength = Number(imgRes.headers.get("content-length") || 0);
+                if (contentLength > 5 * 1024 * 1024) {
+                  console.warn(`[Worker - Groups] Imagem do grupo excede limite de 5MB: ${contentLength} bytes`);
+                } else if (imgRes.ok) {
+                  const arrayBuffer = await imgRes.arrayBuffer();
+                  if (arrayBuffer.byteLength <= 5 * 1024 * 1024) {
+                    const base64Image = Buffer.from(arrayBuffer).toString("base64");
+                    const contentType = imgRes.headers.get("content-type") || "image/jpeg";
+                    await updateGroupPicture(
+                      evolutionInstance.instanceName,
+                      result.id,
+                      `data:${contentType};base64,${base64Image}`
+                    );
+                  }
+                }
+              }
             } catch (err) {
               console.error(`[Worker - Groups] Erro ao baixar/setar imagem do grupo:`, err);
             }

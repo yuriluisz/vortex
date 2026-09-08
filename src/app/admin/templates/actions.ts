@@ -12,6 +12,8 @@ import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { uploadImageToR2, deleteFileFromR2 } from "@/lib/r2";
+import { validateImageBuffer } from "@/lib/image-validator";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 // ============================================================================
 // PUBLICAR NOVO TEMPLATE
@@ -38,6 +40,12 @@ export async function publishTemplateAction(input: PublishTemplateActionInput) {
   const plan = (session.plan || "FREE") as Plan;
   if (!hasFeature(plan, "publishTemplates")) {
     throw new Error("A publicação de templates na comunidade está disponível apenas nos planos PRO e ULTRA.");
+  }
+
+  const rateKey = `publish_template:${session.userId}`;
+  const rateResult = await rateLimit(rateKey, RATE_LIMITS.TEMPLATE_PUBLISH);
+  if (!rateResult.allowed) {
+    throw new Error("Muitas tentativas de publicação de template. Aguarde um minuto.");
   }
 
   let name: string;
@@ -97,13 +105,19 @@ export async function publishTemplateAction(input: PublishTemplateActionInput) {
       throw new Error("Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF.");
     }
 
-    const ext = validTypes[thumbnailFile.type] || "png";
     const bytes = await thumbnailFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    const validation = validateImageBuffer(buffer);
+    if (!validation.isValid || !validation.mimeType || !validation.detectedFormat) {
+      throw new Error(validation.error || "Arquivo de imagem corrompido ou formato não suportado.");
+    }
+
+    const ext = validation.detectedFormat;
     const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 30);
     const key = `templates/${cleanSlug}-${Date.now()}.${ext}`;
 
-    thumbnailUrl = await uploadImageToR2(key, buffer, thumbnailFile.type);
+    thumbnailUrl = await uploadImageToR2(key, buffer, validation.mimeType);
   }
 
   await publishTemplate(session.userId, session.tenantId, {
@@ -292,12 +306,18 @@ export async function saveTemplateEditAction(
       throw new Error("Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF.");
     }
 
-    const ext = validTypes[thumbnailFile.type] || "png";
     const bytes = await thumbnailFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    const validation = validateImageBuffer(buffer);
+    if (!validation.isValid || !validation.mimeType || !validation.detectedFormat) {
+      throw new Error(validation.error || "Arquivo de imagem corrompido ou formato não suportado.");
+    }
+
+    const ext = validation.detectedFormat;
     const key = `templates/${template.slug}-${Date.now()}.${ext}`;
 
-    newThumbnailUrl = await uploadImageToR2(key, buffer, thumbnailFile.type);
+    newThumbnailUrl = await uploadImageToR2(key, buffer, validation.mimeType);
 
     if (template.thumbnailUrl) {
       await deleteFileFromR2(template.thumbnailUrl);

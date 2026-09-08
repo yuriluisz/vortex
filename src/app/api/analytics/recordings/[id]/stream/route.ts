@@ -46,7 +46,7 @@ export async function GET(req: NextRequest, { params }: RouteProps) {
 
     let events: unknown[] = [];
     try {
-      const decompressed = gunzipSync(gzipBuffer).toString("utf-8");
+      const decompressed = gunzipSync(gzipBuffer, { maxOutputLength: 20 * 1024 * 1024 }).toString("utf-8");
       events = JSON.parse(decompressed);
     } catch {
       // Se não for gzip (fallback), tentar parse direto

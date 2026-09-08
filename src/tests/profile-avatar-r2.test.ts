@@ -23,6 +23,15 @@ vi.mock("@/lib/session", () => ({
   }),
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  rateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, resetIn: 60 }),
+  RATE_LIMITS: {
+    AVATAR_UPLOAD: { windowSeconds: 60, maxRequests: 5 },
+    TEMPLATE_PUBLISH: { windowSeconds: 60, maxRequests: 10 },
+  },
+}));
+
+
 const userFindUniqueMock = vi.fn().mockResolvedValue({
   id: "user-1",
   avatarUrl: "https://r2.vortexpages.online/avatars/old-avatar.png",
@@ -58,7 +67,8 @@ describe("uploadAvatarAction with R2", () => {
     const { uploadAvatarAction } = await import("@/app/admin/settings/profile-actions");
 
     const formData = new FormData();
-    const file = new File(["fake-image-bytes"], "avatar.png", { type: "image/png" });
+    const validPngBytes = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00]);
+    const file = new File([validPngBytes], "avatar.png", { type: "image/png" });
     formData.append("avatar", file);
 
     const result = await uploadAvatarAction(undefined, formData);

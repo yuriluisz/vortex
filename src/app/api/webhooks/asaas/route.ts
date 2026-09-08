@@ -3,6 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { PLAN_LIMITS } from "@/lib/plans";
 import type { Plan } from "@/lib/prisma-types";
 import type { Prisma } from "@prisma/client";
+import crypto from "crypto";
+
+function safeCompare(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 // Grace period: 5 dias
 const GRACE_PERIOD_DAYS = 5;
@@ -63,7 +72,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
     }
 
-    if (!receivedToken || receivedToken !== webhookSecret) {
+    if (!safeCompare(receivedToken, webhookSecret)) {
       console.warn("[Asaas Webhook] ❌ Token inválido — rejeitando");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

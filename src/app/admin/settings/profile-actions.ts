@@ -12,6 +12,7 @@ import type { Plan } from "@/lib/prisma-types";
 import { Prisma } from "@prisma/client";
 import type { ActionState } from "./actions";
 import { uploadImageToR2, deleteFileFromR2 } from "@/lib/r2";
+import { validateImageBuffer } from "@/lib/image-validator";
 
 // ============================================================================
 // SEGURANÇA: Lista de nomes reservados (bloqueia variações de "vortex")
@@ -400,6 +401,12 @@ export async function uploadAvatarAction(
 ): Promise<ActionState & { avatarUrl?: string }> {
   const { userId, tenantId } = await requireAuth();
 
+  const rateKey = `upload_avatar:${userId}`;
+  const rateResult = await rateLimit(rateKey, RATE_LIMITS.AVATAR_UPLOAD);
+  if (!rateResult.allowed) {
+    return { error: "Muitas tentativas de upload. Aguarde um minuto." };
+  }
+
   const file = formData.get("avatar") as File | null;
   if (!file || !(file instanceof File) || file.size === 0) {
     return { error: "Nenhum arquivo de imagem foi enviado." };
@@ -421,17 +428,23 @@ export async function uploadAvatarAction(
   }
 
   try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const validation = validateImageBuffer(buffer);
+    if (!validation.isValid || !validation.mimeType || !validation.detectedFormat) {
+      return { error: validation.error || "Formato de imagem inválido ou corrompido." };
+    }
+
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
       select: { avatarUrl: true },
     });
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const ext = validTypes[file.type] || "png";
+    const ext = validation.detectedFormat;
     const key = `avatars/${userId}-${Date.now()}.${ext}`;
 
-    const publicUrl = await uploadImageToR2(key, buffer, file.type);
+    const publicUrl = await uploadImageToR2(key, buffer, validation.mimeType);
 
     if (currentUser?.avatarUrl) {
       await deleteFileFromR2(currentUser.avatarUrl);

@@ -24,6 +24,15 @@ vi.mock("@/lib/session", () => ({
   }),
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  rateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 9, resetIn: 60 }),
+  RATE_LIMITS: {
+    AVATAR_UPLOAD: { windowSeconds: 60, maxRequests: 5 },
+    TEMPLATE_PUBLISH: { windowSeconds: 60, maxRequests: 10 },
+  },
+}));
+
+
 const publishTemplateMock = vi.fn().mockResolvedValue({ id: "tmpl-1" });
 vi.mock("@/services/template.service", () => ({
   publishTemplate: (...args: unknown[]) => publishTemplateMock(...args),
@@ -91,7 +100,8 @@ describe("Template Thumbnail R2 Actions", () => {
     formData.append("tags", "vendas, alta conversao");
     formData.append("sourceCampaignId", "camp-1");
 
-    const file = new File(["fake-template-cover"], "cover.png", { type: "image/png" });
+    const validPngBytes = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00]);
+    const file = new File([validPngBytes], "cover.png", { type: "image/png" });
     formData.append("thumbnail", file);
 
     await publishTemplateAction(formData);
@@ -127,7 +137,8 @@ describe("Template Thumbnail R2 Actions", () => {
     formData.append("tags", "novo");
     formData.append("rawHtml", "<h1>Novo HTML</h1><div>{{FORM_SLOT}}</div>");
 
-    const newCover = new File(["new-cover-bytes"], "new-cover.png", { type: "image/png" });
+    const validPngBytes = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00]);
+    const newCover = new File([validPngBytes], "new-cover.png", { type: "image/png" });
     formData.append("thumbnail", newCover);
 
     await saveTemplateEditAction("tmpl-1", formData);
