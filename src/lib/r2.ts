@@ -83,3 +83,52 @@ export async function deleteReplayPayload(key: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Faz upload de uma imagem (buffer) para o R2 com cache público e retorna a URL pública completa.
+ */
+export async function uploadImageToR2(
+  key: string,
+  buffer: Buffer,
+  contentType: string
+): Promise<string> {
+  await r2Client.send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return `${R2_PUBLIC_URL}/${key}`;
+}
+
+/**
+ * Remove um arquivo do R2 recebendo a chave relativa ou a URL pública completa.
+ * Retorna false sem estourar erro se a URL for Base64 ou externa.
+ */
+export async function deleteFileFromR2(keyOrUrl: string): Promise<boolean> {
+  if (!keyOrUrl || keyOrUrl.startsWith("data:")) return false;
+
+  let key = keyOrUrl;
+  if (key.startsWith(R2_PUBLIC_URL)) {
+    key = key.slice(R2_PUBLIC_URL.length).replace(/^\/+/, "");
+  } else if (key.startsWith("http://") || key.startsWith("https://")) {
+    return false; // URL externa não pertence ao nosso bucket R2
+  }
+
+  try {
+    await r2Client.send(
+      new DeleteObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+      })
+    );
+    return true;
+  } catch (error) {
+    console.error(`Erro ao deletar arquivo no R2 (${key}):`, error);
+    return false;
+  }
+}

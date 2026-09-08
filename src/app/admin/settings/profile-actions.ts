@@ -11,6 +11,7 @@ import { generateOTP, storeOTP, verifyOTP, sendOTPEmail } from "@/lib/auth";
 import type { Plan } from "@/lib/prisma-types";
 import { Prisma } from "@prisma/client";
 import type { ActionState } from "./actions";
+import { uploadImageToR2, deleteFileFromR2 } from "@/lib/r2";
 
 // ============================================================================
 // SEGURANÇA: Lista de nomes reservados (bloqueia variações de "vortex")
@@ -408,24 +409,42 @@ export async function uploadAvatarAction(
     return { error: "A imagem deve ter no máximo 5MB." };
   }
 
-  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  if (!validTypes.includes(file.type)) {
+  const validTypes: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+
+  if (!validTypes[file.type]) {
     return { error: "Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF." };
   }
 
   try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64Data = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const ext = validTypes[file.type] || "png";
+    const key = `avatars/${userId}-${Date.now()}.${ext}`;
+
+    const publicUrl = await uploadImageToR2(key, buffer, file.type);
+
+    if (currentUser?.avatarUrl) {
+      await deleteFileFromR2(currentUser.avatarUrl);
+    }
 
     await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: base64Data },
+      data: { avatarUrl: publicUrl },
     });
 
     await logAudit("PROFILE_UPDATED", { action: "AVATAR_UPLOADED", size: file.size, type: file.type }, userId, tenantId);
     revalidatePath("/admin/settings");
-    return { success: true, avatarUrl: base64Data };
+    return { success: true, avatarUrl: publicUrl };
   } catch (error) {
     console.error("[UploadAvatar] Erro:", error);
     return { error: "Erro ao salvar foto de perfil." };
@@ -436,6 +455,15 @@ export async function removeAvatarAction(): Promise<ActionState> {
   const { userId, tenantId } = await requireAuth();
 
   try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+
+    if (currentUser?.avatarUrl) {
+      await deleteFileFromR2(currentUser.avatarUrl);
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { avatarUrl: null },

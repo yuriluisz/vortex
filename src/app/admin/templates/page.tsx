@@ -242,6 +242,7 @@ export default async function MyTemplatesPage() {
                           id: template.id,
                           name: template.name,
                           description: template.description,
+                          thumbnailUrl: template.thumbnailUrl,
                           category: template.category,
                           theme: template.theme,
                           tags: template.tags,

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, Loader2, Upload, Sparkles } from "lucide-react";
+import { X, Loader2, Upload, Sparkles, Image as ImageIcon, Trash2 } from "lucide-react";
 import { publishTemplateAction } from "./actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
@@ -39,19 +39,52 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
+  function handleThumbnailSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError("A imagem de capa deve ter no máximo 5MB.");
+      return;
+    }
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setError("Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF.");
+      return;
+    }
+    setThumbnailFile(file);
+    setThumbnailPreview(URL.createObjectURL(file));
+    setError("");
+  }
+
+  function handleRemoveThumbnail() {
+    setThumbnailFile(null);
+    if (thumbnailPreview) {
+      URL.revokeObjectURL(thumbnailPreview);
+    }
+    setThumbnailPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
     setError("");
     try {
-      await publishTemplateAction({
-        name,
-        description,
-        category,
-        theme,
-        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-        sourceCampaignId,
-      });
+      const formData = new FormData();
+      formData.append("name", name);
+      if (description) formData.append("description", description);
+      formData.append("category", category);
+      formData.append("theme", theme);
+      formData.append("tags", tags);
+      formData.append("sourceCampaignId", sourceCampaignId);
+      if (thumbnailFile) {
+        formData.append("thumbnail", thumbnailFile);
+      }
+      await publishTemplateAction(formData);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro ao publicar.");
@@ -194,6 +227,47 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
               placeholder="Ex: lançamento, infoproduto, dark"
               className={inputClass}
             />
+          </div>
+
+          {/* Imagem de Capa (Thumbnail R2) */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
+              Imagem de Capa / Thumbnail (R2)
+              <FieldTooltip tooltip="Imagem de destaque exibida no catálogo da comunidade (JPEG, PNG ou WEBP até 5MB)." docsAnchor="templates-publicar" />
+            </label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={handleThumbnailSelect}
+              className="hidden"
+            />
+            {thumbnailPreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-white/10 aspect-video bg-black/40 group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={thumbnailPreview} alt="Preview da capa" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={handleRemoveThumbnail}
+                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-destructive text-white transition-colors"
+                  title="Remover imagem"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-white/15 bg-white/[0.02] hover:bg-white/[0.05] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              >
+                <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-medium">Clique para selecionar imagem de capa (R2)</span>
+                <span className="text-[10px] text-muted-foreground/60">JPEG, PNG ou WEBP até 5MB</span>
+              </button>
+            )}
           </div>
 
           {error && (

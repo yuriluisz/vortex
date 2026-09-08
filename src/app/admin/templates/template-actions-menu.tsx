@@ -13,6 +13,7 @@ interface TemplateActionsMenuProps {
     id: string;
     name: string;
     description: string | null;
+    thumbnailUrl?: string | null;
     category: TemplateCategory;
     theme: TemplateTheme;
     tags: string[];

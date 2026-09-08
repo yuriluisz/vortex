@@ -11,18 +11,24 @@ import type { Plan } from "@/lib/prisma-types";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
+import { uploadImageToR2, deleteFileFromR2 } from "@/lib/r2";
 
 // ============================================================================
 // PUBLICAR NOVO TEMPLATE
 // ============================================================================
-export async function publishTemplateAction(input: {
-  name: string;
-  description?: string;
-  category: TemplateCategory;
-  theme: TemplateTheme;
-  tags?: string[];
-  sourceCampaignId: string;
-}) {
+export type PublishTemplateActionInput =
+  | FormData
+  | {
+      name: string;
+      description?: string;
+      category: TemplateCategory;
+      theme: TemplateTheme;
+      tags?: string[];
+      sourceCampaignId: string;
+      thumbnail?: File | null;
+    };
+
+export async function publishTemplateAction(input: PublishTemplateActionInput) {
   const session = await getSession();
   if (!session?.email || !session.userId || !session.tenantId) {
     throw new Error("Não autenticado.");
@@ -34,28 +40,85 @@ export async function publishTemplateAction(input: {
     throw new Error("A publicação de templates na comunidade está disponível apenas nos planos PRO e ULTRA.");
   }
 
-  if (!input.name.trim()) throw new Error("Nome é obrigatório.");
-  if (!input.sourceCampaignId) throw new Error("Selecione uma campanha.");
+  let name: string;
+  let description: string | undefined;
+  let category: TemplateCategory;
+  let theme: TemplateTheme;
+  let tags: string[];
+  let sourceCampaignId: string;
+  let thumbnailFile: File | null = null;
+
+  if (input instanceof FormData) {
+    name = (input.get("name") as string) || "";
+    description = (input.get("description") as string) || undefined;
+    category = (input.get("category") as TemplateCategory) || "LANDING_PAGE";
+    theme = (input.get("theme") as TemplateTheme) || "DARK";
+    const rawTags = input.get("tags");
+    tags = typeof rawTags === "string" ? rawTags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+    sourceCampaignId = (input.get("sourceCampaignId") as string) || "";
+    const rawThumbnail = input.get("thumbnail");
+    if (rawThumbnail && rawThumbnail instanceof File && rawThumbnail.size > 0) {
+      thumbnailFile = rawThumbnail;
+    }
+  } else {
+    name = input.name || "";
+    description = input.description;
+    category = input.category;
+    theme = input.theme;
+    tags = input.tags ?? [];
+    sourceCampaignId = input.sourceCampaignId;
+    thumbnailFile = input.thumbnail ?? null;
+  }
+
+  if (!name.trim()) throw new Error("Nome é obrigatório.");
+  if (!sourceCampaignId) throw new Error("Selecione uma campanha.");
 
   // Verificar que a campanha pertence ao tenant
   const campaign = await prisma.campaign.findFirst({
-    where: { id: input.sourceCampaignId, tenantId: session.tenantId },
+    where: { id: sourceCampaignId, tenantId: session.tenantId },
     select: { id: true, rawHtml: true, formSchema: true },
   });
   if (!campaign) throw new Error("Campanha não encontrada.");
 
+  let thumbnailUrl: string | undefined = undefined;
+  if (thumbnailFile && thumbnailFile.size > 0) {
+    if (thumbnailFile.size > 5 * 1024 * 1024) {
+      throw new Error("A imagem de capa deve ter no máximo 5MB.");
+    }
+
+    const validTypes: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+
+    if (!validTypes[thumbnailFile.type]) {
+      throw new Error("Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF.");
+    }
+
+    const ext = validTypes[thumbnailFile.type] || "png";
+    const bytes = await thumbnailFile.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 30);
+    const key = `templates/${cleanSlug}-${Date.now()}.${ext}`;
+
+    thumbnailUrl = await uploadImageToR2(key, buffer, thumbnailFile.type);
+  }
+
   await publishTemplate(session.userId, session.tenantId, {
-    name: input.name.trim(),
-    description: input.description?.trim() || undefined,
-    category: input.category,
-    theme: input.theme,
-    tags: input.tags ?? [],
-    sourceCampaignId: input.sourceCampaignId,
+    name: name.trim(),
+    description: description?.trim() || undefined,
+    category,
+    theme,
+    tags,
+    sourceCampaignId,
+    thumbnailUrl,
     rawHtml: campaign.rawHtml,
     formSchema: campaign.formSchema,
   });
 
-  await logAudit("TEMPLATE_PUBLISHED", { name: input.name, action: "publish" }, session.userId, session.tenantId);
+  await logAudit("TEMPLATE_PUBLISHED", { name, action: "publish" }, session.userId, session.tenantId);
   revalidatePath("/admin/templates");
 }
 
@@ -149,16 +212,21 @@ export async function editTemplateAction(
 // ============================================================================
 // SALVAR EDIÇÃO COMPLETA (metadados + HTML em transação)
 // ============================================================================
+export type SaveTemplateEditActionInput =
+  | FormData
+  | {
+      name: string;
+      description?: string;
+      category: TemplateCategory;
+      theme: TemplateTheme;
+      tags?: string[];
+      rawHtml: string;
+      thumbnail?: File | null;
+    };
+
 export async function saveTemplateEditAction(
   templateId: string,
-  input: {
-    name: string;
-    description?: string;
-    category: TemplateCategory;
-    theme: TemplateTheme;
-    tags?: string[];
-    rawHtml: string;
-  }
+  input: SaveTemplateEditActionInput
 ) {
   const session = await getSession();
   if (!session?.email || !session.userId) {
@@ -167,14 +235,73 @@ export async function saveTemplateEditAction(
 
   const template = await prisma.template.findUnique({
     where: { id: templateId },
-    select: { authorId: true },
+    select: { authorId: true, slug: true, thumbnailUrl: true },
   });
   if (!template) throw new Error("Template não encontrado.");
   if (template.authorId !== session.userId) throw new Error("Você não é o autor deste template.");
 
-  const parsed = EditTemplateSchema.safeParse(input);
+  let name: string;
+  let description: string | undefined;
+  let category: TemplateCategory;
+  let theme: TemplateTheme;
+  let tags: string[];
+  let rawHtml: string;
+  let thumbnailFile: File | null = null;
+
+  if (input instanceof FormData) {
+    name = (input.get("name") as string) || "";
+    description = (input.get("description") as string) || undefined;
+    category = (input.get("category") as TemplateCategory) || "LANDING_PAGE";
+    theme = (input.get("theme") as TemplateTheme) || "DARK";
+    const rawTags = input.get("tags");
+    tags = typeof rawTags === "string" ? rawTags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+    rawHtml = (input.get("rawHtml") as string) || "";
+    const rawThumbnail = input.get("thumbnail");
+    if (rawThumbnail && rawThumbnail instanceof File && rawThumbnail.size > 0) {
+      thumbnailFile = rawThumbnail;
+    }
+  } else {
+    name = input.name;
+    description = input.description;
+    category = input.category;
+    theme = input.theme;
+    tags = input.tags ?? [];
+    rawHtml = input.rawHtml;
+    thumbnailFile = input.thumbnail ?? null;
+  }
+
+  const parsed = EditTemplateSchema.safeParse({ name, description, category, theme, tags });
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0]?.message || "Dados inválidos.");
+  }
+
+  let newThumbnailUrl: string | undefined = undefined;
+  if (thumbnailFile && thumbnailFile.size > 0) {
+    if (thumbnailFile.size > 5 * 1024 * 1024) {
+      throw new Error("A imagem de capa deve ter no máximo 5MB.");
+    }
+
+    const validTypes: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+
+    if (!validTypes[thumbnailFile.type]) {
+      throw new Error("Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF.");
+    }
+
+    const ext = validTypes[thumbnailFile.type] || "png";
+    const bytes = await thumbnailFile.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const key = `templates/${template.slug}-${Date.now()}.${ext}`;
+
+    newThumbnailUrl = await uploadImageToR2(key, buffer, thumbnailFile.type);
+
+    if (template.thumbnailUrl) {
+      await deleteFileFromR2(template.thumbnailUrl);
+    }
   }
 
   try {
@@ -188,6 +315,7 @@ export async function saveTemplateEditAction(
           category: parsed.data.category,
           theme: parsed.data.theme,
           tags: parsed.data.tags ?? [],
+          ...(newThumbnailUrl ? { thumbnailUrl: newThumbnailUrl } : {}),
         },
       });
 
@@ -196,8 +324,8 @@ export async function saveTemplateEditAction(
         where: { templateId },
         orderBy: { version: "desc" },
       });
-      if (lastVersion && input.rawHtml.trim() !== lastVersion.rawHtml.trim()) {
-        const sanitized = sanitizeTemplateHtml(input.rawHtml);
+      if (lastVersion && rawHtml.trim() !== lastVersion.rawHtml.trim()) {
+        const sanitized = sanitizeTemplateHtml(rawHtml);
         await tx.templateVersion.create({
           data: {
             templateId,
@@ -307,7 +435,7 @@ export async function deleteTemplateAction(templateId: string) {
 
   const template = await prisma.template.findUnique({
     where: { id: templateId },
-    select: { authorId: true, _count: { select: { usages: true } } },
+    select: { authorId: true, thumbnailUrl: true, _count: { select: { usages: true } } },
   });
   if (!template) throw new Error("Template não encontrado.");
   if (template.authorId !== session.userId) throw new Error("Você não é o autor deste template.");
@@ -315,6 +443,10 @@ export async function deleteTemplateAction(templateId: string) {
   // Não permitir excluir se tem usos (outros usuários usaram)
   if (template._count.usages > 0) {
     throw new Error("Este template está em uso por outros usuários. Use 'Remover visibilidade' em vez de excluir.");
+  }
+
+  if (template.thumbnailUrl) {
+    await deleteFileFromR2(template.thumbnailUrl);
   }
 
   await prisma.template.delete({ where: { id: templateId } });

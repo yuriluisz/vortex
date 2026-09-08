@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, Loader2, Save, Code2, Sparkles } from "lucide-react";
+import { X, Loader2, Save, Code2, Sparkles, Image as ImageIcon, Trash2 } from "lucide-react";
 import { saveTemplateEditAction } from "./actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
@@ -29,6 +29,7 @@ type Props = {
     id: string;
     name: string;
     description: string | null;
+    thumbnailUrl?: string | null;
     category: TemplateCategory;
     theme: TemplateTheme;
     tags: string[];
@@ -47,19 +48,53 @@ export function EditTemplateModal({ template, onClose }: Props) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(template.thumbnailUrl ?? null);
+
+  function handleThumbnailSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError("A imagem de capa deve ter no máximo 5MB.");
+      return;
+    }
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setError("Formato de imagem inválido. Use JPEG, PNG, WEBP ou GIF.");
+      return;
+    }
+    setThumbnailFile(file);
+    setThumbnailPreview(URL.createObjectURL(file));
+    setError("");
+  }
+
+  function handleRemoveThumbnail() {
+    setThumbnailFile(null);
+    if (thumbnailPreview && thumbnailPreview !== template.thumbnailUrl) {
+      URL.revokeObjectURL(thumbnailPreview);
+    }
+    setThumbnailPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
     setError("");
     try {
-      await saveTemplateEditAction(template.id, {
-        name,
-        description: description || undefined,
-        category,
-        theme,
-        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-        rawHtml: html,
-      });
+      const formData = new FormData();
+      formData.append("name", name);
+      if (description) formData.append("description", description);
+      formData.append("category", category);
+      formData.append("theme", theme);
+      formData.append("tags", tags);
+      formData.append("rawHtml", html);
+      if (thumbnailFile) {
+        formData.append("thumbnail", thumbnailFile);
+      }
+
+      await saveTemplateEditAction(template.id, formData);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar alterações.");
@@ -143,6 +178,57 @@ export function EditTemplateModal({ template, onClose }: Props) {
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Imagem de Capa (Thumbnail R2) */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground/80 mb-1.5 flex items-center">
+              Imagem de Capa / Thumbnail (R2)
+              <FieldTooltip tooltip="Imagem de destaque exibida no catálogo da comunidade (JPEG, PNG ou WEBP até 5MB)." docsAnchor="templates-editar" />
+            </label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={handleThumbnailSelect}
+              className="hidden"
+            />
+            {thumbnailPreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-white/10 aspect-video max-h-48 bg-black/40 group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={thumbnailPreview} alt="Preview da capa" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm transition-colors"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    Alterar capa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemoveThumbnail}
+                    className="p-1.5 rounded-lg bg-destructive/80 hover:bg-destructive text-white backdrop-blur-sm transition-colors"
+                    title="Remover imagem"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-white/15 bg-white/[0.02] hover:bg-white/[0.05] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              >
+                <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-medium">Clique para selecionar nova imagem de capa (R2)</span>
+                <span className="text-[10px] text-muted-foreground/60">JPEG, PNG ou WEBP até 5MB</span>
+              </button>
+            )}
           </div>
 
           {/* Editor de HTML */}
