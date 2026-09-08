@@ -12,23 +12,29 @@ interface RedirectClientProps {
  * O MetaPixel já disparou o evento CompleteRegistration, então este componente
  * apenas executa o redirect (ou mostra o fallback se não houver grupo).
  */
+const isSafeUrl = (url: string | null): url is string => {
+  if (!url) return false;
+  return /^https?:\/\//i.test(url.trim());
+};
+
 export default function RedirectClient({ groupUrl, slug }: RedirectClientProps) {
   const redirected = useRef(false);
+  const safeUrl = isSafeUrl(groupUrl) ? groupUrl : null;
 
   useEffect(() => {
     if (redirected.current) return;
     redirected.current = true;
 
-    if (groupUrl) {
+    if (safeUrl) {
       // Pequeno delay para garantir que o evento CompleteRegistration subiu
       setTimeout(() => {
-        window.location.href = groupUrl;
+        window.location.href = safeUrl;
       }, 500);
     }
-  }, [groupUrl]);
+  }, [safeUrl]);
 
-  // Se não tem grupo, mostra fallback (mesmo visual de antes)
-  if (!groupUrl) {
+  // Se não tem grupo ou a URL não é segura, mostra fallback
+  if (!safeUrl) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-md text-center">

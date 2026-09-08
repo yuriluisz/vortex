@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { webhooksQueue } from "@/lib/queue";
+import crypto from "crypto";
+
+function safeCompare(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 // ============================================================================
 // WEBHOOK HANDLER — Evolution API
@@ -17,14 +26,12 @@ import { webhooksQueue } from "@/lib/queue";
  */
 export async function POST(request: Request) {
   try {
-    // Validar autenticação via apikey header ou query param (token)
+    // 🔒 Segurança: Autenticação obrigatória via header apikey com comparação em tempo constante
     const expectedKey = (process.env.EVOLUTION_API_KEY || "").trim();
-    const url = new URL(request.url);
-    const queryToken = url.searchParams.get("token") || "";
-    const receivedKey = (request.headers.get("apikey") || queryToken).trim();
+    const receivedKey = (request.headers.get("apikey") || "").trim();
 
-    if (!expectedKey || !receivedKey || receivedKey !== expectedKey) {
-      console.warn(`[Webhook Evolution] ❌ Token inválido — rejeitando.`);
+    if (!expectedKey || !receivedKey || !safeCompare(receivedKey, expectedKey)) {
+      console.warn(`[Webhook Evolution] ❌ Token inválido ou ausente no header apikey — rejeitando.`);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

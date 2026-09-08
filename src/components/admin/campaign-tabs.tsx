@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle, Users, Code } from "lucide-react";
+import { MessageCircle, Users, Code, Video } from "lucide-react";
 
 interface CampaignTabsProps {
   campaignId: string;
@@ -12,6 +12,7 @@ const TABS = [
   { segment: "", label: "Editor de Página", icon: Code, exact: true },
   { segment: "/groups", label: "Grupos WhatsApp", icon: MessageCircle },
   { segment: "/leads", label: "Leads", icon: Users },
+  { segment: "/recordings", label: "Gravações & Calor", icon: Video },
 ];
 
 export function CampaignTabs({ campaignId }: CampaignTabsProps) {

@@ -71,6 +71,7 @@ export default async function CampaignDetailsPage({
         groupSupportPhones: campaign.groupSupportPhones,
         groupDescription: campaign.groupDescription,
         groupImageUrl: campaign.groupImageUrl,
+        sessionRecordingEnabled: campaign.sessionRecordingEnabled,
         groups: campaign.groups.map(g => ({
           id: g.id,
           name: g.name,

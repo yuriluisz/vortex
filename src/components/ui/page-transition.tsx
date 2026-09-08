@@ -18,7 +18,7 @@ export function PageTransition({
 }: PageTransitionProps) {
   return (
     <div
-      className={`animate-page-enter w-full flex-1 flex flex-col ${className}`}
+      className={`animate-page-enter w-full flex-1 flex flex-col min-h-0 ${className}`}
       {...props}
     >
       {children}

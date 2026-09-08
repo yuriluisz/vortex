@@ -1,0 +1,162 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { uploadReplayPayload } from "@/lib/r2";
+import { gzipSync } from "node:zlib";
+
+export const dynamic = "force-dynamic";
+
+// Rate limiting simples por IP (60 req/min por IP)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 60;
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+// Limpar IPs expirados a cada 5 min
+if (typeof globalThis !== "undefined") {
+  const cleanupInterval = 5 * 60_000;
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of rateLimitMap) {
+      if (now > entry.resetAt) rateLimitMap.delete(ip);
+    }
+  }, cleanupInterval).unref?.();
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    // Rate limit por IP
+    const clientIp = req.headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() || req.headers?.get?.("x-real-ip") || "unknown";
+    if (isRateLimited(clientIp)) {
+      return NextResponse.json({ error: "Rate limit excedido." }, { status: 429 });
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body || !body.campaignId || !body.sessionId) {
+      return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
+    }
+
+    const {
+      campaignId,
+      sessionId,
+      duration = 0,
+      clicksCount = 0,
+      clicks = [],
+      device = "mobile",
+      browser,
+      os,
+      pageUrl = "",
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      events,
+      gzip,
+    } = body;
+
+    // Verificar se a campanha existe e tem gravação ativa
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+      include: { tenant: { select: { id: true, plan: true } } },
+    });
+
+    if (!campaign || !campaign.active || !campaign.sessionRecordingEnabled) {
+      return NextResponse.json({ ok: false, reason: "recording_disabled" }, { status: 200 });
+    }
+
+    // Exclusivo para plano ULTRA
+    if (campaign.tenant.plan !== "ULTRA") {
+      return NextResponse.json({ ok: false, reason: "plan_not_ultra" }, { status: 200 });
+    }
+
+    // Preparar buffer gzip
+    let gzipBuffer: Buffer | null = null;
+    if (gzip && typeof gzip === "string") {
+      gzipBuffer = Buffer.from(gzip, "base64");
+    } else if (events && Array.isArray(events) && events.length > 0) {
+      const jsonStr = JSON.stringify(events);
+      gzipBuffer = gzipSync(Buffer.from(jsonStr));
+    }
+
+    const MAX_GZIP_SIZE = 5 * 1024 * 1024; // 5MB
+    if (gzipBuffer && gzipBuffer.length > MAX_GZIP_SIZE) {
+      return NextResponse.json({ error: "Tamanho do payload excede o limite (5MB)." }, { status: 413 });
+    }
+
+    const r2Key = `replays/${campaignId}/${sessionId}.json.gz`;
+
+    if (gzipBuffer && gzipBuffer.length > 0) {
+      await uploadReplayPayload(r2Key, gzipBuffer, "application/gzip");
+    }
+
+    // Upsert nos metadados da sessão
+    await prisma.sessionRecording.upsert({
+      where: { sessionId },
+      create: {
+        sessionId,
+        campaignId,
+        tenantId: campaign.tenant.id,
+        duration: Math.round(Number(duration) || 0),
+        clicksCount: Number(clicksCount) || 0,
+        device: String(device || "mobile"),
+        browser: browser ? String(browser) : null,
+        os: os ? String(os) : null,
+        pageUrl: String(pageUrl).slice(0, 500),
+        utmSource: utmSource ? String(utmSource).slice(0, 100) : null,
+        utmMedium: utmMedium ? String(utmMedium).slice(0, 100) : null,
+        utmCampaign: utmCampaign ? String(utmCampaign).slice(0, 100) : null,
+        r2Key,
+      },
+      update: {
+        duration: Math.round(Number(duration) || 0),
+        clicksCount: Number(clicksCount) || 0,
+        pageUrl: String(pageUrl).slice(0, 500),
+      },
+    });
+
+    // Inserir pontos de clique para o mapa de calor
+    if (Array.isArray(clicks) && clicks.length > 0) {
+      const heatmapRecords = clicks.slice(0, 100).map((c: { x: number; y: number }) => ({
+        campaignId,
+        x: Math.max(0, Math.min(100, Number(c.x) || 0)),
+        y: Math.max(0, Math.min(100, Number(c.y) || 0)),
+        device: String(device || "mobile"),
+      }));
+
+      await prisma.heatmapClick.createMany({
+        data: heatmapRecords,
+      });
+    }
+
+    return NextResponse.json(
+      { ok: true, sessionId },
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Erro na ingestão de gravação:", error);
+    return NextResponse.json({ error: "Erro interno no servidor." }, { status: 500 });
+  }
+}

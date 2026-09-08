@@ -71,6 +71,7 @@ model Tenant {
   templates          Template[]
   templateUsages     TemplateUsage[]
   tenantMembers      TenantMember[]
+  sessionRecordings  SessionRecording[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -373,6 +374,9 @@ model Campaign {
   ogImageUrl      String?
   faviconUrl      String?
 
+  // Gravação de Sessões & Heatmap (Plano ULTRA)
+  sessionRecordingEnabled Boolean @default(false)
+
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   groups        Group[]
   leads         Lead[]
@@ -380,6 +384,8 @@ model Campaign {
   groupMessages  GroupMessage[]
   templateUsages TemplateUsage[]
   campaignShares CampaignShare[]
+  sessionRecordings SessionRecording[]
+  heatmapClicks     HeatmapClick[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -560,4 +566,46 @@ model CampaignShare {
   @@unique([campaignId, email])
   @@index([userId])
   @@index([email])
-}
+}
+
+// ============================================================================
+// GRAVAÇÃO DE SESSÕES & MAPA DE CALOR (HEATMAP)
+// ============================================================================
+
+model SessionRecording {
+  id           String   @id @default(uuid())
+  campaignId   String
+  tenantId     String
+  sessionId    String   @unique
+  duration     Int      @default(0) // Em segundos
+  clicksCount  Int      @default(0)
+  device       String?  // "mobile" | "tablet" | "desktop"
+  browser      String?
+  os           String?
+  pageUrl      String
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  r2Key        String   // Chave do arquivo no Cloudflare R2
+  createdAt    DateTime @default(now())
+
+  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model HeatmapClick {
+  id         String   @id @default(uuid())
+  campaignId String
+  x          Float    // Percentual 0-100 da largura da tela
+  y          Float    // Posição Y em px ou percentual
+  device     String   @default("mobile") // "mobile" | "desktop"
+  createdAt  DateTime @default(now())
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, device, createdAt])
+}
+

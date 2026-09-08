@@ -103,8 +103,10 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
     (pathname.startsWith("/admin/campaigns/") &&
       !pathname.endsWith("/leads") &&
       !pathname.endsWith("/groups") &&
+      !pathname.endsWith("/recordings") &&
       !pathname.includes("/leads/") &&
-      !pathname.includes("/groups/"));
+      !pathname.includes("/groups/") &&
+      !pathname.includes("/recordings/"));
 
   return (
     <div className="flex h-dvh w-full max-w-full overflow-hidden bg-black text-white antialiased relative">
@@ -256,9 +258,9 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 w-full max-w-full flex flex-col overflow-hidden relative z-10 bg-black">
+      <main className="flex-1 min-w-0 min-h-0 w-full max-w-full flex flex-col overflow-hidden relative z-10 bg-black">
         {/* Botão hamburger — visível apenas em mobile */}
-        <div className="md:hidden flex items-center h-14 px-4 border-b border-white/10 bg-black/90 backdrop-blur-md">
+        <div className="md:hidden flex items-center h-14 px-4 border-b border-white/10 bg-black/90 backdrop-blur-md shrink-0">
           <button
             type="button"
             onClick={() => setSidebarOpen((prev) => !prev)}
@@ -312,7 +314,7 @@ export function AdminShell({ children, tenantInfo }: AdminShellProps) {
             {children}
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 md:p-8 animate-in fade-in duration-300 relative z-10">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 pt-5 sm:pt-6 lg:pt-8 animate-in fade-in duration-300 relative z-10">
             {children}
           </div>
         )}

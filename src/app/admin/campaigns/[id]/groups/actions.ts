@@ -51,7 +51,9 @@ async function requireAuth() {
 const GroupSchema = z.object({
   campaignId: z.string().uuid(),
   name: z.string().min(1, "O nome do grupo é obrigatório"),
-  url: z.string().url("URL do WhatsApp inválida"),
+  url: z.string().url("URL do WhatsApp inválida").refine((val) => /^https?:\/\//i.test(val.trim()), {
+    message: "A URL deve iniciar com http:// ou https://",
+  }),
   maxCapacity: z.coerce.number().min(1).max(1024),
 });
 
@@ -300,9 +302,15 @@ export async function updateGroupUrlAction(
   const result = await requireTenantOwnership(prisma.group, groupId, tenantId, "Grupo");
   if (result.error) throw new Error(result.error.error);
 
-  const parsedUrl = z.string().url("URL inválida").safeParse(url);
+  const parsedUrl = z
+    .string()
+    .url("URL inválida")
+    .refine((val) => /^https?:\/\//i.test(val.trim()), {
+      message: "A URL deve iniciar com http:// ou https://",
+    })
+    .safeParse(url);
   if (!parsedUrl.success) {
-    throw new Error("URL inválida");
+    throw new Error(parsedUrl.error.issues[0]?.message || "URL inválida");
   }
 
   await prisma.group.update({

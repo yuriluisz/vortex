@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}));
 import { hasFeature } from "@/lib/plans";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import crypto from "crypto";
 
 describe("Security Remediation Tests", () => {
   describe("1. Account Takeover Prevention in Invite Acceptance", () => {
@@ -147,6 +148,107 @@ describe("Security Remediation Tests", () => {
     it("should allow ADMIN and SUPER_ADMIN to toggle campaign status", () => {
       expect(assertCanToggleCampaign("ADMIN")).toBe(true);
       expect(assertCanToggleCampaign("SUPER_ADMIN")).toBe(true);
+    });
+  });
+
+  describe("9. WhatsApp Group URL Scheme Hardening (XSS / Protocol Smuggling)", () => {
+    const groupUrlSchema = z.string().url("URL inválida").refine((val) => /^https?:\/\//i.test(val.trim()), {
+      message: "A URL deve iniciar com http:// ou https://",
+    });
+
+    it("should accept valid https whatsapp URLs", () => {
+      expect(groupUrlSchema.safeParse("https://chat.whatsapp.com/invite/12345").success).toBe(true);
+      expect(groupUrlSchema.safeParse("http://chat.whatsapp.com/test").success).toBe(true);
+    });
+
+    it("should reject javascript: protocol smuggling and non-http schemes", () => {
+      expect(groupUrlSchema.safeParse("javascript:alert(document.cookie)").success).toBe(false);
+      expect(groupUrlSchema.safeParse("data:text/html,<script>alert(1)</script>").success).toBe(false);
+      expect(groupUrlSchema.safeParse("vbscript:msgbox(1)").success).toBe(false);
+    });
+  });
+
+  describe("10. Custom Hostname IDOR Guard", () => {
+    function canCheckHostname(
+      userPlan: string,
+      userTenantId: string,
+      hostname: string,
+      campaigns: Array<{ tenantId: string; customDomain: string }>
+    ): boolean {
+      if (userPlan !== "ULTRA") return false;
+      const cleanHost = hostname.trim().toLowerCase();
+      const match = campaigns.find(
+        (c) => c.tenantId === userTenantId && c.customDomain.toLowerCase() === cleanHost
+      );
+      return !!match;
+    }
+
+    const mockDbCampaigns = [
+      { tenantId: "tenant-owner", customDomain: "evento.exemplo.com" },
+      { tenantId: "tenant-victim", customDomain: "vip.alvo.com" },
+    ];
+
+    it("should block non-ULTRA users", () => {
+      expect(canCheckHostname("PRO", "tenant-owner", "evento.exemplo.com", mockDbCampaigns)).toBe(false);
+      expect(canCheckHostname("FREE", "tenant-owner", "evento.exemplo.com", mockDbCampaigns)).toBe(false);
+    });
+
+    it("should block ULTRA user from querying hostnames of other tenants (IDOR)", () => {
+      expect(canCheckHostname("ULTRA", "tenant-owner", "vip.alvo.com", mockDbCampaigns)).toBe(false);
+      expect(canCheckHostname("ULTRA", "tenant-attacker", "evento.exemplo.com", mockDbCampaigns)).toBe(false);
+    });
+
+    it("should allow ULTRA user to query their own registered hostnames", () => {
+      expect(canCheckHostname("ULTRA", "tenant-owner", "evento.exemplo.com", mockDbCampaigns)).toBe(true);
+    });
+  });
+
+  describe("11. Redis Production Startup Validation", () => {
+    function resolveRedisUrl(nodeEnv: string, envRedisUrl?: string): string {
+      const url = envRedisUrl;
+      if (!url) {
+        if (nodeEnv === "production") {
+          throw new Error("❌ [FATAL] REDIS_URL não está configurada no ambiente de produção.");
+        }
+        return "redis://localhost:6379";
+      }
+      return url;
+    }
+
+    it("should throw in production if REDIS_URL is missing", () => {
+      expect(() => resolveRedisUrl("production", undefined)).toThrow("REDIS_URL não está configurada");
+      expect(() => resolveRedisUrl("production", "")).toThrow("REDIS_URL não está configurada");
+    });
+
+    it("should return REDIS_URL if provided in production", () => {
+      expect(resolveRedisUrl("production", "rediss://default:secret@redis.host:6379")).toBe(
+        "rediss://default:secret@redis.host:6379"
+      );
+    });
+
+    it("should fallback to localhost in development/test", () => {
+      expect(resolveRedisUrl("development", undefined)).toBe("redis://localhost:6379");
+      expect(resolveRedisUrl("test", undefined)).toBe("redis://localhost:6379");
+    });
+  });
+
+  describe("12. Constant-Time Webhook Token Authentication", () => {
+    function safeCompare(a: string, b: string): boolean {
+      if (!a || !b) return false;
+      const bufA = Buffer.from(a);
+      const bufB = Buffer.from(b);
+      if (bufA.length !== bufB.length) return false;
+      return crypto.timingSafeEqual(bufA, bufB);
+    }
+
+    it("should return true for matching tokens", () => {
+      expect(safeCompare("vortex-super-secret-key-123", "vortex-super-secret-key-123")).toBe(true);
+    });
+
+    it("should return false for mismatched tokens or lengths", () => {
+      expect(safeCompare("wrong-key", "vortex-super-secret-key-123")).toBe(false);
+      expect(safeCompare("", "vortex-super-secret-key-123")).toBe(false);
+      expect(safeCompare("vortex-super-secret-key-124", "vortex-super-secret-key-123")).toBe(false);
     });
   });
 });

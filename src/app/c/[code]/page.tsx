@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import HtmlRenderer from "../../[slug]/HtmlRenderer";
 import MetaPixel from "@/components/MetaPixel";
 import GoogleTagManager from "@/components/GoogleTagManager";
+import SessionTracker from "@/components/analytics/SessionTracker";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
@@ -63,6 +64,12 @@ export default async function ProtectedCampaignPage({ params }: PageProps) {
 
       {/* Google Tag Manager — injeção dinâmica */}
       <GoogleTagManager gtmId={campaign.gtmId} />
+
+      {/* Rastreamento de Sessões & Heatmap (se ativo) */}
+      <SessionTracker
+        campaignId={campaign.id}
+        enabled={Boolean(campaign.sessionRecordingEnabled)}
+      />
 
       {/* Renderizar HTML customizado com slot do formulário */}
       <HtmlRenderer

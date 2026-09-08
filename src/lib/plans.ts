@@ -17,6 +17,7 @@ export const PLAN_LIMITS: Record<
     whatsappIntegration: boolean;
     publishTemplates: boolean;
     useTemplates: boolean;
+    sessionRecording: boolean;
   }
 > = {
   FREE: {
@@ -29,6 +30,7 @@ export const PLAN_LIMITS: Record<
     whatsappIntegration: false,
     publishTemplates: false,
     useTemplates: true,
+    sessionRecording: false,
   },
   PRO: {
     maxCampaigns: 10,
@@ -40,6 +42,7 @@ export const PLAN_LIMITS: Record<
     whatsappIntegration: false,
     publishTemplates: true,
     useTemplates: true,
+    sessionRecording: false,
   },
   ULTRA: {
     maxCampaigns: -1, // ilimitado
@@ -51,6 +54,7 @@ export const PLAN_LIMITS: Record<
     whatsappIntegration: true,
     publishTemplates: true,
     useTemplates: true,
+    sessionRecording: true,
   },
 };
 
@@ -61,7 +65,8 @@ export type FeatureFlag =
   | "prioritySupport"
   | "whatsappIntegration"
   | "publishTemplates"
-  | "useTemplates";
+  | "useTemplates"
+  | "sessionRecording";
 
 /**
  * Retorna o limite numérico de um recurso para um plano.

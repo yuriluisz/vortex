@@ -14,6 +14,7 @@ import {
   Check,
   ExternalLink,
   RefreshCcw,
+  Video,
 } from "lucide-react";
 import { CampaignFormBuilder } from "./campaign-form-builder";
 import { FieldTooltip } from "./field-tooltip";
@@ -28,6 +29,7 @@ export interface CampaignSettings {
   pixelId: string;
   gtmId: string;
   customDomain: string;
+  sessionRecordingEnabled: boolean;
   formSchema: string;
   metaTitle: string;
   metaDescription: string;
@@ -145,7 +147,7 @@ export function CampaignSettingsModal({
   }, [open, onOpenChange]);
 
   const updateField = useCallback(
-    (field: keyof CampaignSettings, value: string | number) => {
+    <K extends keyof CampaignSettings>(field: K, value: CampaignSettings[K]) => {
       onSettingsChange({ [field]: value });
     },
     [onSettingsChange]
@@ -322,6 +324,65 @@ export function CampaignSettingsModal({
               Apontamento DNS: crie uma entrada <strong>CNAME</strong> no seu provedor apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>
             </p>
           )}
+        </div>
+
+        {/* Gravações de Sessão & Mapa de Calor */}
+        <div className="space-y-3 pt-2">
+          <div className="border-b border-white/10 pb-2 flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Video className="w-4 h-4 text-primary" />
+                Gravações & Mapa de Calor
+              </h4>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Grave as sessões e gere mapas térmicos de cliques dos visitantes (Cloudflare R2).
+              </p>
+            </div>
+            {plan !== "ULTRA" && (
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-2 py-1 rounded-full">
+                Ultra
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/[0.07] transition-colors">
+            <div className="space-y-0.5 pr-4">
+              <label htmlFor="settings-sessionRecording" className="text-sm font-medium text-foreground cursor-pointer">
+                Habilitar Gravação de Sessões & Heatmap
+              </label>
+              <p className="text-xs text-muted-foreground">
+                {plan === "ULTRA"
+                  ? "Grava cliques, rolagem e toques com privacidade total (campos de formulário mascarados)."
+                  : "Recurso exclusivo do plano ULTRA para diagnóstico avançado de conversão e tráfego."}
+              </p>
+            </div>
+
+            <button
+              id="settings-sessionRecording"
+              type="button"
+              role="switch"
+              aria-checked={settings.sessionRecordingEnabled}
+              disabled={plan !== "ULTRA"}
+              onClick={() => {
+                if (plan === "ULTRA") {
+                  updateField("sessionRecordingEnabled", !settings.sessionRecordingEnabled);
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                settings.sessionRecordingEnabled && plan === "ULTRA"
+                  ? "bg-primary"
+                  : "bg-muted"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                  settings.sessionRecordingEnabled && plan === "ULTRA"
+                    ? "translate-x-5"
+                    : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 

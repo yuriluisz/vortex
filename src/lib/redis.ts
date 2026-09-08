@@ -10,7 +10,14 @@ export const defaultRedisOptions: RedisOptions = {
 };
 
 export function getRedisUrl(): string {
-  return process.env.REDIS_URL || "redis://localhost:6379";
+  const url = process.env.REDIS_URL;
+  if (!url) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("❌ [FATAL] REDIS_URL não está configurada no ambiente de produção.");
+    }
+    return "redis://localhost:6379";
+  }
+  return url;
 }
 
 export function createRedisConnection(customOptions?: Partial<RedisOptions>): Redis {

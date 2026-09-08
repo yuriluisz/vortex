@@ -124,6 +124,7 @@ const SaveCampaignSchema = z.object({
   groupSupportPhones: z.string().optional().transform((val) => val ? val.split(",").map((s) => s.trim().replace(/\D/g, "")).filter(Boolean) : []),
   groupDescription: z.string().optional(),
   groupImageUrl: z.string().url("A imagem precisa ser uma URL válida").optional().or(z.literal("")),
+  sessionRecordingEnabled: z.boolean().optional().default(false),
 });
 
 // ============================================================================
@@ -149,6 +150,7 @@ export async function saveCampaignAction(
     name, slug, rawHtml, formSchema, pixelId, gtmId, customDomain,
     metaTitle, metaDescription, ogImageUrl, faviconUrl,
     groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl,
+    sessionRecordingEnabled,
   } = parsed.data;
 
   const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
@@ -157,6 +159,7 @@ export async function saveCampaignAction(
   const finalMetaDescription = canCustomize ? (metaDescription || null) : null;
   const finalOgImageUrl = canCustomize ? (ogImageUrl || null) : null;
   const finalFaviconUrl = canCustomize ? (faviconUrl || null) : null;
+  const finalSessionRecording = plan === "ULTRA" ? (sessionRecordingEnabled ?? false) : false;
 
   const campaignData = {
     name,
@@ -174,6 +177,7 @@ export async function saveCampaignAction(
     metaDescription: finalMetaDescription,
     ogImageUrl: finalOgImageUrl,
     faviconUrl: finalFaviconUrl,
+    sessionRecordingEnabled: finalSessionRecording,
   };
 
   // ── CREATE ──
@@ -393,7 +397,32 @@ export async function toggleCampaignProtectionAction(
 }
 
 export async function checkCustomHostnameStatusAction(hostname: string) {
-  const { plan } = await requireAuth();
+  const { tenantId, plan } = await requireAuth();
   if (plan !== "ULTRA") return null;
-  return await getCustomHostnameStatus(hostname);
+
+  const cleanHost = decodeURIComponent(hostname)
+    .toLowerCase()
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  if (!cleanHost) return null;
+
+  // 🔒 Tenant isolation / IDOR guard: só consulta se o hostname pertencer ao tenant
+  const campaign = await prisma.campaign.findFirst({
+    where: {
+      tenantId,
+      OR: [
+        { customDomain: cleanHost },
+        { customDomain: `https://${cleanHost}` },
+        { customDomain: `http://${cleanHost}` },
+        { customDomain: { equals: cleanHost, mode: "insensitive" } },
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (!campaign) return null;
+
+  return await getCustomHostnameStatus(cleanHost);
 }

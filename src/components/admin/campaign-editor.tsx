@@ -36,6 +36,7 @@ import {
   AlertTriangle,
   X,
   Trash2,
+  Video,
 } from "lucide-react";
 import { CampaignShareModal } from "@/components/admin/campaign-share-modal";
 import { TemplatePicker } from "@/components/templates/template-picker";
@@ -79,6 +80,7 @@ interface CampaignData {
   groupSupportPhones: string[];
   groupDescription: string | null;
   groupImageUrl: string | null;
+  sessionRecordingEnabled?: boolean;
   groups?: Array<{
     id: string;
     name: string;
@@ -250,6 +252,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
     groupSupportPhones: campaign?.groupSupportPhones?.join(", ") || "",
     groupDescription: campaign?.groupDescription || "",
     groupImageUrl: campaign?.groupImageUrl || "",
+    sessionRecordingEnabled: campaign?.sessionRecordingEnabled ?? false,
   });
 
   // ── Controls State (edit only) ──
@@ -435,6 +438,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
           groupSupportPhones: settings.groupSupportPhones || undefined,
           groupDescription: settings.groupDescription || undefined,
           groupImageUrl: settings.groupImageUrl || undefined,
+          sessionRecordingEnabled: settings.sessionRecordingEnabled,
         }
       );
 
@@ -652,6 +656,15 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                   <span className="hidden sm:inline">Grupos</span>
                 </Link>
 
+                <Link
+                  href={`/admin/campaigns/${campaign.id}/recordings`}
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
+                  title="Gravações de Sessão e Mapa de Calor"
+                >
+                  <Video className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <span className="hidden sm:inline">Gravações & Calor</span>
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => setShowShareModal(true)}
@@ -766,6 +779,14 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                       >
                         <MessageCircle className="w-4 h-4 text-muted-foreground" />
                         Ver Grupos
+                      </Link>
+                      <Link
+                        href={`/admin/campaigns/${campaign.id}/recordings`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
+                      >
+                        <Video className="w-4 h-4 text-muted-foreground" />
+                        Gravações & Calor
                       </Link>
                       <button
                         type="button"

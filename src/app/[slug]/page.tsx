@@ -4,30 +4,45 @@ import { prisma } from "@/lib/prisma";
 import HtmlRenderer from "./HtmlRenderer";
 import MetaPixel from "@/components/MetaPixel";
 import GoogleTagManager from "@/components/GoogleTagManager";
+import SessionTracker from "@/components/analytics/SessionTracker";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
+import { getSession } from "@/lib/session";
 export const dynamic = "force-dynamic";
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ preview?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const campaign = await prisma.campaign.findFirst({
-    where: { slug, active: true },
+    where: { slug },
     include: { tenant: true },
   });
   if (!campaign || !campaign.tenant) return {};
   return buildCampaignMetadata(campaign);
 }
 
-export default async function CampaignPage({ params }: PageProps) {
+export default async function CampaignPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
 
-  // Buscar campanha pelo slug incluindo dados do tenant
+  // Preview mode exige sessão de admin autenticado pertencente ao mesmo tenant — visitantes públicos não podem bypassar
+  let isPreview = false;
+  let sessionTenantId: string | undefined;
+  if (resolvedSearchParams.preview === "true") {
+    const session = await getSession();
+    if (session?.tenantId) {
+      isPreview = true;
+      sessionTenantId = session.tenantId;
+    }
+  }
+
+  // Buscar campanha pelo slug incluindo dados do tenant (no modo preview, restrito ao tenant autenticado)
   const campaign = await prisma.campaign.findFirst({
-    where: { slug, active: true },
+    where: isPreview ? { slug, tenantId: sessionTenantId } : { slug, active: true },
     include: { tenant: true },
   });
 
@@ -35,14 +50,14 @@ export default async function CampaignPage({ params }: PageProps) {
     notFound();
   }
 
-  // Se a campanha está protegida, retornar 404 — o slug não existe mais
-  if (campaign.protected && campaign.accessCode) {
-    notFound();
-  }
-
-  // Se a campanha possui um domínio customizado, ela não deve ser acessada via slug padrão
-  if (campaign.customDomain) {
-    notFound();
+  // Se não for preview: verificar se está protegida ou se usa domínio customizado
+  if (!isPreview) {
+    if (campaign.protected && campaign.accessCode) {
+      notFound();
+    }
+    if (campaign.customDomain) {
+      notFound();
+    }
   }
 
   // Validação de assinatura do Tenant via subscription-guard (unificada)
@@ -73,6 +88,12 @@ export default async function CampaignPage({ params }: PageProps) {
 
       {/* Google Tag Manager — injeção dinâmica */}
       <GoogleTagManager gtmId={campaign.gtmId} />
+
+      {/* Rastreamento de Sessões & Heatmap (se ativo) */}
+      <SessionTracker
+        campaignId={campaign.id}
+        enabled={Boolean(campaign.sessionRecordingEnabled)}
+      />
 
       {/* Renderizar HTML customizado com slot do formulário */}
       <HtmlRenderer
