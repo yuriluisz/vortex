@@ -34,38 +34,58 @@ type MobilePreset = "390" | "360" | "428" | "fluid";
 type DesktopPreset = "fluid" | "1200" | "tablet";
 type ViewMode = "window" | "full";
 
-export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: HeatmapViewProps) {
-  // ── Filtros e Configurações de Exibição ──
-  const [deviceFilter, setDeviceFilter] = useState<"mobile" | "desktop">("mobile");
-  const [mobilePreset, setMobilePreset] = useState<MobilePreset>("390");
-  const [desktopPreset, setDesktopPreset] = useState<DesktopPreset>("fluid");
-  const [viewMode, setViewMode] = useState<ViewMode>("window");
-  const [zoom, setZoom] = useState<number>(100);
+// ── Pure Helpers (Exported for Unit Testing & Loop Prevention) ──
 
-  // ── Estado de Dados ──
-  const [loading, setLoading] = useState(true);
-  const [clicks, setClicks] = useState<ClickPoint[]>([]);
-  const [totalClicks, setTotalClicks] = useState(0);
-  const [opacity, setOpacity] = useState(0.75);
-  const [showHeatmap, setShowHeatmap] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  // ── Dimensões Dinâmicas do Preview e Documento ──
-  const [iframeHeight, setIframeHeight] = useState(1200);
-  const [containerWidth, setContainerWidth] = useState(390);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const contentWrapperRef = useRef<HTMLDivElement>(null);
-
-  // ── Documento de Preview Completo (srcDoc para carregamento instantâneo) ──
-  const previewDoc = useMemo(() => {
-    if (!rawHtml) return "";
-    const hasHtmlTag = /<html/i.test(rawHtml) || /<!DOCTYPE/i.test(rawHtml);
-    if (hasHtmlTag) {
-      return rawHtml;
+export function getSimulatedViewportHeight(
+  deviceFilter: "mobile" | "desktop",
+  mobilePreset: string,
+  desktopPreset: string
+): number {
+  if (deviceFilter === "mobile") {
+    switch (mobilePreset) {
+      case "360":
+        return 780;
+      case "428":
+        return 926;
+      case "fluid":
+        return 800;
+      case "390":
+      default:
+        return 844;
     }
-    return `<!DOCTYPE html>
+  }
+  if (desktopPreset === "tablet") return 1024;
+  return 800;
+}
+
+export function buildPreviewDoc(rawHtml?: string, viewportHeight = 800): string {
+  if (!rawHtml) return "";
+  const hasHtmlTag = /<html/i.test(rawHtml) || /<!DOCTYPE/i.test(rawHtml);
+  const safetyCss = `
+<style id="vortex-preview-safety">
+  :root { --vortex-viewport-h: ${viewportHeight}px; }
+  html, body {
+    width: 100%;
+    height: auto !important;
+    min-height: var(--vortex-viewport-h) !important;
+    overflow-y: visible !important;
+  }
+  .min-h-screen, [class*="min-h-screen"], [style*="min-height: 100vh"], [style*="min-height:100vh"] {
+    min-height: var(--vortex-viewport-h) !important;
+  }
+  .h-screen, [class*="h-screen"], [style*="height: 100vh"], [style*="height:100vh"] {
+    height: var(--vortex-viewport-h) !important;
+  }
+</style>`;
+
+  if (hasHtmlTag) {
+    if (/<head[^>]*>/i.test(rawHtml)) {
+      return rawHtml.replace(/<head[^>]*>/i, (match) => `${match}${safetyCss}`);
+    }
+    return `${safetyCss}${rawHtml}`;
+  }
+
+  return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -76,15 +96,107 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:100%; min-height:100%; font-family:'Inter',system-ui,sans-serif; color-scheme:dark; background:#000; color:#fff; }
     input,select,textarea,button { font-family:inherit; color:inherit; }
   </style>
+  ${safetyCss}
 </head>
-<body>
+<body style="font-family:'Inter',system-ui,sans-serif; color-scheme:dark; background:#000; color:#fff;">
   ${rawHtml.replace(/\{\{FORM_SLOT\}\}/g, '<div style="padding:20px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);text-align:center;"><span style="color:#aaa;font-size:13px;">Formulário da Campanha</span></div>')}
 </body>
 </html>`;
-  }, [rawHtml]);
+}
+
+export function clampIframeHeight(
+  measured: number,
+  minHeight: number,
+  maxHeight = 10000
+): number {
+  if (isNaN(measured) || measured <= 0) return minHeight;
+  return Math.min(Math.max(measured, minHeight), maxHeight);
+}
+
+export function shouldUpdateHeight(
+  currentHeight: number,
+  nextHeight: number,
+  threshold = 16
+): boolean {
+  return Math.abs(currentHeight - nextHeight) >= threshold;
+}
+
+export function getSafeCanvasDimensions(
+  width: number,
+  height: number,
+  rawDpr = 1
+): {
+  canvasWidth: number;
+  canvasHeight: number;
+  styleWidth: number;
+  styleHeight: number;
+  scaleY: number;
+  dpr: number;
+} {
+  const safeDpr = Math.min(Math.max(rawDpr, 1), 1.5);
+  const MAX_CANVAS_HEIGHT = 8192;
+  const MAX_CANVAS_WIDTH = 4096;
+
+  const styleWidth = Math.max(1, Math.round(width));
+  const styleHeight = Math.max(1, Math.round(height));
+
+  const cappedHeight = Math.min(styleHeight, MAX_CANVAS_HEIGHT);
+  const cappedWidth = Math.min(styleWidth, MAX_CANVAS_WIDTH);
+
+  const canvasWidth = Math.round(cappedWidth * safeDpr);
+  const canvasHeight = Math.round(cappedHeight * safeDpr);
+
+  const scaleY = cappedHeight / styleHeight;
+
+  return {
+    canvasWidth,
+    canvasHeight,
+    styleWidth,
+    styleHeight,
+    scaleY,
+    dpr: safeDpr,
+  };
+}
+
+export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: HeatmapViewProps) {
+  // ── Filtros e Configurações de Exibição ──
+  const [deviceFilter, setDeviceFilter] = useState<"mobile" | "desktop">("mobile");
+  const [mobilePreset, setMobilePreset] = useState<MobilePreset>("390");
+  const [desktopPreset, setDesktopPreset] = useState<DesktopPreset>("fluid");
+  const [viewMode, setViewMode] = useState<ViewMode>("window");
+  const [zoom, setZoom] = useState<number>(100);
+
+  // ── Altura de Viewport Simulada do Dispositivo ──
+  const simulatedViewportHeight = useMemo(
+    () => getSimulatedViewportHeight(deviceFilter, mobilePreset, desktopPreset),
+    [deviceFilter, mobilePreset, desktopPreset]
+  );
+
+  // ── Estado de Dados ──
+  const [loading, setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickPoint[]>([]);
+  const [totalClicks, setTotalClicks] = useState(0);
+  const [opacity, setOpacity] = useState(0.75);
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // ── Dimensões Dinâmicas do Preview e Documento ──
+  const [iframeHeight, setIframeHeight] = useState<number>(simulatedViewportHeight);
+  const [containerWidth, setContainerWidth] = useState(390);
+
+  // Altura efetiva garantindo o mínimo do viewport simulado (sem disparar cascata de renders)
+  const effectiveHeight = Math.max(iframeHeight, simulatedViewportHeight);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
+
+  // ── Documento de Preview Completo (srcDoc para carregamento instantâneo) ──
+  const previewDoc = useMemo(() => {
+    return buildPreviewDoc(rawHtml, simulatedViewportHeight);
+  }, [rawHtml, simulatedViewportHeight]);
 
   // ── Buscar dados de cliques na API ──
   useEffect(() => {
@@ -115,7 +227,39 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
     };
   }, [campaignId, deviceFilter, refreshKey]);
 
-  // ── Medir altura real do documento dentro do iframe ──
+  // ── Garantir injeção de CSS de segurança no documento do iframe ──
+  const ensureDocSafety = useCallback(
+    (doc: Document) => {
+      try {
+        let styleEl = doc.getElementById("vortex-preview-safety") as HTMLStyleElement | null;
+        if (!styleEl) {
+          styleEl = doc.createElement("style");
+          styleEl.id = "vortex-preview-safety";
+          doc.head?.appendChild(styleEl);
+        }
+        styleEl.textContent = `
+          :root { --vortex-viewport-h: ${simulatedViewportHeight}px; }
+          html, body {
+            width: 100%;
+            height: auto !important;
+            min-height: var(--vortex-viewport-h) !important;
+            overflow-y: visible !important;
+          }
+          .min-h-screen, [class*="min-h-screen"], [style*="min-height: 100vh"], [style*="min-height:100vh"] {
+            min-height: var(--vortex-viewport-h) !important;
+          }
+          .h-screen, [class*="h-screen"], [style*="height: 100vh"], [style*="height:100vh"] {
+            height: var(--vortex-viewport-h) !important;
+          }
+        `;
+      } catch {
+        // Ignora restrição cross-origin
+      }
+    },
+    [simulatedViewportHeight]
+  );
+
+  // ── Medir altura real do documento dentro do iframe com proteção anti-loop ──
   const measureIframe = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
@@ -123,14 +267,33 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
     try {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (doc) {
-        const bodyScroll = doc.body?.scrollHeight || 0;
-        const bodyOffset = doc.body?.offsetHeight || 0;
-        const elemScroll = doc.documentElement?.scrollHeight || 0;
-        const elemOffset = doc.documentElement?.offsetHeight || 0;
-        const measured = Math.max(bodyScroll, bodyOffset, elemScroll, elemOffset);
-        if (measured > 200) {
-          setIframeHeight(measured);
+        ensureDocSafety(doc);
+
+        let measured = 0;
+
+        // 1. Limites dos nós filhos de body (ignora tags auxiliares de scripts/estilos)
+        if (doc.body && doc.body.children.length > 0) {
+          let maxBottom = 0;
+          for (let i = 0; i < doc.body.children.length; i++) {
+            const child = doc.body.children[i] as HTMLElement;
+            if (child.tagName === "SCRIPT" || child.tagName === "STYLE") continue;
+            const bottom = (child.offsetTop || 0) + (child.offsetHeight || 0);
+            if (bottom > maxBottom) maxBottom = bottom;
+          }
+          if (maxBottom > 0) {
+            measured = maxBottom;
+          }
         }
+
+        // 2. Body scrollHeight (com height: auto, reflete exatamente a extensão natural)
+        const bodyScroll = doc.body?.scrollHeight || 0;
+        if (bodyScroll > 0) {
+          measured = measured > 0 ? Math.max(measured, bodyScroll) : bodyScroll;
+        }
+
+        const safeHeight = clampIframeHeight(measured, simulatedViewportHeight, 10000);
+
+        setIframeHeight((prev) => (shouldUpdateHeight(prev, safeHeight, 16) ? safeHeight : prev));
       }
     } catch {
       // Ignora restrição cross-origin se houver
@@ -139,9 +302,9 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
     if (contentWrapperRef.current) {
       setContainerWidth(contentWrapperRef.current.clientWidth);
     }
-  }, []);
+  }, [ensureDocSafety, simulatedViewportHeight]);
 
-  // Observar redimensionamento do container e do iframe de forma reativa
+  // Observar redimensionamento do container e do iframe de forma reativa e segura
   useEffect(() => {
     measureIframe();
 
@@ -157,24 +320,32 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
 
     const iframe = iframeRef.current;
     let docRo: ResizeObserver | null = null;
+    let rafId: number | null = null;
+
+    const throttledMeasure = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        measureIframe();
+      });
+    };
 
     const attachDocObserver = () => {
-      measureIframe();
+      throttledMeasure();
       try {
         const doc = iframe?.contentDocument || iframe?.contentWindow?.document;
         if (doc) {
+          ensureDocSafety(doc);
+          // OBSERVAR APENAS O BODY (NUNCA O DOCUMENTELEMENT PARA NÃO DISPARAR FEEDBACK LOOP COM IFRAME)
           if (doc.body && typeof ResizeObserver !== "undefined") {
-            docRo = new ResizeObserver(() => measureIframe());
+            docRo = new ResizeObserver(() => throttledMeasure());
             docRo.observe(doc.body);
-          }
-          if (doc.documentElement && typeof ResizeObserver !== "undefined") {
-            docRo?.observe(doc.documentElement);
           }
           // Medir novamente quando imagens terminarem de carregar
           const images = doc.querySelectorAll("img");
           images.forEach((img) => {
             if (!img.complete) {
-              img.addEventListener("load", measureIframe, { once: true });
+              img.addEventListener("load", throttledMeasure, { once: true });
             }
           });
         }
@@ -188,23 +359,20 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
       attachDocObserver();
     }
 
-    const t1 = setTimeout(measureIframe, 150);
-    const t2 = setTimeout(measureIframe, 500);
-    const t3 = setTimeout(measureIframe, 1200);
-    const t4 = setTimeout(measureIframe, 2500);
+    const t1 = setTimeout(throttledMeasure, 150);
+    const t2 = setTimeout(throttledMeasure, 600);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       if (wrapperRo) wrapperRo.disconnect();
       if (docRo) docRo.disconnect();
       if (iframe) iframe.removeEventListener("load", attachDocObserver);
     };
-  }, [measureIframe, deviceFilter, mobilePreset, desktopPreset, refreshKey, previewDoc]);
+  }, [measureIframe, deviceFilter, mobilePreset, desktopPreset, refreshKey, previewDoc, ensureDocSafety]);
 
-  // ── Renderizar pontos térmicos no Canvas sobre o Iframe ──
+  // ── Renderizar pontos térmicos no Canvas sobre o Iframe com segurança de GPU ──
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -212,17 +380,28 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = containerWidth || (deviceFilter === "mobile" ? 390 : 960);
-    const height = iframeHeight;
-    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const rawWidth = containerWidth || (deviceFilter === "mobile" ? 390 : 960);
+    const rawHeight = effectiveHeight;
+    const windowDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const {
+      canvasWidth,
+      canvasHeight,
+      styleWidth,
+      styleHeight,
+      scaleY,
+      dpr,
+    } = getSafeCanvasDimensions(rawWidth, rawHeight, windowDpr);
 
-    ctx.clearRect(0, 0, width, height);
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    canvas.style.width = `${styleWidth}px`;
+    canvas.style.height = `${styleHeight}px`;
+
+    // Transformação coordenada: dpr horizontal e dpr * scaleY vertical para páginas longas
+    ctx.setTransform(dpr, 0, 0, scaleY * dpr, 0, 0);
+
+    ctx.clearRect(0, 0, styleWidth, styleHeight);
 
     if (!showHeatmap || clicks.length === 0) return;
 
@@ -230,8 +409,8 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
     const pointRadius = deviceFilter === "mobile" ? 28 : 22;
 
     clicks.forEach((pt) => {
-      const px = (pt.x / 100) * width;
-      const py = (pt.y / 100) * height;
+      const px = (pt.x / 100) * styleWidth;
+      const py = (pt.y / 100) * styleHeight;
 
       const radGrad = ctx.createRadialGradient(px, py, 2, px, py, pointRadius);
       radGrad.addColorStop(0, `rgba(239, 68, 68, ${opacity})`);
@@ -245,7 +424,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
       ctx.arc(px, py, pointRadius, 0, Math.PI * 2);
       ctx.fill();
     });
-  }, [clicks, opacity, deviceFilter, iframeHeight, containerWidth, showHeatmap]);
+  }, [clicks, opacity, deviceFilter, effectiveHeight, containerWidth, showHeatmap]);
 
   // ── Classes de Largura Responsiva por Preset ──
   const getMobileWidthClass = () => {
@@ -533,7 +712,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
             : "Modo janela: role verticalmente o visor do dispositivo para inspecionar os toques"}
         </span>
         <span className="text-[11px] font-mono opacity-80 bg-muted/60 px-2 py-0.5 rounded-md border border-border/40">
-          {containerWidth}px × {iframeHeight}px
+          {containerWidth}px × {effectiveHeight}px
         </span>
       </div>
 
@@ -553,7 +732,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
               ? {
                   transform: `scale(${zoomScale})`,
                   transformOrigin: "top center",
-                  marginBottom: `-${Math.round((viewMode === "full" ? iframeHeight : 600) * (1 - zoomScale))}px`,
+                  marginBottom: `-${Math.round((viewMode === "full" ? effectiveHeight : 600) * (1 - zoomScale))}px`,
                 }
               : undefined
           }
@@ -579,7 +758,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
                 <div
                   ref={contentWrapperRef}
                   className="relative w-full"
-                  style={{ height: `${iframeHeight}px`, minHeight: "100%" }}
+                  style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
                 >
                   <iframe
                     ref={iframeRef}
@@ -587,7 +766,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
                     src={previewDoc ? undefined : `/${campaignSlug}?preview=true`}
                     onLoad={measureIframe}
                     className="w-full pointer-events-none border-0 block bg-black"
-                    style={{ height: `${iframeHeight}px`, minHeight: "100%" }}
+                    style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
                     tabIndex={-1}
                     title="Preview da Campanha Mobile"
                   />
@@ -630,7 +809,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
                 <div
                   ref={contentWrapperRef}
                   className="relative w-full"
-                  style={{ height: `${iframeHeight}px`, minHeight: "100%" }}
+                  style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
                 >
                   <iframe
                     ref={iframeRef}
@@ -638,7 +817,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
                     src={previewDoc ? undefined : `/${campaignSlug}?preview=true`}
                     onLoad={measureIframe}
                     className="w-full pointer-events-none border-0 block bg-black"
-                    style={{ height: `${iframeHeight}px`, minHeight: "100%" }}
+                    style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
                     tabIndex={-1}
                     title="Preview da Campanha Desktop"
                   />
