@@ -8,7 +8,6 @@ import {
   Megaphone,
   LogOut,
   BookText,
-  Building2,
   Settings,
   Menu,
   X,

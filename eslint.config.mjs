@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["src/tests/**", "src/scripts/**"],
+    files: ["src/tests/**"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",
