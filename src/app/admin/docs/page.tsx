@@ -36,6 +36,9 @@ import {
   Columns2,
   Code,
   Share2,
+  Flame,
+  Video,
+  MousePointerClick,
 } from "lucide-react";
 
 // ============================================================================
@@ -66,6 +69,7 @@ const CHAPTERS: Chapter[] = [
   { id: "detalhes-campanha", title: "Detalhes da Campanha", icon: Eye, part: "parte-2" },
   { id: "grupos", title: "Grupos de WhatsApp", icon: MessageCircle, part: "parte-2" },
   { id: "leads", title: "Leads Capturados", icon: Users, part: "parte-2" },
+  { id: "recordings-heatmap", title: "Gravações & Mapa de Calor", icon: Flame, part: "parte-2" },
   { id: "whatsapp-conectar", title: "Conectando o WhatsApp", icon: Smartphone, part: "parte-3" },
   { id: "broadcast", title: "Disparos em Massa", icon: Send, part: "parte-3" },
   { id: "logs", title: "Histórico e Logs", icon: History, part: "parte-3" },
@@ -1122,6 +1126,73 @@ export default function AdminDocsPage() {
                 </h3>
                 <p>
                   Você pode exportar toda a sua base de leads para um arquivo CSV clicando no botão "Exportar CSV". O arquivo será gerado instantaneamente com todas as respostas personalizadas do formulário, metadados de acesso (IP, Cidade, Aparelho) e status de grupo de cada lead.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Cap 8: Gravações & Mapa de Calor */}
+          <section id="recordings-heatmap" className="scroll-mt-8 space-y-6 mb-12">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <Flame className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                Gravações & Mapa de Calor <PlanBadge plan='ULTRA' />
+              </h2>
+            </div>
+
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                O sistema de <strong>Gravação de Sessões & Mapa de Calor</strong> é uma ferramenta exclusiva do <strong>Plano Ultra</strong> projetada para quem roda tráfego pago (Meta Ads, Google) e precisa otimizar taxa de conversão (CRO) sem adivinhar o comportamento dos visitantes.
+              </p>
+
+              <div id="heatmap-como-ativar" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Video className="h-4 w-4 text-primary" />
+                  Como Ativar na sua Campanha
+                </h3>
+                <p className="text-sm">
+                  1. Abra a campanha no editor e clique no ícone de <strong>Configurações</strong> (engrenagem).<br />
+                  2. Ative a opção <strong>&quot;Gravação de Sessões (Replays & Heatmap)&quot;</strong>.<br />
+                  3. Salve a campanha. A partir desse momento, todas as visitas reais feitas fora do editor serão monitoradas.
+                </p>
+                <div className="text-xs text-muted-foreground p-3 bg-muted/40 rounded-lg border border-border/40">
+                  <strong>Nota:</strong> Visitas dentro do preview ou editor não geram gravações para não poluir suas métricas com seus próprios testes.
+                </div>
+              </div>
+
+              <div id="heatmap-analise" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-orange-400" />
+                  Como Analisar o Mapa de Calor
+                </h3>
+                <ul className="list-disc pl-5 space-y-1.5 text-sm">
+                  <li><strong>Alternância de Dispositivo:</strong> Escolha entre <em>Mobile (390px - Meta Ads)</em>, <em>Tablet</em> ou <em>Desktop</em> para ver onde os usuários tocam com o polegar ou clicam com o mouse.</li>
+                  <li><strong>Intensidade Térmica:</strong> Use o slider de intensidade para aumentar ou diminuir a opacidade dos pontos de calor (azul para toques frios, vermelho para alta concentração).</li>
+                  <li><strong>Contador de Toques:</strong> Veja a contagem exata de cliques registrados em cada seção da sua landing page nos últimos 7 dias.</li>
+                </ul>
+              </div>
+
+              <div id="heatmap-replays" className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
+                <h3 className="text-foreground font-medium flex items-center gap-2">
+                  <MousePointerClick className="h-4 w-4 text-sky-400" />
+                  Assistindo aos Replays de Tela
+                </h3>
+                <p className="text-sm">
+                  Na aba <strong>&quot;Sessões & Replays&quot;</strong>, cada visitante possui um registro completo com dispositivo, navegador, sistema operacional, tempo na página e parâmetros de campanha (UTM Source, Medium e Campaign).
+                </p>
+                <ul className="list-disc pl-5 space-y-1.5 text-sm">
+                  <li>Clique em <strong>&quot;Ver Replay&quot;</strong> para abrir o player interativo.</li>
+                  <li>Controle a velocidade de reprodução em <strong>1x, 2x ou 4x</strong> e pause quando quiser.</li>
+                  <li>Acompanhe o movimento do cursor, cliques, rolagem da tela e respostas do quiz em tempo real.</li>
+                </ul>
+              </div>
+
+              <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3 text-sm">
+                <h3 className="text-foreground font-medium">
+                  Segurança, Privacidade e Desempenho
+                </h3>
+                <p>
+                  O gravador opera com compressão nativa em gzip sem gerar lentidão no carregamento da página. Todos os dados sensíveis e campos de entrada de texto são mascarados automaticamente antes de serem enviados com segurança para armazenamento privado no Cloudflare R2.
                 </p>
               </div>
             </div>

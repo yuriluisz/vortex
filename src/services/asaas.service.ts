@@ -1,5 +1,6 @@
-const ASAAS_API_URL = process.env.ASAAS_API_URL || "https://sandbox.asaas.com/api/v3";
-const ASAAS_API_KEY = process.env.ASAAS_API_KEY || "";
+const ASAAS_API_URL = (process.env.ASAAS_API_URL || "https://sandbox.asaas.com/api/v3").trim();
+const rawKey = (process.env.ASAAS_API_KEY || "").trim();
+const ASAAS_API_KEY = rawKey.startsWith("\\$") ? rawKey.slice(1) : rawKey;
 
 const HEADERS = {
   "Content-Type": "application/json",

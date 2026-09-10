@@ -20,6 +20,7 @@ import { ComparisonSection } from "@/components/landing/comparison-section";
 import { FaqSection } from "@/components/landing/faq-section";
 import { FinalCta } from "@/components/landing/final-cta";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
+import { HeatmapSection } from "@/components/landing/heatmap-section";
 
 export default function Home() {
   const plans = [
@@ -67,6 +68,8 @@ export default function Home() {
         "Campanhas ilimitadas",
         "Leads ilimitados",
         "Grupos ilimitados",
+        "Gravação de Sessões & Replay de Tela",
+        "Mapa de Calor Térmico no Mobile",
         "Automação de WhatsApp com API",
         "Criação de Grupos em Massa",
         "Domínio personalizado",
@@ -396,6 +399,9 @@ export default function Home() {
 
         {/* Seção Casos de Uso */}
         <UseCasesSection />
+
+        {/* Seção Mapa de Calor & Replays (Exclusivo ULTRA) */}
+        <HeatmapSection />
 
         {/* Seção Comparação */}
         <ComparisonSection />

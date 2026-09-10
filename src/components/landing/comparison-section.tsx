@@ -41,6 +41,12 @@ const ROWS = [
     manual: false,
     others: "Com delay",
   },
+  {
+    feature: "Mapa de calor & Replay",
+    vortex: true,
+    manual: false,
+    others: false,
+  },
 ];
 
 function CellValue({ value }: { value: string | boolean }) {

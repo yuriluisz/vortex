@@ -110,6 +110,8 @@ const PLANS = [
       "Campanhas ativas ilimitadas (∞)",
       "Leads capturados ilimitados (∞)",
       "Grupos de WhatsApp ilimitados (∞)",
+      "Gravação de Sessões & Replay de Tela em Vídeo",
+      "Mapa de Calor Térmico (Mobile & Desktop)",
       "Integração WhatsApp & Disparos em Massa",
       "Criação automática de grupos via API",
       "Domínio próprio + Suporte dedicado 24/7",
