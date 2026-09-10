@@ -116,7 +116,11 @@ export async function POST(req: NextRequest) {
     const r2Key = `replays/${campaignId}/${sessionId}.json.gz`;
 
     if (gzipBuffer && gzipBuffer.length > 0) {
-      await uploadReplayPayload(r2Key, gzipBuffer, "application/gzip");
+      try {
+        await uploadReplayPayload(r2Key, gzipBuffer, "application/gzip");
+      } catch (uploadErr) {
+        console.error(`[Ingest] Falha no upload para R2 (${r2Key}):`, uploadErr);
+      }
     }
 
     // Upsert nos metadados da sessão

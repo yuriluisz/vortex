@@ -5,8 +5,6 @@ import {
   Smartphone,
   Monitor,
   Tablet,
-  Maximize2,
-  Minimize2,
   Flame,
   MousePointerClick,
   Sliders,
@@ -14,8 +12,6 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
-  ArrowDownCircle,
-  ZoomIn,
 } from "lucide-react";
 
 interface HeatmapViewProps {
@@ -30,59 +26,67 @@ interface ClickPoint {
   device: string;
 }
 
-type MobilePreset = "390" | "360" | "428" | "fluid";
-type DesktopPreset = "fluid" | "1200" | "tablet";
-type ViewMode = "window" | "full";
+type ViewportMode = "desktop" | "tablet" | "mobile";
 
-// ── Pure Helpers (Exported for Unit Testing & Loop Prevention) ──
+// ── Funções Puras Exportadas (Para testes unitários e cálculos limpos) ──
 
-export function getSimulatedViewportHeight(
-  deviceFilter: "mobile" | "desktop",
-  mobilePreset: string,
-  desktopPreset: string
-): number {
-  if (deviceFilter === "mobile") {
-    switch (mobilePreset) {
-      case "360":
-        return 780;
-      case "428":
-        return 926;
-      case "fluid":
-        return 800;
-      case "390":
-      default:
-        return 844;
-    }
-  }
-  if (desktopPreset === "tablet") return 1024;
-  return 800;
+export function getDeviceForViewport(viewport: ViewportMode): "desktop" | "mobile" {
+  return viewport === "desktop" ? "desktop" : "mobile";
 }
 
-export function buildPreviewDoc(rawHtml?: string, viewportHeight = 800): string {
-  if (!rawHtml) return "";
-  const hasHtmlTag = /<html/i.test(rawHtml) || /<!DOCTYPE/i.test(rawHtml);
-  const safetyCss = `
-<style id="vortex-preview-safety">
-  :root { --vortex-viewport-h: ${viewportHeight}px; }
-  html, body {
-    width: 100%;
-    height: auto !important;
-    min-height: var(--vortex-viewport-h) !important;
-    overflow-y: visible !important;
-  }
-  .min-h-screen, [class*="min-h-screen"], [style*="min-height: 100vh"], [style*="min-height:100vh"] {
-    min-height: var(--vortex-viewport-h) !important;
-  }
-  .h-screen, [class*="h-screen"], [style*="height: 100vh"], [style*="height:100vh"] {
-    height: var(--vortex-viewport-h) !important;
-  }
-</style>`;
+export function getThermalRadius(viewport: ViewportMode): number {
+  return viewport === "desktop" ? 28 : 22;
+}
 
-  if (hasHtmlTag) {
-    if (/<head[^>]*>/i.test(rawHtml)) {
-      return rawHtml.replace(/<head[^>]*>/i, (match) => `${match}${safetyCss}`);
+export function calculatePointCoordinates(
+  xPercent: number,
+  yPercent: number,
+  width: number,
+  height: number
+): { px: number; py: number } {
+  const clampedX = Math.max(0, Math.min(100, Number(xPercent) || 0));
+  const clampedY = Math.max(0, Math.min(100, Number(yPercent) || 0));
+  return {
+    px: Math.round((clampedX / 100) * Math.max(width, 1)),
+    py: Math.round((clampedY / 100) * Math.max(height, 1)),
+  };
+}
+
+export function buildPreviewDoc(rawHtml?: string): string {
+  if (!rawHtml) return "";
+
+  const linkSafetyScript = `
+<script id="vortex-link-safety">
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('a');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (!href) return;
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      var targetId = href.substring(1);
+      var targetEl = targetId ? (document.getElementById(targetId) || document.querySelector(href)) : null;
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (href === '#' || href === '#inicio') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      e.preventDefault();
+      e.stopPropagation();
     }
-    return `${safetyCss}${rawHtml}`;
+  }, true);
+</script>`;
+
+  const formSlotHtml = `<div style="padding:24px;border-radius:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);text-align:center;"><span style="color:#aaa;font-size:14px;font-weight:600;">Formulário da Campanha</span></div>`;
+  const processedHtml = rawHtml.replace(/\{\{FORM_SLOT\}\}/g, formSlotHtml);
+
+  const hasHtmlTag = /<html/i.test(processedHtml) || /<!DOCTYPE/i.test(processedHtml);
+  if (hasHtmlTag) {
+    if (/<head[^>]*>/i.test(processedHtml)) {
+      return processedHtml.replace(/<head[^>]*>/i, (match) => `${match}${linkSafetyScript}`);
+    }
+    return `${linkSafetyScript}${processedHtml}`;
   }
 
   return `<!DOCTYPE html>
@@ -96,85 +100,21 @@ export function buildPreviewDoc(rawHtml?: string, viewportHeight = 800): string 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; min-height:100%; font-family:'Inter',system-ui,sans-serif; color-scheme:dark; background:#000; color:#fff; position:relative; }
     input,select,textarea,button { font-family:inherit; color:inherit; }
   </style>
-  ${safetyCss}
+  ${linkSafetyScript}
 </head>
-<body style="font-family:'Inter',system-ui,sans-serif; color-scheme:dark; background:#000; color:#fff;">
-  ${rawHtml.replace(/\{\{FORM_SLOT\}\}/g, '<div style="padding:20px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);text-align:center;"><span style="color:#aaa;font-size:13px;">Formulário da Campanha</span></div>')}
+<body>
+  ${processedHtml}
 </body>
 </html>`;
 }
 
-export function clampIframeHeight(
-  measured: number,
-  minHeight: number,
-  maxHeight = 10000
-): number {
-  if (isNaN(measured) || measured <= 0) return minHeight;
-  return Math.min(Math.max(measured, minHeight), maxHeight);
-}
-
-export function shouldUpdateHeight(
-  currentHeight: number,
-  nextHeight: number,
-  threshold = 16
-): boolean {
-  return Math.abs(currentHeight - nextHeight) >= threshold;
-}
-
-export function getSafeCanvasDimensions(
-  width: number,
-  height: number,
-  rawDpr = 1
-): {
-  canvasWidth: number;
-  canvasHeight: number;
-  styleWidth: number;
-  styleHeight: number;
-  scaleY: number;
-  dpr: number;
-} {
-  const safeDpr = Math.min(Math.max(rawDpr, 1), 1.5);
-  const MAX_CANVAS_HEIGHT = 8192;
-  const MAX_CANVAS_WIDTH = 4096;
-
-  const styleWidth = Math.max(1, Math.round(width));
-  const styleHeight = Math.max(1, Math.round(height));
-
-  const cappedHeight = Math.min(styleHeight, MAX_CANVAS_HEIGHT);
-  const cappedWidth = Math.min(styleWidth, MAX_CANVAS_WIDTH);
-
-  const canvasWidth = Math.round(cappedWidth * safeDpr);
-  const canvasHeight = Math.round(cappedHeight * safeDpr);
-
-  const scaleY = cappedHeight / styleHeight;
-
-  return {
-    canvasWidth,
-    canvasHeight,
-    styleWidth,
-    styleHeight,
-    scaleY,
-    dpr: safeDpr,
-  };
-}
+// ── Componente Principal HeatmapView ──
 
 export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: HeatmapViewProps) {
-  // ── Filtros e Configurações de Exibição ──
-  const [deviceFilter, setDeviceFilter] = useState<"mobile" | "desktop">("mobile");
-  const [mobilePreset, setMobilePreset] = useState<MobilePreset>("390");
-  const [desktopPreset, setDesktopPreset] = useState<DesktopPreset>("fluid");
-  const [viewMode, setViewMode] = useState<ViewMode>("window");
-  const [zoom, setZoom] = useState<number>(100);
-
-  // ── Altura de Viewport Simulada do Dispositivo ──
-  const simulatedViewportHeight = useMemo(
-    () => getSimulatedViewportHeight(deviceFilter, mobilePreset, desktopPreset),
-    [deviceFilter, mobilePreset, desktopPreset]
-  );
-
-  // ── Estado de Dados ──
+  const [viewport, setViewport] = useState<ViewportMode>("mobile");
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickPoint[]>([]);
   const [totalClicks, setTotalClicks] = useState(0);
@@ -182,27 +122,20 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // ── Dimensões Dinâmicas do Preview e Documento ──
-  const [iframeHeight, setIframeHeight] = useState<number>(simulatedViewportHeight);
-  const [containerWidth, setContainerWidth] = useState(390);
-
-  // Altura efetiva garantindo o mínimo do viewport simulado (sem disparar cascata de renders)
-  const effectiveHeight = Math.max(iframeHeight, simulatedViewportHeight);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const contentWrapperRef = useRef<HTMLDivElement>(null);
+  const lastDimensionsRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
 
-  // ── Documento de Preview Completo (srcDoc para carregamento instantâneo) ──
+  const deviceFilter = getDeviceForViewport(viewport);
+
   const previewDoc = useMemo(() => {
-    return buildPreviewDoc(rawHtml, simulatedViewportHeight);
-  }, [rawHtml, simulatedViewportHeight]);
+    return buildPreviewDoc(rawHtml);
+  }, [rawHtml]);
 
-  // ── Buscar dados de cliques na API ──
+  // Buscar cliques da API conforme o dispositivo
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchData() {
+    async function fetchClicks() {
       try {
         setLoading(true);
         const res = await fetch(
@@ -220,627 +153,299 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
       }
     }
 
-    fetchData();
+    fetchClicks();
 
     return () => {
       isMounted = false;
     };
   }, [campaignId, deviceFilter, refreshKey]);
 
-  // ── Garantir injeção de CSS de segurança no documento do iframe ──
-  const ensureDocSafety = useCallback(
-    (doc: Document) => {
-      try {
-        let styleEl = doc.getElementById("vortex-preview-safety") as HTMLStyleElement | null;
-        if (!styleEl) {
-          styleEl = doc.createElement("style");
-          styleEl.id = "vortex-preview-safety";
-          doc.head?.appendChild(styleEl);
-        }
-        styleEl.textContent = `
-          :root { --vortex-viewport-h: ${simulatedViewportHeight}px; }
-          html, body {
-            width: 100%;
-            height: auto !important;
-            min-height: var(--vortex-viewport-h) !important;
-            overflow-y: visible !important;
-          }
-          .min-h-screen, [class*="min-h-screen"], [style*="min-height: 100vh"], [style*="min-height:100vh"] {
-            min-height: var(--vortex-viewport-h) !important;
-          }
-          .h-screen, [class*="h-screen"], [style*="height: 100vh"], [style*="height:100vh"] {
-            height: var(--vortex-viewport-h) !important;
-          }
-        `;
-      } catch {
-        // Ignora restrição cross-origin
-      }
-    },
-    [simulatedViewportHeight]
-  );
-
-  // ── Medir altura real do documento dentro do iframe com proteção anti-loop ──
-  const measureIframe = useCallback(() => {
+  // Renderizar canvas térmico sobre o corpo do documento do iframe
+  const renderHeatmap = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     try {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (doc) {
-        ensureDocSafety(doc);
+      if (!doc || !doc.body) return;
 
-        let measured = 0;
+      doc.body.style.position = "relative";
 
-        // 1. Limites dos nós filhos de body (ignora tags auxiliares de scripts/estilos)
-        if (doc.body && doc.body.children.length > 0) {
-          let maxBottom = 0;
-          for (let i = 0; i < doc.body.children.length; i++) {
-            const child = doc.body.children[i] as HTMLElement;
-            if (child.tagName === "SCRIPT" || child.tagName === "STYLE") continue;
-            const bottom = (child.offsetTop || 0) + (child.offsetHeight || 0);
-            if (bottom > maxBottom) maxBottom = bottom;
-          }
-          if (maxBottom > 0) {
-            measured = maxBottom;
-          }
-        }
-
-        // 2. Body scrollHeight (com height: auto, reflete exatamente a extensão natural)
-        const bodyScroll = doc.body?.scrollHeight || 0;
-        if (bodyScroll > 0) {
-          measured = measured > 0 ? Math.max(measured, bodyScroll) : bodyScroll;
-        }
-
-        const safeHeight = clampIframeHeight(measured, simulatedViewportHeight, 10000);
-
-        setIframeHeight((prev) => (shouldUpdateHeight(prev, safeHeight, 16) ? safeHeight : prev));
+      let canvas = doc.getElementById("vortex-heatmap-canvas") as HTMLCanvasElement | null;
+      if (!canvas) {
+        canvas = doc.createElement("canvas");
+        canvas.id = "vortex-heatmap-canvas";
+        canvas.style.cssText =
+          "position:absolute;top:0;left:0;pointer-events:none;z-index:99999;";
+        doc.body.appendChild(canvas);
       }
+
+      const docWidth = Math.max(
+        doc.body.scrollWidth,
+        doc.documentElement.scrollWidth,
+        doc.body.offsetWidth,
+        1
+      );
+      const docHeight = Math.max(
+        doc.body.scrollHeight,
+        doc.documentElement.scrollHeight,
+        doc.body.offsetHeight,
+        1
+      );
+
+      lastDimensionsRef.current = { width: docWidth, height: docHeight };
+
+      // Limite seguro de alocação de textura
+      const MAX_TEXTURE_H = 16384;
+      const targetHeight = Math.min(docHeight, MAX_TEXTURE_H);
+
+      canvas.width = docWidth;
+      canvas.height = targetHeight;
+      canvas.style.width = `${docWidth}px`;
+      canvas.style.height = `${docHeight}px`;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, docWidth, targetHeight);
+
+      if (!showHeatmap || clicks.length === 0) return;
+
+      const pointRadius = getThermalRadius(viewport);
+      const scaleY = targetHeight / docHeight;
+
+      clicks.forEach((pt) => {
+        const { px, py } = calculatePointCoordinates(pt.x, pt.y, docWidth, docHeight);
+        const drawPy = py * scaleY;
+
+        const radGrad = ctx.createRadialGradient(px, drawPy, 2, px, drawPy, pointRadius);
+        radGrad.addColorStop(0, `rgba(239, 68, 68, ${opacity})`);
+        radGrad.addColorStop(0.3, `rgba(249, 115, 22, ${opacity * 0.85})`);
+        radGrad.addColorStop(0.6, `rgba(234, 179, 8, ${opacity * 0.5})`);
+        radGrad.addColorStop(0.85, `rgba(56, 189, 248, ${opacity * 0.2})`);
+        radGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(px, drawPy, pointRadius, 0, Math.PI * 2);
+        ctx.fill();
+      });
     } catch {
       // Ignora restrição cross-origin se houver
     }
+  }, [clicks, opacity, showHeatmap, viewport]);
 
-    if (contentWrapperRef.current) {
-      setContainerWidth(contentWrapperRef.current.clientWidth);
-    }
-  }, [ensureDocSafety, simulatedViewportHeight]);
+  // Listener para carregar imagens e redimensionamentos do documento do iframe
+  const handleIframeLoad = useCallback(() => {
+    renderHeatmap();
 
-  // Observar redimensionamento do container e do iframe de forma reativa e segura
-  useEffect(() => {
-    measureIframe();
+    try {
+      const iframe = iframeRef.current;
+      const doc = iframe?.contentDocument || iframe?.contentWindow?.document;
+      if (!doc || !doc.body) return;
 
-    const wrapper = contentWrapperRef.current;
-    let wrapperRo: ResizeObserver | null = null;
-    if (wrapper && typeof ResizeObserver !== "undefined") {
-      wrapperRo = new ResizeObserver(() => {
-        setContainerWidth(wrapper.clientWidth);
-        measureIframe();
-      });
-      wrapperRo.observe(wrapper);
-    }
-
-    const iframe = iframeRef.current;
-    let docRo: ResizeObserver | null = null;
-    let rafId: number | null = null;
-
-    const throttledMeasure = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        measureIframe();
-      });
-    };
-
-    const attachDocObserver = () => {
-      throttledMeasure();
-      try {
-        const doc = iframe?.contentDocument || iframe?.contentWindow?.document;
-        if (doc) {
-          ensureDocSafety(doc);
-          // OBSERVAR APENAS O BODY (NUNCA O DOCUMENTELEMENT PARA NÃO DISPARAR FEEDBACK LOOP COM IFRAME)
-          if (doc.body && typeof ResizeObserver !== "undefined") {
-            docRo = new ResizeObserver(() => throttledMeasure());
-            docRo.observe(doc.body);
-          }
-          // Medir novamente quando imagens terminarem de carregar
-          const images = doc.querySelectorAll("img");
-          images.forEach((img) => {
-            if (!img.complete) {
-              img.addEventListener("load", throttledMeasure, { once: true });
-            }
-          });
+      // Medir novamente quando as imagens do HTML terminarem de baixar
+      const images = doc.querySelectorAll("img");
+      images.forEach((img) => {
+        if (!img.complete) {
+          img.addEventListener("load", () => renderHeatmap(), { once: true });
         }
-      } catch {
-        // Ignora restrição cross-origin se houver
+      });
+
+      // Observer para re-renderizar quando o documento expandir dinamicamente
+      if (typeof ResizeObserver !== "undefined") {
+        const ro = new ResizeObserver(() => {
+          const newH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+          const newW = Math.max(doc.body.scrollWidth, doc.documentElement.scrollWidth);
+          if (
+            Math.abs(newH - lastDimensionsRef.current.height) > 16 ||
+            Math.abs(newW - lastDimensionsRef.current.width) > 16
+          ) {
+            renderHeatmap();
+          }
+        });
+        ro.observe(doc.body);
       }
-    };
-
-    if (iframe) {
-      iframe.addEventListener("load", attachDocObserver);
-      attachDocObserver();
+    } catch {
+      // Ignora erro se cross-origin
     }
 
-    const t1 = setTimeout(throttledMeasure, 150);
-    const t2 = setTimeout(throttledMeasure, 600);
+    // Safety timers para renderização garantida
+    setTimeout(renderHeatmap, 300);
+    setTimeout(renderHeatmap, 900);
+  }, [renderHeatmap]);
 
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      if (wrapperRo) wrapperRo.disconnect();
-      if (docRo) docRo.disconnect();
-      if (iframe) iframe.removeEventListener("load", attachDocObserver);
-    };
-  }, [measureIframe, deviceFilter, mobilePreset, desktopPreset, refreshKey, previewDoc, ensureDocSafety]);
-
-  // ── Renderizar pontos térmicos no Canvas sobre o Iframe com segurança de GPU ──
+  // Re-desenhar sempre que cliques, opacidade ou viewport mudarem
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const rawWidth = containerWidth || (deviceFilter === "mobile" ? 390 : 960);
-    const rawHeight = effectiveHeight;
-    const windowDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-
-    const {
-      canvasWidth,
-      canvasHeight,
-      styleWidth,
-      styleHeight,
-      scaleY,
-      dpr,
-    } = getSafeCanvasDimensions(rawWidth, rawHeight, windowDpr);
-
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    canvas.style.width = `${styleWidth}px`;
-    canvas.style.height = `${styleHeight}px`;
-
-    // Transformação coordenada: dpr horizontal e dpr * scaleY vertical para páginas longas
-    ctx.setTransform(dpr, 0, 0, scaleY * dpr, 0, 0);
-
-    ctx.clearRect(0, 0, styleWidth, styleHeight);
-
-    if (!showHeatmap || clicks.length === 0) return;
-
-    // Raio térmico proporcional ao dispositivo
-    const pointRadius = deviceFilter === "mobile" ? 28 : 22;
-
-    clicks.forEach((pt) => {
-      const px = (pt.x / 100) * styleWidth;
-      const py = (pt.y / 100) * styleHeight;
-
-      const radGrad = ctx.createRadialGradient(px, py, 2, px, py, pointRadius);
-      radGrad.addColorStop(0, `rgba(239, 68, 68, ${opacity})`);
-      radGrad.addColorStop(0.3, `rgba(249, 115, 22, ${opacity * 0.85})`);
-      radGrad.addColorStop(0.6, `rgba(234, 179, 8, ${opacity * 0.5})`);
-      radGrad.addColorStop(0.85, `rgba(56, 189, 248, ${opacity * 0.2})`);
-      radGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
-
-      ctx.fillStyle = radGrad;
-      ctx.beginPath();
-      ctx.arc(px, py, pointRadius, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }, [clicks, opacity, deviceFilter, effectiveHeight, containerWidth, showHeatmap]);
-
-  // ── Classes de Largura Responsiva por Preset ──
-  const getMobileWidthClass = () => {
-    switch (mobilePreset) {
-      case "360":
-        return "w-full max-w-[360px]";
-      case "428":
-        return "w-full max-w-[428px]";
-      case "fluid":
-        return "w-full max-w-lg";
-      case "390":
-      default:
-        return "w-full max-w-[390px]";
-    }
-  };
-
-  const getDesktopWidthClass = () => {
-    switch (desktopPreset) {
-      case "1200":
-        return "w-full max-w-[1200px]";
-      case "tablet":
-        return "w-full max-w-[768px]";
-      case "fluid":
-      default:
-        return "w-full max-w-6xl";
-    }
-  };
-
-  const zoomScale = zoom / 100;
+    renderHeatmap();
+  }, [renderHeatmap]);
 
   return (
     <div className="space-y-4">
-      {/* Barra de Ferramentas com Controles de Responsividade e Dimensionamento */}
-      <div className="p-3 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-sm space-y-3">
-        {/* Linha 1: Seletor de Dispositivo + Presets de Dimensão + Modo de Altura */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Seletor Principal: Mobile vs Desktop */}
-            <div className="flex items-center p-1 rounded-xl bg-muted/70 border border-border/50">
-              <button
-                type="button"
-                onClick={() => setDeviceFilter("mobile")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  deviceFilter === "mobile"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Smartphone className="h-3.5 w-3.5" />
-                Mobile (Meta Ads)
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeviceFilter("desktop")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  deviceFilter === "desktop"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Monitor className="h-3.5 w-3.5" />
-                Desktop
-              </button>
-            </div>
-
-            {/* Presets de Largura Específicos por Dispositivo */}
-            {deviceFilter === "mobile" ? (
-              <div className="flex items-center p-1 rounded-xl bg-muted/50 border border-border/40 text-xs">
-                <span className="text-[10px] text-muted-foreground px-2 font-medium hidden sm:inline">
-                  Largura:
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setMobilePreset("360")}
-                  className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    mobilePreset === "360"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="360px - Android Compacto"
-                >
-                  360px
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobilePreset("390")}
-                  className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    mobilePreset === "390"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="390px - iPhone 14/15/16 (Padrão)"
-                >
-                  390px
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobilePreset("428")}
-                  className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    mobilePreset === "428"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="428px - Pro Max / Plus"
-                >
-                  428px
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobilePreset("fluid")}
-                  className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    mobilePreset === "fluid"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="100% Fluido"
-                >
-                  Fluido
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center p-1 rounded-xl bg-muted/50 border border-border/40 text-xs">
-                <span className="text-[10px] text-muted-foreground px-2 font-medium hidden sm:inline">
-                  Visualização:
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setDesktopPreset("fluid")}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    desktopPreset === "fluid"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="Largura fluida máxima"
-                >
-                  Fluido
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDesktopPreset("1200")}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    desktopPreset === "1200"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="1200px - Padrão Desktop"
-                >
-                  1200px
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDesktopPreset("tablet")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    desktopPreset === "tablet"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="768px - Tablet / iPad"
-                >
-                  <Tablet className="h-3 w-3" />
-                  768px
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Alternância de Modo de Altura: Janela vs Página Completa */}
-          <div className="flex items-center p-1 rounded-xl bg-muted/70 border border-border/50">
+      {/* Barra de Ferramentas: Viewports iguais ao Editor + Controles de Calor */}
+      <div className="p-3 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        {/* Seletor de Viewport idêntico ao CampaignEditor */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-xl border border-border/60 bg-muted/70 p-1 shadow-xs">
             <button
               type="button"
-              onClick={() => setViewMode("window")}
+              onClick={() => setViewport("desktop")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === "window"
-                  ? "bg-background text-foreground shadow-xs"
+                viewport === "desktop"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              title="Janela rolável com tamanho de viewport do dispositivo"
+              title="Desktop (100%)"
             >
-              <Minimize2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Modo</span> Janela
+              <Monitor className="w-3.5 h-3.5" />
+              <span>Desktop</span>
             </button>
+
             <button
               type="button"
-              onClick={() => setViewMode("full")}
+              onClick={() => setViewport("tablet")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === "full"
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                viewport === "tablet"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              title="Expandir para a altura total da landing page (rola com a página inteira)"
+              title="Tablet (768px)"
             >
-              <Maximize2 className="h-3.5 w-3.5" />
-              Página Completa
+              <Tablet className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Tablet</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewport("mobile")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                viewport === "mobile"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="Mobile (390px - Meta Ads)"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Mobile (Meta Ads)</span>
             </button>
           </div>
+
+          {/* Alternar Visibilidade do Calor */}
+          <button
+            type="button"
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-colors ${
+              showHeatmap
+                ? "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+                : "bg-muted/60 border-border/50 text-muted-foreground hover:text-foreground"
+            }`}
+            title={showHeatmap ? "Ocultar manchas térmicas" : "Exibir manchas térmicas"}
+          >
+            {showHeatmap ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{showHeatmap ? "Calor Ativo" : "Calor Oculto"}</span>
+          </button>
+
+          {/* Botão de Atualização */}
+          <button
+            type="button"
+            onClick={() => {
+              setRefreshKey((k) => k + 1);
+              renderHeatmap();
+            }}
+            disabled={loading}
+            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            title="Atualizar dados e recarregar mapa"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </button>
         </div>
 
-        {/* Linha 2: Zoom, Visibilidade do Calor, Intensidade e Estatísticas */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/40">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Controle de Zoom / Escala */}
-            <div className="flex items-center p-0.5 rounded-xl bg-muted/50 border border-border/40">
-              <span className="text-[10px] text-muted-foreground pl-2 pr-1 flex items-center gap-1">
-                <ZoomIn className="h-3 w-3" />
-                <span className="hidden md:inline">Zoom:</span>
-              </span>
-              {[70, 85, 100].map((z) => (
-                <button
-                  key={z}
-                  type="button"
-                  onClick={() => setZoom(z)}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                    zoom === z
-                      ? "bg-background text-foreground shadow-xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {z}%
-                </button>
-              ))}
-            </div>
-
-            {/* Alternar Manchas de Calor */}
-            <button
-              type="button"
-              onClick={() => setShowHeatmap(!showHeatmap)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors ${
-                showHeatmap
-                  ? "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
-                  : "bg-muted/60 border-border/50 text-muted-foreground hover:text-foreground"
-              }`}
-              title={showHeatmap ? "Ocultar manchas térmicas" : "Exibir manchas térmicas"}
-            >
-              {showHeatmap ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-              {showHeatmap ? "Calor Ativo" : "Calor Oculto"}
-            </button>
-
-            {/* Recarregar e Recalcular */}
-            <button
-              type="button"
-              onClick={() => {
-                setRefreshKey((k) => k + 1);
-                measureIframe();
-              }}
-              disabled={loading}
-              className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-              title="Atualizar dados e recalcular dimensões"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            </button>
+        {/* Controles de Intensidade e Contador de Toques */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Sliders className="h-3.5 w-3.5" />
+            <span className="hidden md:inline">Intensidade:</span>
+            <input
+              type="range"
+              min={0.2}
+              max={1}
+              step={0.05}
+              value={opacity}
+              onChange={(e) => setOpacity(Number(e.target.value))}
+              className="w-16 sm:w-24 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+            <span className="text-[11px] font-mono w-8">{Math.round(opacity * 100)}%</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Slider de Intensidade */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Sliders className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Intensidade:</span>
-              <input
-                type="range"
-                min={0.2}
-                max={1}
-                step={0.05}
-                value={opacity}
-                onChange={(e) => setOpacity(Number(e.target.value))}
-                className="w-16 sm:w-20 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-              />
-              <span className="text-[11px] font-mono w-7">{Math.round(opacity * 100)}%</span>
-            </div>
-
-            {/* Contador de Toques */}
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <Flame className="h-3.5 w-3.5" />
-              {totalClicks} toques
-            </span>
-          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
+            <Flame className="h-3.5 w-3.5" />
+            {totalClicks} toques
+          </span>
         </div>
       </div>
 
-      {/* Dica de Rolagem e Dimensão Atual */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground px-2">
-        <span className="flex items-center gap-1.5 font-medium text-[11px] sm:text-xs">
-          <ArrowDownCircle className="h-3.5 w-3.5 text-primary shrink-0" />
-          {viewMode === "full"
-            ? "Página completa expandida: use a rolagem natural da página para inspecionar todo o mapa"
-            : "Modo janela: role verticalmente o visor do dispositivo para inspecionar os toques"}
-        </span>
-        <span className="text-[11px] font-mono opacity-80 bg-muted/60 px-2 py-0.5 rounded-md border border-border/40">
-          {containerWidth}px × {effectiveHeight}px
-        </span>
-      </div>
-
-      {/* Visualizador com Moldura Responsiva e Dimensionamento Dinâmico */}
-      <div className="relative rounded-2xl border border-border/80 bg-zinc-950/80 p-2 sm:p-4 lg:p-6 shadow-xl overflow-hidden flex flex-col items-center w-full min-h-[400px]">
+      {/* Frame de Preview: Idêntico ao CampaignEditor */}
+      <div className="relative rounded-2xl border border-border/80 bg-[#0a0a0a] p-2 sm:p-4 lg:p-6 shadow-xl flex flex-col items-center justify-center min-h-[500px] w-full overflow-hidden">
         {loading && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-xs">
             <Loader2 className="h-7 w-7 animate-spin text-primary" />
           </div>
         )}
 
-        {/* Wrapper de Escala / Zoom */}
         <div
-          className="w-full flex justify-center transition-transform duration-200"
-          style={
-            zoom !== 100
-              ? {
-                  transform: `scale(${zoomScale})`,
-                  transformOrigin: "top center",
-                  marginBottom: `-${Math.round((viewMode === "full" ? effectiveHeight : 600) * (1 - zoomScale))}px`,
-                }
-              : undefined
-          }
+          className={`transition-all duration-300 relative flex items-center justify-center ${
+            viewport === "mobile"
+              ? "w-full max-w-[390px] h-[740px] max-h-[82vh] rounded-[36px] border-4 border-neutral-800 shadow-2xl overflow-hidden bg-black flex flex-col"
+              : viewport === "tablet"
+              ? "w-full max-w-[768px] h-[750px] max-h-[82vh] rounded-2xl border-2 border-neutral-800 shadow-2xl overflow-hidden bg-black flex flex-col"
+              : "w-full h-[750px] max-h-[82vh] rounded-2xl border border-border/80 shadow-2xl overflow-hidden bg-black flex flex-col"
+          }`}
         >
-          {deviceFilter === "mobile" ? (
-            /* Moldura Smartphone Responsiva */
-            <div
-              className={`${getMobileWidthClass()} rounded-2xl sm:rounded-[36px] border-2 sm:border-[6px] lg:border-[8px] border-zinc-800 bg-zinc-950 shadow-2xl overflow-hidden relative ring-1 ring-white/10 my-2 transition-all duration-200`}
-            >
-              {/* Notch / Dynamic Island */}
-              <div className="h-5 sm:h-6 bg-zinc-900 flex items-center justify-center relative z-20 border-b border-white/5">
-                <div className="w-16 sm:w-24 h-2.5 sm:h-3.5 bg-black rounded-full" />
+          {/* Barra de Navegador do Desktop */}
+          {viewport === "desktop" && (
+            <div className="h-9 px-4 bg-zinc-900/90 border-b border-white/5 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
               </div>
-
-              {/* Viewport: Janela com scroll ou Página Completa expandida */}
-              <div
-                className={`${
-                  viewMode === "full"
-                    ? "h-auto overflow-visible"
-                    : "h-[min(68vh,660px)] min-h-[440px] overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-thin scrollbar-thumb-zinc-700 hover:scrollbar-thumb-zinc-600"
-                } relative bg-black`}
-              >
-                <div
-                  ref={contentWrapperRef}
-                  className="relative w-full"
-                  style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
-                >
-                  <iframe
-                    ref={iframeRef}
-                    srcDoc={previewDoc || undefined}
-                    src={previewDoc ? undefined : `/${campaignSlug}?preview=true`}
-                    onLoad={measureIframe}
-                    className="w-full pointer-events-none border-0 block bg-black"
-                    style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
-                    tabIndex={-1}
-                    title="Preview da Campanha Mobile"
-                  />
-
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 w-full h-full pointer-events-none z-10"
-                  />
-                </div>
+              <div className="flex-1 max-w-sm mx-auto h-5 rounded-md bg-zinc-950/80 border border-white/5 px-2 text-[10px] font-mono text-muted-foreground flex items-center justify-center truncate">
+                vortexpages.online/{campaignSlug}
               </div>
-            </div>
-          ) : (
-            /* Moldura Desktop / Tablet Responsiva */
-            <div
-              className={`${getDesktopWidthClass()} rounded-2xl border border-border/80 bg-zinc-950 shadow-2xl overflow-hidden my-2 transition-all duration-200`}
-            >
-              {/* Barra do Navegador */}
-              <div className="h-9 px-3 sm:px-4 bg-zinc-900 border-b border-border/60 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                </div>
-                <div className="flex-1 max-w-sm mx-auto h-5 rounded-md bg-zinc-950/80 border border-white/5 px-2 text-[10px] font-mono text-muted-foreground flex items-center justify-center truncate">
-                  vortexpages.online/{campaignSlug}
-                </div>
-                <div className="hidden sm:flex items-center text-[10px] text-muted-foreground font-mono">
-                  {desktopPreset === "tablet" ? "iPad 768px" : "Desktop"}
-                </div>
-              </div>
-
-              {/* Viewport: Janela com scroll ou Página Completa expandida */}
-              <div
-                className={`${
-                  viewMode === "full"
-                    ? "h-auto overflow-visible"
-                    : "h-[min(68vh,660px)] min-h-[440px] overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-thin scrollbar-thumb-zinc-700 hover:scrollbar-thumb-zinc-600"
-                } relative bg-black`}
-              >
-                <div
-                  ref={contentWrapperRef}
-                  className="relative w-full"
-                  style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
-                >
-                  <iframe
-                    ref={iframeRef}
-                    srcDoc={previewDoc || undefined}
-                    src={previewDoc ? undefined : `/${campaignSlug}?preview=true`}
-                    onLoad={measureIframe}
-                    className="w-full pointer-events-none border-0 block bg-black"
-                    style={{ height: `${effectiveHeight}px`, minHeight: "100%" }}
-                    tabIndex={-1}
-                    title="Preview da Campanha Desktop"
-                  />
-
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 w-full h-full pointer-events-none z-10"
-                  />
-                </div>
+              <div className="text-[10px] text-muted-foreground font-mono">
+                Desktop (100%)
               </div>
             </div>
           )}
+
+          {/* Notch no topo do celular */}
+          {viewport === "mobile" && (
+            <div className="h-5 bg-neutral-900 flex items-center justify-center shrink-0 border-b border-white/5">
+              <div className="w-20 h-2 bg-black rounded-full" />
+            </div>
+          )}
+
+          {/* Iframe que rola naturalmente e renderiza o site completo */}
+          <iframe
+            ref={iframeRef}
+            srcDoc={previewDoc || undefined}
+            src={previewDoc ? undefined : `/${campaignSlug}?preview=true`}
+            onLoad={handleIframeLoad}
+            title="Preview do Mapa de Calor"
+            className="w-full flex-1 border-0 block bg-black"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
         </div>
 
-        {/* Mensagem informativa caso não haja cliques gravados */}
+        {/* Mensagem se não houver cliques */}
         {!loading && clicks.length === 0 && (
           <div className="mt-4 p-3.5 rounded-xl border border-dashed border-border/70 bg-card/60 text-center max-w-md">
             <MousePointerClick className="h-5 w-5 text-muted-foreground mx-auto mb-1.5" />
             <p className="text-xs font-semibold text-foreground">
-              Nenhum toque gravado no modo {deviceFilter === "mobile" ? "Mobile" : "Desktop"}
+              Nenhum toque gravado no modo {viewport === "desktop" ? "Desktop" : "Mobile"}
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Os cliques aparecem aqui automaticamente conforme os visitantes interagem com o link da campanha.
+              Os toques térmicos aparecem aqui conforme os visitantes interagem com o link da campanha.
             </p>
           </div>
         )}
