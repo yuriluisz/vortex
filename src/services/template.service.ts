@@ -513,3 +513,52 @@ export async function updateTemplateStatus(
 export function canPublishTemplate(plan: string): boolean {
   return hasFeature(plan as Plan, "publishTemplates");
 }
+
+export interface RandomTemplateItem {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  thumbnailUrl: string | null;
+  category: TemplateCategory | string;
+  theme: TemplateTheme | string;
+  primaryColor: string | null;
+}
+
+/**
+ * Busca templates publicados aleatórios (ex: para exibição dinâmica na landing page).
+ */
+export async function getRandomPublishedTemplates(limit = 3): Promise<RandomTemplateItem[]> {
+  try {
+    const templates = await prisma.template.findMany({
+      where: { status: "PUBLISHED" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        description: true,
+        thumbnailUrl: true,
+        category: true,
+        theme: true,
+        primaryColor: true,
+      },
+    });
+
+    if (templates.length <= limit) {
+      return templates;
+    }
+
+    // Embaralha com Fisher-Yates
+    const shuffled = [...templates];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled.slice(0, limit);
+  } catch (error) {
+    console.error("[getRandomPublishedTemplates] Erro ao buscar templates aleatórios:", error);
+    return [];
+  }
+}
+

@@ -13,6 +13,7 @@ import { MobileHeroMockup } from "@/components/landing/mobile-hero-mockup";
 import { Reveal } from "@/components/ui/reveal";
 import { GlowCard } from "@/components/ui/glow-card";
 import { InspireSection } from "@/components/landing/inspire-section";
+import { getRandomPublishedTemplates } from "@/services/template.service";
 import { SocialProofBar } from "@/components/landing/social-proof-bar";
 import { PainSection } from "@/components/landing/pain-section";
 import { UseCasesSection } from "@/components/landing/use-cases-section";
@@ -22,7 +23,11 @@ import { FinalCta } from "@/components/landing/final-cta";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { HeatmapSection } from "@/components/landing/heatmap-section";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const randomTemplates = await getRandomPublishedTemplates(3);
+
   const plans = [
     {
       name: "Starter",
@@ -395,7 +400,7 @@ export default function Home() {
         </section>
 
         {/* Seção Inspire-SE — Templates da Comunidade */}
-        <InspireSection />
+        <InspireSection templates={randomTemplates} />
 
         {/* Seção Casos de Uso */}
         <UseCasesSection />

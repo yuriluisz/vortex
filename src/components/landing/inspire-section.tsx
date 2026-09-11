@@ -5,34 +5,63 @@ import { ArrowRight, Copy, Heart } from "lucide-react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { Reveal } from "@/components/ui/reveal";
 
-const FEATURED_TEMPLATES = [
+export interface TemplateDisplayItem {
+  id?: string;
+  slug?: string;
+  name: string;
+  category?: string;
+  theme?: string;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  primaryColor?: string | null;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  LANDING_PAGE: "Landing Page",
+  SQUEEZE_PAGE: "Squeeze Page",
+  WEBINAR: "Webinar",
+  ECOMMERCE: "E-commerce",
+  INFOPRODUCT: "Infoproduto",
+  PORTFOLIO: "Portfólio",
+  EVENT: "Evento",
+  OTHER: "Outro",
+};
+
+const THEME_LABELS: Record<string, string> = {
+  LIGHT: "Claro",
+  DARK: "Escuro",
+  COLORFUL: "Colorido",
+};
+
+const DEFAULT_TEMPLATES: TemplateDisplayItem[] = [
   {
     name: "Dark Evento Exclusivo",
     category: "Evento",
     theme: "Escuro",
-    color: "#050505",
     description: "Tema imersivo de alta conversão para masterclasses e lançamentos.",
-    gradient: "from-amber-500 to-purple-600",
   },
   {
     name: "Light Clean Mentoria",
     category: "Mentoria",
     theme: "Claro",
-    color: "#F8FAFC",
     description: "Layout espaçoso e moderno focado em autoridade e clareza.",
-    gradient: "from-emerald-500 to-blue-500",
   },
   {
     name: "E-commerce Launch",
     category: "E-commerce",
     theme: "Colorido",
-    color: "#1a1a2e",
     description: "Página de lançamento com contagem regressiva e urgência visual.",
-    gradient: "from-pink-500 to-orange-400",
   },
 ];
 
-export function InspireSection() {
+interface InspireSectionProps {
+  templates?: TemplateDisplayItem[];
+}
+
+export function InspireSection({ templates }: InspireSectionProps) {
+  const displayTemplates =
+    templates && templates.length > 0 ? templates : DEFAULT_TEMPLATES;
+
   return (
     <section className="py-24 sm:py-32 relative overflow-hidden bg-black border-y border-white/10">
       {/* Background: background-templates.png com horizonte luminoso */}
@@ -77,55 +106,67 @@ export function InspireSection() {
 
         {/* Template Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {FEATURED_TEMPLATES.map((template, i) => (
-            <Reveal key={template.name} delay={i * 80}>
-              <GlowCard className="group cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
-                {/* Preview Area */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/community-template-icon.png"
-                    alt={template.name}
-                    className="w-full h-full object-cover object-top transform transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {displayTemplates.map((template, i) => {
+            const categoryLabel =
+              CATEGORY_LABELS[template.category || ""] || template.category || "Geral";
+            const themeLabel =
+              THEME_LABELS[template.theme || ""] || template.theme || "Padrão";
+            const targetHref = template.slug
+              ? `/templates/${template.slug}`
+              : "/templates";
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-xs">
-                    <Link
-                      href="/templates"
-                      className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-semibold transition-transform duration-200 hover:scale-105 active:scale-95 shadow-lg"
-                    >
-                      Ver template
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </div>
+            return (
+              <Reveal key={template.id || template.slug || template.name} delay={i * 80}>
+                <Link href={targetHref} className="block group h-full">
+                  <GlowCard className="overflow-hidden transition-all duration-300 hover:-translate-y-1 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 flex flex-col h-full">
+                    {/* Preview Area */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-black">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={template.thumbnailUrl || "/community-template-icon.png"}
+                        alt={template.name}
+                        className="w-full h-full object-cover object-top transform transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex gap-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10">
-                      {template.category}
-                    </span>
-                  </div>
-                </div>
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-xs">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-semibold transition-transform duration-200 group-hover:scale-105 active:scale-95 shadow-lg">
+                          Ver template
+                          <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </div>
 
-                {/* Info */}
-                <div className="p-6">
-                  <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-200">
-                    {template.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-2">
-                    {template.description}
-                  </p>
-                  <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
-                    <span className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-zinc-300 font-medium">
-                      {template.theme}
-                    </span>
-                  </div>
-                </div>
-              </GlowCard>
-            </Reveal>
-          ))}
+                      {/* Badges */}
+                      <div className="absolute top-3 left-3 flex gap-1.5 z-10">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10">
+                          {categoryLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-200">
+                          {template.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-2">
+                          {template.description ||
+                            "Template otimizado para lançamentos e captação de leads."}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
+                        <span className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-zinc-300 font-medium">
+                          {themeLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </GlowCard>
+                </Link>
+              </Reveal>
+            );
+          })}
         </div>
 
         {/* CTA Final */}
@@ -139,7 +180,7 @@ export function InspireSection() {
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <p className="text-xs text-muted-foreground mt-3 font-medium">
-              Grátis para usar · +{FEATURED_TEMPLATES.length} categorias disponíveis
+              Grátis para usar · Modelos da comunidade disponíveis
             </p>
           </div>
         </Reveal>
