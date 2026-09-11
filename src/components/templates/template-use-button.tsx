@@ -20,10 +20,34 @@ export function TemplateUseButton({ templateSlug, templateName }: TemplateUseBut
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  function handleUse() {
+  async function handleUse() {
     setLoading(true);
     setError(null);
-    router.push(`/admin/campaigns/new?template=${encodeURIComponent(templateSlug)}`);
+    try {
+      const res = await fetch(`/api/templates/${encodeURIComponent(templateSlug)}/use`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push(
+            `/admin/login?mode=register&redirect=${encodeURIComponent(
+              `/templates/${templateSlug}`
+            )}`
+          );
+          return;
+        }
+        setError(data.error || "Erro ao usar template.");
+        setLoading(false);
+        return;
+      }
+
+      // Redireciona direto para o editor da campanha recém-criada
+      router.push(`/admin/campaigns/${data.campaignId}`);
+    } catch {
+      setError("Erro de conexão ao clonar template.");
+      setLoading(false);
+    }
   }
 
   return (

@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Heart, Eye, Copy, ArrowLeft, Maximize2, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { TemplatePreview } from "@/components/templates/template-preview";
 import { TemplateUseButton } from "@/components/templates/template-use-button";
 import VortexFooter from "@/components/VortexFooter";
-import { trackTemplateViewAction } from "./actions";
+import { trackTemplateViewAction, toggleTemplateLikeAction } from "./actions";
 
 interface TemplateDetailClientProps {
   template: {
@@ -31,6 +32,7 @@ interface TemplateDetailClientProps {
       usages: number;
     };
   };
+  initialLiked?: boolean;
 }
 
 const labels: Record<string, string> = {
@@ -44,9 +46,16 @@ const labels: Record<string, string> = {
   OTHER: "Outro",
 };
 
-export default function TemplateDetailClient({ template }: TemplateDetailClientProps) {
+export default function TemplateDetailClient({
+  template,
+  initialLiked = false,
+}: TemplateDetailClientProps) {
+  const router = useRouter();
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [viewCount, setViewCount] = useState(template.viewCount);
+  const [isLiked, setIsLiked] = useState(initialLiked);
+  const [likesCount, setLikesCount] = useState(template._count?.likes ?? 0);
+  const [likePending, setLikePending] = useState(false);
   const trackedRef = useRef(false);
 
   useEffect(() => {
@@ -61,6 +70,42 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
       })
       .catch((err) => console.error("[TemplateDetail] Erro ao rastrear view:", err));
   }, [template.id, template.author?.id]);
+
+  async function handleToggleLike() {
+    if (likePending) return;
+    setLikePending(true);
+
+    const prevLiked = isLiked;
+    const prevCount = likesCount;
+
+    // Optimistic UI update
+    setIsLiked(!prevLiked);
+    setLikesCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+    try {
+      const res = await toggleTemplateLikeAction(template.id);
+      if (!res.success) {
+        // Revert optimistic update
+        setIsLiked(prevLiked);
+        setLikesCount(prevCount);
+        if (res.error === "AUTH_REQUIRED") {
+          router.push(
+            `/admin/login?mode=login&redirect=${encodeURIComponent(
+              `/templates/${template.slug}`
+            )}`
+          );
+        }
+      } else {
+        setIsLiked(res.liked);
+        setLikesCount(res.likeCount);
+      }
+    } catch {
+      setIsLiked(prevLiked);
+      setLikesCount(prevCount);
+    } finally {
+      setLikePending(false);
+    }
+  }
 
   // Detectar tema para adaptar o botão de fechar
   const isDarkTheme = template.theme === "DARK";
@@ -131,7 +176,27 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-white">{template.name}</h1>
             </div>
-            <TemplateUseButton templateSlug={template.slug} templateName={template.name} />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                disabled={likePending}
+                className={`inline-flex items-center gap-2 px-4 py-3.5 rounded-xl border text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-50 ${
+                  isLiked
+                    ? "bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/25 shadow-lg shadow-rose-500/10"
+                    : "bg-white/5 border-white/15 text-neutral-300 hover:text-white hover:bg-white/10"
+                }`}
+                title={isLiked ? "Descurtir template" : "Curtir template"}
+              >
+                <Heart
+                  className={`w-5 h-5 transition-transform duration-200 ${
+                    isLiked ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-400"
+                  }`}
+                />
+                <span>{likesCount}</span>
+              </button>
+              <TemplateUseButton templateSlug={template.slug} templateName={template.name} />
+            </div>
           </div>
 
           {/* Descrição */}
@@ -173,10 +238,20 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
                 <Copy className="w-3.5 h-3.5 text-emerald-400" />
                 {template._count.usages}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Heart className="w-3.5 h-3.5 text-rose-400" />
-                {template._count.likes}
-              </span>
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                disabled={likePending}
+                className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                title={isLiked ? "Descurtir template" : "Curtir template"}
+              >
+                <Heart
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    isLiked ? "fill-rose-500 text-rose-500" : "text-rose-400"
+                  }`}
+                />
+                <span>{likesCount}</span>
+              </button>
             </div>
           </div>
 

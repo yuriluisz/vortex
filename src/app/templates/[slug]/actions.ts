@@ -117,3 +117,93 @@ export async function trackTemplateViewAction(
     return { success: false, incremented: false };
   }
 }
+
+export interface ToggleTemplateLikeResult {
+  success: boolean;
+  liked: boolean;
+  likeCount: number;
+  error?: string;
+}
+
+/**
+ * Server Action: Alterna a curtida (like/unlike) de um template pelo usuário logado.
+ */
+export async function toggleTemplateLikeAction(
+  templateId: string
+): Promise<ToggleTemplateLikeResult> {
+  try {
+    if (!templateId) {
+      return { success: false, liked: false, likeCount: 0, error: "INVALID_TEMPLATE" };
+    }
+
+    const session = await getSession();
+    if (!session?.userId) {
+      return { success: false, liked: false, likeCount: 0, error: "AUTH_REQUIRED" };
+    }
+
+    const userId = session.userId;
+
+    // Checar se já curtiu
+    const existingLike = await prisma.templateLike.findUnique({
+      where: {
+        templateId_userId: {
+          templateId,
+          userId,
+        },
+      },
+    });
+
+    if (existingLike) {
+      // Descurtir: remove registro e decrementa contador
+      await prisma.$transaction([
+        prisma.templateLike.delete({
+          where: { id: existingLike.id },
+        }),
+        prisma.template.update({
+          where: { id: templateId },
+          data: { likeCount: { decrement: 1 } },
+        }),
+      ]);
+
+      const template = await prisma.template.findUnique({
+        where: { id: templateId },
+        select: { likeCount: true },
+      });
+
+      return {
+        success: true,
+        liked: false,
+        likeCount: Math.max(0, template?.likeCount ?? 0),
+      };
+    } else {
+      // Curtir: cria registro e incrementa contador
+      await prisma.$transaction([
+        prisma.templateLike.create({
+          data: {
+            templateId,
+            userId,
+          },
+        }),
+        prisma.template.update({
+          where: { id: templateId },
+          data: { likeCount: { increment: 1 } },
+        }),
+      ]);
+
+      const template = await prisma.template.findUnique({
+        where: { id: templateId },
+        select: { likeCount: true },
+      });
+
+      return {
+        success: true,
+        liked: true,
+        likeCount: template?.likeCount ?? 1,
+      };
+    }
+  } catch (error) {
+    console.error("[toggleTemplateLikeAction] Erro ao alternar like:", error);
+    return { success: false, liked: false, likeCount: 0, error: "INTERNAL_ERROR" };
+  }
+}
+
