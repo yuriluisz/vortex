@@ -464,7 +464,11 @@ function EmailModal({ tenantId, tenantName, onClose }: { tenantId: string; tenan
       <div className="glass-panel rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
         {sent ? (
           <div className="text-center py-4">
-            <div className="text-4xl mb-4">✅</div>
+            <div className="flex justify-center mb-4">
+              <div className="rounded-full bg-emerald-500/10 p-3">
+                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+              </div>
+            </div>
             <h3 className="text-lg font-bold text-card-foreground mb-2">Email enviado!</h3>
             <p className="text-sm text-muted-foreground mb-6">Mensagem enviada para o administrador de {tenantName}.</p>
             <button type="button" onClick={onClose}

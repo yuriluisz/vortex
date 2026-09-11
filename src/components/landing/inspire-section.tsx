@@ -13,7 +13,6 @@ const FEATURED_TEMPLATES = [
     color: "#050505",
     description: "Tema imersivo de alta conversão para masterclasses e lançamentos.",
     gradient: "from-amber-500 to-purple-600",
-    icon: "🎭",
   },
   {
     name: "Light Clean Mentoria",
@@ -22,7 +21,6 @@ const FEATURED_TEMPLATES = [
     color: "#F8FAFC",
     description: "Layout espaçoso e moderno focado em autoridade e clareza.",
     gradient: "from-emerald-500 to-blue-500",
-    icon: "✨",
   },
   {
     name: "E-commerce Launch",
@@ -31,7 +29,6 @@ const FEATURED_TEMPLATES = [
     color: "#1a1a2e",
     description: "Página de lançamento com contagem regressiva e urgência visual.",
     gradient: "from-pink-500 to-orange-400",
-    icon: "🚀",
   },
 ];
 

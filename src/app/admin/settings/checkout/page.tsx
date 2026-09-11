@@ -111,7 +111,7 @@ export default function CheckoutPage() {
           </div>
 
           <h1 className="text-2xl font-bold text-card-foreground mb-2">
-            Pagamento processado! 🎉
+            Pagamento processado!
           </h1>
           <p className="text-sm text-muted-foreground mb-6">
             Seu pagamento está sendo confirmado. O plano será ativado assim que a confirmação for recebida.

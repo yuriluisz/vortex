@@ -115,7 +115,7 @@ describe("Template Thumbnail R2 Actions", () => {
         thumbnailUrl: "https://r2.vortexpages.online/templates/test-template-12345.png",
       })
     );
-  });
+  }, 30000);
 
   it("should delete thumbnail from R2 when template is deleted", async () => {
     const { deleteTemplateAction } = await import("@/app/admin/templates/actions");

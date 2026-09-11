@@ -15,6 +15,7 @@ import {
   ExternalLink,
   RefreshCcw,
   Video,
+  Info,
 } from "lucide-react";
 import { CampaignFormBuilder } from "./campaign-form-builder";
 import { FieldTooltip } from "./field-tooltip";
@@ -660,8 +661,11 @@ export function CampaignSettingsModal({
             </div>
             {renderLinkRow("Sua Página de Captura", links.customCaptureUrl)}
             {renderLinkRow("Seu Redirecionamento", links.customRedirectUrl)}
-            <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-white/5 leading-relaxed">
-              💡 <strong>Dica de Propagação:</strong> Certifique-se de que o CNAME no seu DNS está apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>. A emissão do SSL pela Cloudflare pode levar alguns minutos.
+            <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-white/5 leading-relaxed flex items-start gap-2">
+              <Info className="w-4 h-4 shrink-0 text-primary mt-0.5" />
+              <span>
+                <strong>Dica de Propagação:</strong> Certifique-se de que o CNAME no seu DNS está apontando para <code className="font-mono text-primary font-semibold">vortexpages.online</code>. A emissão do SSL pela Cloudflare pode levar alguns minutos.
+              </span>
             </p>
           </div>
         )}

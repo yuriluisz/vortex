@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { X, User, Phone, Smartphone, Calendar, FileJson, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, User, Phone, Smartphone, Laptop, Calendar, FileJson, ChevronLeft, ChevronRight } from "lucide-react";
 
 export type LeadData = {
   id: string;
@@ -128,8 +128,18 @@ export function LeadsTable({ leads, currentPage, totalPages, totalLeads }: Leads
                         <p className="text-muted-foreground">{lead.horadb}</p>
                       </td>
                       <td className="px-6 py-4 text-xs">
-                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-1">
-                          {meta?.device?.type === "mobile" ? "📱 Mobile" : "💻 Desktop"}
+                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 gap-1">
+                          {meta?.device?.type === "mobile" ? (
+                            <>
+                              <Smartphone className="w-3.5 h-3.5 text-muted-foreground" />
+                              <span>Mobile</span>
+                            </>
+                          ) : (
+                            <>
+                              <Laptop className="w-3.5 h-3.5 text-muted-foreground" />
+                              <span>Desktop</span>
+                            </>
+                          )}
                         </span>
                         <span className="ml-2 text-muted-foreground">{meta?.os?.name || ""}</span>
                       </td>

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, Loader2, Upload, Sparkles, Image as ImageIcon, Trash2 } from "lucide-react";
+import { X, Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Info } from "lucide-react";
 import { publishTemplateAction } from "./actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
 import type { TemplateCategory, TemplateTheme } from "@prisma/client";
@@ -277,8 +277,11 @@ export function PublishModal({ campaigns, onClose }: PublishModalProps) {
           )}
 
           {/* Aviso */}
-          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 leading-relaxed">
-            💡 <strong>Revisão de Qualidade:</strong> Seu template passará por aprovação técnica antes de ser exibido publicamente na galeria comunitária.
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 leading-relaxed flex items-start gap-2">
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <strong>Revisão de Qualidade:</strong> Seu template passará por aprovação técnica antes de ser exibido publicamente na galeria comunitária.
+            </div>
           </div>
 
           {/* Submit */}

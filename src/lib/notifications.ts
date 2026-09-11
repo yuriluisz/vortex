@@ -185,7 +185,7 @@ export async function sendTemplateStatusEmail({
     }
   > = {
     PUBLISHED: {
-      subject: `✅ Seu template "${safeTemplateName}" foi publicado!`,
+      subject: `Seu template "${safeTemplateName}" foi publicado!`,
       category: "Comunidade de Templates",
       badgeType: "success",
       title: "Template Aprovado & Publicado!",
@@ -193,7 +193,7 @@ export async function sendTemplateStatusEmail({
       ctaVariant: "primary",
     },
     REJECTED: {
-      subject: `❌ Seu template "${safeTemplateName}" precisa de ajustes`,
+      subject: `Seu template "${safeTemplateName}" precisa de ajustes`,
       category: "Moderação de Templates",
       badgeType: "danger",
       title: "Template Não Aprovado",
@@ -201,7 +201,7 @@ export async function sendTemplateStatusEmail({
       ctaVariant: "danger",
     },
     TAKEN_DOWN: {
-      subject: `⚠️ Seu template "${safeTemplateName}" foi removido`,
+      subject: `Seu template "${safeTemplateName}" foi removido`,
       category: "Moderação de Templates",
       badgeType: "warning",
       title: "Template Removido da Galeria",

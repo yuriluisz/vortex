@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { createPortal } from "react-dom";
-import { RefreshCw, Loader2, PackagePlus } from "lucide-react";
+import { RefreshCw, Loader2, PackagePlus, CheckCircle2, XCircle } from "lucide-react";
 import { syncGroupAction, bulkCreateGroupsAction } from "@/app/admin/whatsapp/actions";
 import type { BulkCreateState } from "@/app/admin/whatsapp/actions";
 
@@ -20,14 +20,14 @@ export function SyncGroupButton({ groupId }: { groupId: string }) {
     try {
       const res = await syncGroupAction(groupId);
       if (res.success) {
-        setResult(`✅ ${res.count} membros`);
+        setResult(`${res.count} membros`);
         // Refresh a página após 1.5s para mostrar o novo count
         setTimeout(() => window.location.reload(), 1500);
       } else {
-        setResult(`❌ ${res.error}`);
+        setResult(res.error || "Erro");
       }
     } catch {
-      setResult("❌ Erro");
+      setResult("Erro");
     } finally {
       setLoading(false);
     }
@@ -93,8 +93,9 @@ export function BulkCreateButton({ campaignId }: { campaignId: string }) {
             </h4>
 
             {state?.success && (
-              <div className="rounded-lg border border-chart-1/30 bg-chart-1/10 px-4 py-3 text-sm text-chart-1 mb-4">
-                ✅ {state.createdCount} grupo(s) criado(s) com sucesso!
+              <div className="rounded-lg border border-chart-1/30 bg-chart-1/10 px-4 py-3 text-sm text-chart-1 mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{state.createdCount} grupo(s) criado(s) com sucesso!</span>
               </div>
             )}
 

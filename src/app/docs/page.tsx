@@ -39,6 +39,10 @@ import {
   Flame,
   Video,
   MousePointerClick,
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 // ============================================================================
@@ -138,8 +142,8 @@ function DocsSidebar({
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground/80 flex items-start gap-2">
-      <span className="text-lg leading-none mt-0.5">💡</span>
+    <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground/80 flex items-start gap-2.5">
+      <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
       <div className="leading-relaxed">{children}</div>
     </div>
   );
@@ -147,8 +151,8 @@ function Tip({ children }: { children: React.ReactNode }) {
 
 function Warning({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-foreground/80 flex items-start gap-2">
-      <span className="text-lg leading-none mt-0.5">⚠️</span>
+    <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-foreground/80 flex items-start gap-2.5">
+      <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
       <div className="leading-relaxed">{children}</div>
     </div>
   );
@@ -557,7 +561,7 @@ export default function PublicDocsPage() {
               <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <Settings2 className="h-4 w-4" />
-                  Painel de Configurações (⚙)
+                  Painel de Configurações
                 </h3>
                 <p className="text-sm">
                   Ao criar uma campanha, o painel de configurações abre automaticamente. Ele possui <strong>3 abas</strong> que organizam todas as opções:
@@ -863,10 +867,10 @@ export default function PublicDocsPage() {
               <div className="glass-panel rounded-xl p-5 relative overflow-hidden space-y-3">
                 <h3 className="text-foreground font-medium flex items-center gap-2">
                   <Settings2 className="h-4 w-4" />
-                  Configurações (⚙)
+                  Configurações
                 </h3>
                 <p className="text-sm">
-                  Clique no ícone de engrenagem (⚙) no topo do editor para abrir o painel de configurações. No modo de edição, você terá as <strong>3 abas</strong> completas:
+                  Clique no ícone de engrenagem (<Settings2 className="w-3.5 h-3.5 inline text-muted-foreground" />) no topo do editor para abrir o painel de configurações. No modo de edição, você terá as <strong>3 abas</strong> completas:
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm">
                   <li>
@@ -1751,7 +1755,7 @@ export default function PublicDocsPage() {
                         <td className="py-2 pr-4">WhatsApp</td>
                         <td className="text-center py-2 px-2">—</td>
                         <td className="text-center py-2 px-2">—</td>
-                        <td className="text-center py-2 px-2">✅</td>
+                        <td className="text-center py-2 px-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 inline" /></td>
                       </tr>
                       <tr>
                         <td className="py-2 pr-4">Marca Vórtex+</td>
@@ -2003,8 +2007,8 @@ export default function PublicDocsPage() {
                   <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-3 py-1.5 rounded-full">Em análise</span>
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   <div className="flex flex-col gap-2">
-                    <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-3 py-1.5 rounded-full">✅ Publicado</span>
-                    <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1.5 rounded-full">❌ Rejeitado</span>
+                    <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Publicado</span>
+                    <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" /> Rejeitado</span>
                   </div>
                 </div>
               </div>

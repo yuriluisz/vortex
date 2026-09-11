@@ -159,7 +159,7 @@ const FAQ_DATA: Record<string, PageFAQ> = {
       {
         question: "Como configuro o SEO do link?",
         answer:
-          'Clique no ícone ⚙ para abrir as configurações. Na aba Geral, role até "Identidade Visual do Link (SEO)" para definir título, descrição, imagem e favicon que aparecem ao compartilhar.',
+          'Clique no ícone de configurações no topo para abrir as opções. Na aba Geral, role até "Identidade Visual do Link (SEO)" para definir título, descrição, imagem e favicon que aparecem ao compartilhar.',
         docsAnchor: "campo-seo",
       },
     ],

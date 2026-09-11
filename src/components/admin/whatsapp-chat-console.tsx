@@ -76,7 +76,7 @@ const WHATSAPP_FAQS = [
   {
     question: "O que significa cada indicador no balão da mensagem?",
     answer:
-      "Dois tiques (✓✓) indicam que a mensagem foi entregue em todos os grupos. Um aviso amarelo indica envio parcial (alguns grupos falharam). O ícone vermelho indica falha total de envio.",
+      "Dois tiques azuis indicam que a mensagem foi entregue em todos os grupos. Um aviso amarelo indica envio parcial (alguns grupos falharam). O ícone vermelho indica falha total de envio.",
   },
   {
     question: "Como ver detalhes de quais grupos receberam e quais falharam?",

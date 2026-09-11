@@ -123,15 +123,21 @@ const PLACEHOLDER_HTML = `<div class="min-h-screen bg-[#050505] text-white selec
 
       <div class="flex flex-col gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">✓</div>
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
           <span class="text-neutral-300">Rotacionador Inteligente de Grupos</span>
         </div>
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">✓</div>
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
           <span class="text-neutral-300">Formulários Otimizados e Rápidos</span>
         </div>
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">✓</div>
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
           <span class="text-neutral-300">Testes e Escala com Pixel Nativo</span>
         </div>
       </div>

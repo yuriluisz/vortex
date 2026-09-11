@@ -345,7 +345,12 @@ export function PlanSelector({
                 {verifyingPayment ? "Verificando..." : "Já Paguei — Verificar Agora"}
               </button>
               {verifyError && <p className="text-xs text-destructive">{verifyError}</p>}
-              {verifySuccess && <p className="text-xs text-emerald-400 font-semibold">✅ Pagamento confirmado com sucesso!</p>}
+              {verifySuccess && (
+                <p className="text-xs text-emerald-400 font-semibold inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Pagamento confirmado com sucesso!</span>
+                </p>
+              )}
             </div>
           )}
 

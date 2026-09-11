@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
 
 interface RedirectClientProps {
   groupUrl: string | null;
@@ -61,7 +62,11 @@ export default function RedirectClient({ groupUrl, slug }: RedirectClientProps) 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="mb-6 text-6xl animate-pulse">🔄</div>
+        <div className="mb-6 flex justify-center">
+          <div className="rounded-2xl bg-primary/10 p-4 border border-primary/20">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </div>
+        </div>
         <h1 className="text-2xl font-bold text-foreground">
           Redirecionando...
         </h1>

@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { createPortal } from "react-dom";
-import { Send, Loader2, ChevronDown } from "lucide-react";
+import { Send, Loader2, ChevronDown, CheckCircle2, AlertTriangle } from "lucide-react";
 import { sendBroadcastAction } from "../actions";
 import type { BroadcastState } from "../actions";
 import { FieldTooltip } from "@/components/admin/field-tooltip";
@@ -75,9 +75,12 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
 
         {/* Resultado */}
         {state?.success && (
-          <div className="rounded-lg border border-chart-1/30 bg-chart-1/10 px-4 py-3 text-sm text-chart-1 mb-6">
-            ✅ Disparo enviado! {state.sentCount} grupo(s) com sucesso
-            {state.failedCount ? `, ${state.failedCount} falha(s)` : ""}.
+          <div className="rounded-lg border border-chart-1/30 bg-chart-1/10 px-4 py-3 text-sm text-chart-1 mb-6 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>
+              Disparo enviado! {state.sentCount} grupo(s) com sucesso
+              {state.failedCount ? `, ${state.failedCount} falha(s)` : ""}.
+            </span>
           </div>
         )}
 
@@ -191,8 +194,9 @@ export function BroadcastForm({ campaigns }: BroadcastFormProps) {
 
               {/* Aviso se tem grupos sem JID */}
               {selectedCampaign.groups.some((g) => !g.groupJid) && (
-                <p className="text-xs text-chart-2">
-                  ⚠️ {selectedCampaign.groups.filter((g) => !g.groupJid).length} grupo(s) sem JID vinculado (não receberão mensagens).
+                <p className="text-xs text-chart-2 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{selectedCampaign.groups.filter((g) => !g.groupJid).length} grupo(s) sem JID vinculado (não receberão mensagens).</span>
                 </p>
               )}
             </div>

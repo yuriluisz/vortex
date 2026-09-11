@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, X, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, X, CheckCircle2, Info } from "lucide-react";
 import { cancelSubscriptionAction } from "./actions";
 import type { Plan } from "@prisma/client";
 
@@ -126,8 +126,9 @@ export function CancelDialog({
                 </ul>
               </div>
 
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-primary text-[11px]">
-                💡 Você pode <strong>reativar sua assinatura com 1 clique</strong> a qualquer momento antes do término do ciclo.
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-primary text-[11px] flex items-center gap-1.5">
+                <Info className="h-4 w-4 shrink-0 text-primary" />
+                <span>Você pode <strong>reativar sua assinatura com 1 clique</strong> a qualquer momento antes do término do ciclo.</span>
               </div>
             </div>
 
