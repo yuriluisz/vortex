@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Heart, Eye, Copy, ArrowLeft, Maximize2, X } from "lucide-react";
 import Link from "next/link";
 import { TemplatePreview } from "@/components/templates/template-preview";
 import { TemplateUseButton } from "@/components/templates/template-use-button";
 import VortexFooter from "@/components/VortexFooter";
+import { trackTemplateViewAction } from "./actions";
 
 interface TemplateDetailClientProps {
   template: {
@@ -45,6 +46,21 @@ const labels: Record<string, string> = {
 
 export default function TemplateDetailClient({ template }: TemplateDetailClientProps) {
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [viewCount, setViewCount] = useState(template.viewCount);
+  const trackedRef = useRef(false);
+
+  useEffect(() => {
+    if (trackedRef.current) return;
+    trackedRef.current = true;
+
+    trackTemplateViewAction(template.id, template.author?.id)
+      .then((res) => {
+        if (res.incremented) {
+          setViewCount((prev) => prev + 1);
+        }
+      })
+      .catch((err) => console.error("[TemplateDetail] Erro ao rastrear view:", err));
+  }, [template.id, template.author?.id]);
 
   // Detectar tema para adaptar o botão de fechar
   const isDarkTheme = template.theme === "DARK";
@@ -151,7 +167,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
             <div className="flex items-center gap-6 text-xs text-neutral-300 font-mono">
               <span className="flex items-center gap-1.5">
                 <Eye className="w-3.5 h-3.5 text-neutral-400" />
-                {template.viewCount}
+                {viewCount}
               </span>
               <span className="flex items-center gap-1.5">
                 <Copy className="w-3.5 h-3.5 text-emerald-400" />

@@ -403,12 +403,6 @@ export async function getTemplateWithActiveVersion(slug: string) {
 
   if (!template) return null;
 
-  // Incrementar view count
-  await prisma.template.update({
-    where: { id: template.id },
-    data: { viewCount: { increment: 1 } },
-  });
-
   return template;
 }
 
