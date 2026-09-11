@@ -86,6 +86,26 @@ export async function GET(
 
     previewHtml = previewHtml.replaceAll("{{FORM_SLOT}}", staticForm);
 
+    // Extrair assets do <head> do template original (Tailwind CDN, config, fontes do Google e estilos)
+    const headMatch = activeVersion.rawHtml.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    let headAssets = "";
+    if (headMatch) {
+      const rawHead = headMatch[1];
+      const tailwindScriptMatch = rawHead.match(/<script[^>]*src=["']https:\/\/cdn\.tailwindcss\.com["'][^>]*>[\s\S]*?<\/script>|<script[^>]*src=["']https:\/\/cdn\.tailwindcss\.com["'][^>]*\/>/i);
+      const tailwindConfigMatch = rawHead.match(/<script[^>]*>[\s\S]*?tailwind\.config[\s\S]*?<\/script>/i);
+      const fontLinks = rawHead.match(/<link[^>]*href=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com[^"']*["'][^>]*>/gi) || [];
+      const styles = rawHead.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
+      
+      headAssets = [
+        tailwindScriptMatch ? tailwindScriptMatch[0] : '<script src="https://cdn.tailwindcss.com"></script>',
+        tailwindConfigMatch ? tailwindConfigMatch[0] : '',
+        ...fontLinks,
+        ...styles,
+      ].filter(Boolean).join("\n");
+    } else {
+      headAssets = '<script src="https://cdn.tailwindcss.com"></script>';
+    }
+
     // Montar HTML completo com CSS reset e viewport
     const fullHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -93,6 +113,7 @@ export async function GET(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <base href="/">
+  ${headAssets}
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow-x: hidden; }
@@ -113,7 +134,7 @@ ${previewHtml}
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "X-Content-Type-Options": "nosniff",
-        "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https:; frame-src 'self' https://www.youtube.com https://player.vimeo.com;",
+        "Content-Security-Policy": "default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src https://www.youtube.com https://player.vimeo.com;",
       },
     });
   } catch (error) {

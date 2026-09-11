@@ -107,8 +107,8 @@ function extractHeadAssets(html: string): string {
   const headContent = headMatch[1];
   const assets: string[] = [];
 
-  // Pega links de stylesheets
-  const linkMatches = headContent.match(/<link[^>]*rel=["']stylesheet["'][^>]*>/gi);
+  // Pega links de stylesheets, preconnects, etc.
+  const linkMatches = headContent.match(/<link[^>]*>/gi);
   if (linkMatches) assets.push(...linkMatches);
 
   // Pega blocos de estilo
@@ -263,6 +263,21 @@ export default function HtmlRenderer({
   const headAssets = extractHeadAssets(rawHtml);
   const SLOT_MARKER = "{{FORM_SLOT}}";
 
+  const hasTailwind = /cdn\.tailwindcss\.com/i.test(rawHtml);
+  const tailwindConfigMatch = rawHtml.match(/<script[^>]*>([\s\S]*?tailwind\.config[\s\S]*?)<\/script>/i);
+  const tailwindConfigContent = tailwindConfigMatch ? tailwindConfigMatch[1] : null;
+
+  const tailwindScripts = hasTailwind ? (
+    <>
+      <Script src="https://cdn.tailwindcss.com" strategy="afterInteractive" />
+      {tailwindConfigContent && (
+        <Script id={`tw-cfg-${campaignId}`} strategy="afterInteractive">
+          {tailwindConfigContent}
+        </Script>
+      )}
+    </>
+  ) : null;
+
   const hasSlot = sanitizedHtml.includes(SLOT_MARKER);
   const hasCustomForm = sanitizedHtml.includes("data-vortex-custom-form");
 
@@ -270,6 +285,7 @@ export default function HtmlRenderer({
   if (!hasSlot && !hasCustomForm) {
     return (
       <>
+        {tailwindScripts}
         {headAssets && parse(headAssets)}
         {parse(sanitizedHtml)}
         <DynamicForm
@@ -331,6 +347,7 @@ export default function HtmlRenderer({
 
   return (
     <>
+      {tailwindScripts}
       {headAssets && parse(headAssets)}
       {parse(htmlWithAnchor, options)}
       <VortexFooter
