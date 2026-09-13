@@ -139,4 +139,19 @@ describe("Session Recordings & Heatmap Integration", () => {
     expect(prisma.sessionRecording.upsert).toHaveBeenCalled();
     expect(prisma.heatmapClick.createMany).toHaveBeenCalled();
   });
+  it("should bypass custom domain rewriting in proxy for /api/ routes", async () => {
+    const proxy = (await import("@/proxy")).default;
+    const req = {
+      nextUrl: { pathname: "/api/analytics/recordings/ingest" },
+      headers: new Headers({
+        "x-vortex-host": "loja.vitalisenergy.com.br",
+        host: "loja.vitalisenergy.com.br",
+      }),
+      url: "https://loja.vitalisenergy.com.br/api/analytics/recordings/ingest",
+      cookies: { get: () => undefined },
+    };
+
+    const res = await proxy(req as unknown as import("next/server").NextRequest);
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
 });

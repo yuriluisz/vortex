@@ -14,6 +14,11 @@ const COOKIE_NAME = "vortex_admin_session";
  */
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Rotas de API sao sempre globais e nunca devem ser reescritas para dominios customizados
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
   // ==========================================================================
   // ROTEAMENTO DE DOMÍNIOS CUSTOMIZADOS
   // ==========================================================================
