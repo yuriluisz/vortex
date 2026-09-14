@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { loginAction, registerAction, verifyOTPAction } from "./actions";
@@ -46,11 +47,13 @@ export default function AdminLoginPage() {
     : activeState?.error;
 
   // Trocar automaticamente para registro se o login retornar step=register
-  useEffect(() => {
+  const [prevLoginState, setPrevLoginState] = useState(loginState);
+  if (loginState !== prevLoginState) {
+    setPrevLoginState(loginState);
     if (loginState?.step === "register" && loginState?.mode === "register") {
       setMode("register");
     }
-  }, [loginState]);
+  }
 
   useEffect(() => {
     if (isOTPStep && otpInputRef.current) {
@@ -71,8 +74,14 @@ export default function AdminLoginPage() {
         {/* Logo */}
         <div className="mb-10 text-center animate-fade-in-up" style={{ animationDelay: "100ms" }}>
           <Link href="/" className="inline-block relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-10 mx-auto invert drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+            <Image
+              src="/Vortex Padrão.svg"
+              alt="Vórtex+"
+              width={196}
+              height={40}
+              priority
+              className="h-10 w-auto mx-auto invert drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+            />
           </Link>
           <p className="mt-3 text-sm text-neutral-400">
             Painel Administrativo
@@ -339,12 +348,6 @@ export default function AdminLoginPage() {
               </button>
             </form>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 flex justify-center animate-fade-in-up" style={{ animationDelay: "300ms" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/Vortex Padrão.svg" alt="Vórtex+" className="h-4 w-auto invert opacity-40 hover:opacity-100 transition-opacity" />
         </div>
       </div>
     </div>
