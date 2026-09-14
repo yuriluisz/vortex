@@ -1,0 +1,45 @@
+name: CI/CD - Test & Deploy to Easypanel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-and-deploy:
+    name: Run Tests & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run automated test suite
+        run: npm test
+
+      - name: Trigger Easypanel deployment
+        id: trigger-deploy
+        run: |
+          echo "🚀 Disparando webhook de deploy no Easypanel..."
+          curl -s -S -X POST "${{ secrets.EASYPANEL_DEPLOY_WEBHOOK_URL }}"
+          echo "Webhook enviado com sucesso!"
+
+      - name: Verify deployment and monitor healthcheck
+        env:
+          EASYPANEL_BASE_URL: ${{ secrets.EASYPANEL_BASE_URL }}
+          EASYPANEL_API_KEY: ${{ secrets.EASYPANEL_API_KEY }}
+          EASYPANEL_PROJECT_NAME: ${{ secrets.EASYPANEL_PROJECT_NAME }}
+          EASYPANEL_SERVICE_NAME: ${{ secrets.EASYPANEL_SERVICE_NAME }}
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          node scripts/verify-deploy.mjs
