@@ -244,6 +244,19 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
       const doc = iframe?.contentDocument || iframe?.contentWindow?.document;
       if (!doc || !doc.body) return;
 
+      // Prevenir navegação acidental ou submissão de formulários no preview
+      doc.addEventListener(
+        "click",
+        (e: MouseEvent) => {
+          const target = (e.target as HTMLElement)?.closest("a, button");
+          if (target) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        },
+        true
+      );
+
       // Medir novamente quando as imagens do HTML terminarem de baixar
       const images = doc.querySelectorAll("img");
       images.forEach((img) => {
@@ -425,11 +438,11 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
             </div>
           )}
 
-          {/* Iframe que rola naturalmente e renderiza o site completo */}
+          {/* Iframe que rola naturalmente e renderiza o site completo com estilos 100% reais */}
           <iframe
             ref={iframeRef}
-            srcDoc={previewDoc || undefined}
-            src={previewDoc ? undefined : `/${campaignSlug}?preview=true`}
+            src={campaignSlug ? `/${campaignSlug}?preview=true` : undefined}
+            srcDoc={campaignSlug ? undefined : (previewDoc || undefined)}
             onLoad={handleIframeLoad}
             title="Preview do Mapa de Calor"
             className="w-full flex-1 border-0 block bg-black"

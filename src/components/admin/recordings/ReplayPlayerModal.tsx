@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+import "rrweb/dist/style.css";
 import {
   X,
   Play,
@@ -43,6 +45,7 @@ function formatTime(seconds: number): string {
 }
 
 export default function ReplayPlayerModal({ sessionId, onClose }: ReplayPlayerModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<RecordingMetadata | null>(null);
@@ -55,6 +58,28 @@ export default function ReplayPlayerModal({ sessionId, onClose }: ReplayPlayerMo
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const replayerRef = useRef<any>(null);
   const animFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Bloqueio de scroll do body e atalho ESC para fechar
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
 
   // Carregar dados da gravação da API (R2)
   useEffect(() => {
@@ -216,9 +241,11 @@ export default function ReplayPlayerModal({ sessionId, onClose }: ReplayPlayerMo
       <Monitor className="h-4 w-4 text-violet-400" />
     );
 
-  return (
+  if (!mounted || typeof document === "undefined") return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-6 animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -348,6 +375,7 @@ export default function ReplayPlayerModal({ sessionId, onClose }: ReplayPlayerMo
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

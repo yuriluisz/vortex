@@ -39,8 +39,10 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
     const utmMedium = urlParams.get("utm_medium") || undefined;
     const utmCampaign = urlParams.get("utm_campaign") || undefined;
 
-    let eventsQueue: unknown[] = [];
+    const allSessionEvents: unknown[] = [];
     const clicksQueue: { x: number; y: number }[] = [];
+    let hasNewEvents = false;
+    const MAX_EVENTS_LIMIT = 2500;
     let totalClicks = 0;
     let flushTimer: NodeJS.Timeout | null = null;
     let stopRecording: (() => void) | null = null;
@@ -53,12 +55,18 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
         document.documentElement.scrollHeight,
         window.innerHeight
       );
-      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const pageY = e.pageY ?? (e.clientY + (window.scrollY || window.pageYOffset || 0));
+      const pageX = e.pageX ?? (e.clientX + (window.scrollX || window.pageXOffset || 0));
+      const docWidth = Math.max(
+        document.body.scrollWidth,
+        document.documentElement.scrollWidth,
+        window.innerWidth
+      );
 
-      // X em % relativo à largura da janela
-      const x = Math.min(100, Math.max(0, (e.clientX / window.innerWidth) * 100));
+      // X em % relativo à largura da página
+      const x = Math.min(100, Math.max(0, (pageX / docWidth) * 100));
       // Y em % relativo à altura total do documento rolado
-      const y = Math.min(100, Math.max(0, ((e.clientY + scrollY) / docHeight) * 100));
+      const y = Math.min(100, Math.max(0, (pageY / docHeight) * 100));
 
       clicksQueue.push({
         x: Math.round(x * 10) / 10,
@@ -97,11 +105,12 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
         flushTimer = null;
       }
 
-      if (eventsQueue.length === 0 && clicksQueue.length === 0) return;
+      if (!hasNewEvents && clicksQueue.length === 0) return;
+      hasNewEvents = false;
 
-      const eventsToSend = [...eventsQueue];
+      // Envia a gravação cumulativa completa da sessão para que o R2 sempre tenha o histórico do início ao fim
+      const eventsToSend = [...allSessionEvents];
       const clicksToSend = clicksQueue.splice(0, clicksQueue.length);
-      eventsQueue = [];
 
       const duration = Math.round((Date.now() - startTime) / 1000);
 
@@ -119,11 +128,13 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
       };
 
       // Tentar comprimir eventos
-      const gzip = await compressEventsToGzipBase64(eventsToSend);
-      if (gzip) {
-        basePayload.gzip = gzip;
-      } else {
-        basePayload.events = eventsToSend;
+      if (eventsToSend.length > 0) {
+        const gzip = await compressEventsToGzipBase64(eventsToSend);
+        if (gzip) {
+          basePayload.gzip = gzip;
+        } else {
+          basePayload.events = eventsToSend;
+        }
       }
 
       const jsonBody = JSON.stringify(basePayload);
@@ -147,7 +158,7 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
       }).catch(() => {});
     }
 
-    function scheduleFlush(delay = 2500) {
+    function scheduleFlush(delay = 3000) {
       if (!flushTimer) {
         flushTimer = setTimeout(() => flush(false), delay);
       }
@@ -161,14 +172,18 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
 
         stopRecording = record({
           emit(event) {
-            eventsQueue.push(event);
-            // Snapshot inicial (type 2) deve ser enviado mais rápido
+            if (allSessionEvents.length < MAX_EVENTS_LIMIT) {
+              allSessionEvents.push(event);
+            }
+            hasNewEvents = true;
+
+            // Snapshot inicial (type 2) deve ser enviado com prioridade
             if (event && event.type === 2) {
               scheduleFlush(800);
-            } else if (eventsQueue.length >= 35) {
+            } else if (allSessionEvents.length % 35 === 0) {
               flush(false);
             } else {
-              scheduleFlush(2500);
+              scheduleFlush(3000);
             }
           },
           // Mascaramento total de inputs conforme alinhado
