@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getReplayPayload } from "@/lib/r2";
-import { gunzipSync } from "node:zlib";
+import { gunzip } from "node:zlib";
+import { promisify } from "node:util";
+
+const gunzipAsync = promisify(gunzip);
 
 export const dynamic = "force-dynamic";
 
@@ -46,8 +49,8 @@ export async function GET(req: NextRequest, { params }: RouteProps) {
 
     let events: unknown[] = [];
     try {
-      const decompressed = gunzipSync(gzipBuffer, { maxOutputLength: 20 * 1024 * 1024 }).toString("utf-8");
-      events = JSON.parse(decompressed);
+      const decompressedBuffer = await gunzipAsync(gzipBuffer, { maxOutputLength: 20 * 1024 * 1024 });
+      events = JSON.parse(decompressedBuffer.toString("utf-8"));
     } catch {
       // Se não for gzip (fallback), tentar parse direto
       try {

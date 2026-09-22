@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Smartphone,
   Monitor,
@@ -39,31 +39,41 @@ export default function SessionsList({ sessions, campaignSlug }: SessionsListPro
   const [deviceFilter, setDeviceFilter] = useState<string>("all");
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
-  const filteredSessions = sessions.filter((s) => {
-    const matchesSearch =
-      !searchTerm ||
-      (s.utmSource && s.utmSource.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (s.utmCampaign && s.utmCampaign.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (s.browser && s.browser.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (s.os && s.os.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      s.sessionId.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredSessions = useMemo(() => {
+    const query = searchTerm.toLowerCase().trim();
 
-    const matchesDevice =
-      deviceFilter === "all" || s.device === deviceFilter;
+    return sessions.filter((s) => {
+      const matchesSearch =
+        !query ||
+        (s.utmSource && s.utmSource.toLowerCase().includes(query)) ||
+        (s.utmCampaign && s.utmCampaign.toLowerCase().includes(query)) ||
+        (s.browser && s.browser.toLowerCase().includes(query)) ||
+        (s.os && s.os.toLowerCase().includes(query)) ||
+        (s.sessionId && s.sessionId.toLowerCase().includes(query));
 
-    return matchesSearch && matchesDevice;
-  });
+      const matchesDevice =
+        deviceFilter === "all" ||
+        s.device === deviceFilter ||
+        (deviceFilter === "mobile" && (s.device === "mobile" || s.device === "tablet"));
 
-  const getDeviceIcon = (device: string | null) => {
+      return Boolean(matchesSearch && matchesDevice);
+    });
+  }, [sessions, searchTerm, deviceFilter]);
+
+  const getDeviceIcon = useCallback((device: string | null) => {
     if (device === "mobile") return <Smartphone className="h-4 w-4 text-emerald-400" />;
     if (device === "tablet") return <Tablet className="h-4 w-4 text-sky-400" />;
     return <Monitor className="h-4 w-4 text-violet-400" />;
-  };
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedSessionId(null);
+  }, []);
 
   return (
     <div className="space-y-4">
       {/* Barra de Filtros e Busca */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border/70 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border/70 shadow-xs">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -72,6 +82,7 @@ export default function SessionsList({ sessions, campaignSlug }: SessionsListPro
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-1.5 text-xs sm:text-sm bg-background border border-border/60 rounded-xl focus:outline-none focus:border-primary transition-colors text-foreground"
+            aria-label="Buscar sessões gravadas"
           />
         </div>
 
@@ -81,7 +92,7 @@ export default function SessionsList({ sessions, campaignSlug }: SessionsListPro
             onClick={() => setDeviceFilter("all")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               deviceFilter === "all"
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -92,18 +103,18 @@ export default function SessionsList({ sessions, campaignSlug }: SessionsListPro
             onClick={() => setDeviceFilter("mobile")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               deviceFilter === "mobile"
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Celular
+            Celular / Tablet
           </button>
           <button
             type="button"
             onClick={() => setDeviceFilter("desktop")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               deviceFilter === "desktop"
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -180,7 +191,7 @@ export default function SessionsList({ sessions, campaignSlug }: SessionsListPro
                 <button
                   type="button"
                   onClick={() => setSelectedSessionId(session.sessionId)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm shadow-primary/20"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-xs shadow-primary/20 cursor-pointer"
                 >
                   <Play className="h-3.5 w-3.5" />
                   Assistir Replay
@@ -195,7 +206,7 @@ export default function SessionsList({ sessions, campaignSlug }: SessionsListPro
       {selectedSessionId && (
         <ReplayPlayerModal
           sessionId={selectedSessionId}
-          onClose={() => setSelectedSessionId(null)}
+          onClose={handleCloseModal}
         />
       )}
     </div>

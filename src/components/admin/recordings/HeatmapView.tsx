@@ -124,8 +124,19 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const lastDimensionsRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+  const observerRef = useRef<ResizeObserver | null>(null);
 
   const deviceFilter = getDeviceForViewport(viewport);
+
+  // Desconectar observer no desmonte
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, []);
 
   const previewDoc = useMemo(() => {
     return buildPreviewDoc(rawHtml);
@@ -266,6 +277,11 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
       });
 
       // Observer para re-renderizar quando o documento expandir dinamicamente
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+
       if (typeof ResizeObserver !== "undefined") {
         const ro = new ResizeObserver(() => {
           const newH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
@@ -278,6 +294,7 @@ export default function HeatmapView({ campaignId, campaignSlug, rawHtml }: Heatm
           }
         });
         ro.observe(doc.body);
+        observerRef.current = ro;
       }
     } catch {
       // Ignora erro se cross-origin

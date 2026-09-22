@@ -47,23 +47,26 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
     let flushTimer: NodeJS.Timeout | null = null;
     let stopRecording: (() => void) | null = null;
 
+    let isFlushing = false;
+
     // Listener para Mapa de Calor (Heatmap)
     const handleClick = (e: MouseEvent) => {
       totalClicks++;
       const docHeight = Math.max(
         document.body.scrollHeight,
         document.documentElement.scrollHeight,
-        window.innerHeight
+        document.body.offsetHeight,
+        1
       );
       const pageY = e.pageY ?? (e.clientY + (window.scrollY || window.pageYOffset || 0));
       const pageX = e.pageX ?? (e.clientX + (window.scrollX || window.pageXOffset || 0));
       const docWidth = Math.max(
+        document.documentElement.clientWidth,
         document.body.scrollWidth,
-        document.documentElement.scrollWidth,
-        window.innerWidth
+        1
       );
 
-      // X em % relativo à largura da página
+      // X em % relativo à largura da página (eliminando scrollbars fixas)
       const x = Math.min(100, Math.max(0, (pageX / docWidth) * 100));
       // Y em % relativo à altura total do documento rolado
       const y = Math.min(100, Math.max(0, (pageY / docHeight) * 100));
@@ -105,8 +108,14 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
         flushTimer = null;
       }
 
+      if (isFlushing && !useBeacon) {
+        scheduleFlush(1500);
+        return;
+      }
+
       if (!hasNewEvents && clicksQueue.length === 0) return;
       hasNewEvents = false;
+      isFlushing = true;
 
       // Envia a gravação cumulativa completa da sessão para que o R2 sempre tenha o histórico do início ao fim
       const eventsToSend = [...allSessionEvents];
@@ -127,35 +136,52 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
         utmCampaign,
       };
 
-      // Tentar comprimir eventos
-      if (eventsToSend.length > 0) {
-        const gzip = await compressEventsToGzipBase64(eventsToSend);
-        if (gzip) {
-          basePayload.gzip = gzip;
-        } else {
-          basePayload.events = eventsToSend;
-        }
-      }
-
-      const jsonBody = JSON.stringify(basePayload);
-
-      if (useBeacon && navigator.sendBeacon) {
-        try {
-          const blob = new Blob([jsonBody], { type: "application/json" });
-          if (navigator.sendBeacon("/api/analytics/recordings/ingest", blob)) {
-            return;
+      try {
+        // Tentar comprimir eventos
+        if (eventsToSend.length > 0) {
+          const gzip = await compressEventsToGzipBase64(eventsToSend);
+          if (gzip) {
+            basePayload.gzip = gzip;
+          } else {
+            basePayload.events = eventsToSend;
           }
-        } catch {
-          // fallback para fetch com keepalive
         }
-      }
 
-      fetch("/api/analytics/recordings/ingest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsonBody,
-        keepalive: true,
-      }).catch(() => {});
+        const jsonBody = JSON.stringify(basePayload);
+        const byteLength = jsonBody.length;
+
+        if (useBeacon) {
+          // No Chromium/Firefox, beacons e requests com keepalive: true falham se passarem de 64KB
+          if (byteLength < 60000 && navigator.sendBeacon) {
+            try {
+              const blob = new Blob([jsonBody], { type: "application/json" });
+              if (navigator.sendBeacon("/api/analytics/recordings/ingest", blob)) {
+                return;
+              }
+            } catch {}
+          }
+
+          fetch("/api/analytics/recordings/ingest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: jsonBody,
+            keepalive: byteLength < 60000,
+          }).catch(() => {});
+          return;
+        }
+
+        // Flushes periódicos durante a navegação NÃO usam keepalive para não esbarrar no limite de 64KB
+        await fetch("/api/analytics/recordings/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: jsonBody,
+          keepalive: false,
+        });
+      } catch {
+        // Silencia erros de rede transitórios
+      } finally {
+        isFlushing = false;
+      }
     }
 
     function scheduleFlush(delay = 3000) {
@@ -186,11 +212,16 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
               scheduleFlush(3000);
             }
           },
-          // Mascaramento total de inputs conforme alinhado
+          // Mascaramento total de inputs e dados sensíveis (LGPD / PII)
           maskAllInputs: true,
+          maskTextSelector: "[data-vtx-mask], .vtx-mask, [data-sensitive], input[type='password']",
+          blockClass: "vtx-no-record",
           inlineStylesheet: true,
           slimDOMOptions: "all",
-          checkoutEveryNms: 30000,
+          sampling: {
+            scroll: 150,
+            input: "last",
+          },
         }) as () => void;
       })
       .catch((err) => {

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { uploadReplayPayload } from "@/lib/r2";
-import { gzipSync } from "node:zlib";
+import { gzip, gunzip } from "node:zlib";
+import { promisify } from "node:util";
+
+const gzipAsync = promisify(gzip);
+const gunzipAsync = promisify(gunzip);
 
 export const dynamic = "force-dynamic";
 
@@ -102,10 +106,20 @@ export async function POST(req: NextRequest) {
     // Preparar buffer gzip
     let gzipBuffer: Buffer | null = null;
     if (gzip && typeof gzip === "string") {
-      gzipBuffer = Buffer.from(gzip, "base64");
+      try {
+        const decoded = Buffer.from(gzip, "base64");
+        // Validação do cabeçalho mágico do gzip (0x1f 0x8b)
+        if (decoded.length >= 2 && decoded[0] === 0x1f && decoded[1] === 0x8b) {
+          gzipBuffer = decoded;
+        } else {
+          gzipBuffer = await gzipAsync(decoded);
+        }
+      } catch {
+        gzipBuffer = null;
+      }
     } else if (events && Array.isArray(events) && events.length > 0) {
       const jsonStr = JSON.stringify(events);
-      gzipBuffer = gzipSync(Buffer.from(jsonStr));
+      gzipBuffer = await gzipAsync(Buffer.from(jsonStr));
     }
 
     const MAX_GZIP_SIZE = 5 * 1024 * 1024; // 5MB
@@ -113,9 +127,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tamanho do payload excede o limite (5MB)." }, { status: 413 });
     }
 
+    // Proteção contra gzip bomb: checar expansão de no máximo 20MB
+    if (gzipBuffer && gzipBuffer.length > 0) {
+      try {
+        await gunzipAsync(gzipBuffer, { maxOutputLength: 20 * 1024 * 1024 });
+      } catch {
+        return NextResponse.json({ error: "Payload comprimido inválido ou expansão excede o limite seguro." }, { status: 400 });
+      }
+    }
+
     const r2Key = `replays/${campaignId}/${sessionId}.json.gz`;
 
-    if (gzipBuffer && gzipBuffer.length > 0) {
+    // Buscar gravação existente para garantir monotonicidade de duration e clicks
+    const existing = await prisma.sessionRecording.findUnique({
+      where: { sessionId },
+      select: { duration: true, clicksCount: true },
+    });
+
+    const parsedDuration = Math.round(Number(duration) || 0);
+    const finalDuration = Math.max(existing?.duration || 0, parsedDuration);
+    const parsedClicksCount = Number(clicksCount) || 0;
+    const finalClicksCount = Math.max(existing?.clicksCount || 0, parsedClicksCount);
+
+    // Guarda de integridade: só atualiza o arquivo no R2 se o pacote atual tiver duração >= à já gravada
+    if (gzipBuffer && gzipBuffer.length > 0 && (!existing || parsedDuration >= (existing.duration || 0))) {
       try {
         await uploadReplayPayload(r2Key, gzipBuffer, "application/gzip");
       } catch (uploadErr) {
@@ -123,15 +158,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Upsert nos metadados da sessão
+    // Upsert nos metadados da sessão com monotonicidade
     await prisma.sessionRecording.upsert({
       where: { sessionId },
       create: {
         sessionId,
         campaignId,
         tenantId: campaign.tenant.id,
-        duration: Math.round(Number(duration) || 0),
-        clicksCount: Number(clicksCount) || 0,
+        duration: finalDuration,
+        clicksCount: finalClicksCount,
         device: String(device || "mobile"),
         browser: browser ? String(browser) : null,
         os: os ? String(os) : null,
@@ -142,8 +177,8 @@ export async function POST(req: NextRequest) {
         r2Key,
       },
       update: {
-        duration: Math.round(Number(duration) || 0),
-        clicksCount: Number(clicksCount) || 0,
+        duration: finalDuration,
+        clicksCount: finalClicksCount,
         pageUrl: String(pageUrl).slice(0, 500),
       },
     });
