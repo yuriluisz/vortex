@@ -242,7 +242,16 @@ export default function SessionTracker({ campaignId, enabled }: SessionTrackerPr
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("pagehide", handlePageHide);
 
+    // Heartbeat periódico (a cada 6s) para que visitantes no mobile que apenas leem
+    // sem mover o ponteiro (sem mousemove) continuem tendo a duração e eventos sincronizados
+    const heartbeatInterval = setInterval(() => {
+      if (hasNewEvents || clicksQueue.length > 0) {
+        flush(false);
+      }
+    }, 6000);
+
     return () => {
+      clearInterval(heartbeatInterval);
       window.removeEventListener("click", handleClick);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);

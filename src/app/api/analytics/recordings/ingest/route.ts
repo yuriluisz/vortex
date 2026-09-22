@@ -9,10 +9,10 @@ const gunzipAsync = promisify(gunzip);
 
 export const dynamic = "force-dynamic";
 
-// Rate limiting simples por IP (60 req/min por IP)
+// Rate limiting tolerante a CGNAT móvel (240 req/min por IP)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 60;
+const RATE_LIMIT_MAX = 240;
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
