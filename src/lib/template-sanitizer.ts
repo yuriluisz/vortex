@@ -35,6 +35,8 @@ const ALLOWED_TAGS = [
   // Formulários customizados — permitidos mas neutralizados (action/method removidos)
   "form", "input", "select", "textarea", "button", "label", "option", "optgroup",
   "fieldset", "legend",
+  // Tags SVG seguras (essenciais para ícones sociais de link hubs e landing pages)
+  "svg", "path", "g", "circle", "rect", "line", "polyline", "polygon", "defs", "clipPath", "use",
 ];
 
 const ALLOWED_ATTRS = [
@@ -52,6 +54,11 @@ const ALLOWED_ATTRS = [
   "min", "max", "step", "rows", "cols", "multiple", "checked", "selected",
   "for", "autocomplete", "maxlength", "minlength", "pattern",
   "data-vortex-custom-form",
+  // Atributos SVG seguros
+  "viewbox", "viewBox", "xmlns", "fill", "stroke", "stroke-width", "stroke-linecap",
+  "stroke-linejoin", "d", "cx", "cy", "r", "rx", "ry", "x", "y", "x1", "y1", "x2", "y2",
+  "transform", "opacity", "fill-rule", "clip-rule", "stroke-dasharray", "stroke-dashoffset",
+  "vector-effect", "points",
 ];
 
 
@@ -262,6 +269,7 @@ export function sanitizeTemplateHtml(rawHtml: string): string {
       "datalist", "keygen", "output", "progress",
       "meter", "details", "summary", "dialog", "menu", "menuitem",
       "style", "link",
+      "foreignObject", "set", "animate", "animateMotion", "animateTransform",
     ],
     FORBID_ATTR: [
       "onerror", "onload", "onclick", "ondblclick", "onmousedown",
@@ -344,6 +352,7 @@ export function sanitizeForPreview(rawHtml: string): string {
       "datalist", "keygen", "output", "progress",
       "meter", "details", "summary", "dialog", "menu", "menuitem",
       "style", "link",
+      "foreignObject", "set", "animate", "animateMotion", "animateTransform",
     ],
     FORBID_ATTR: [
       "onerror", "onload", "onclick", "ondblclick", "onmousedown",

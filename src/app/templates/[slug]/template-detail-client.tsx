@@ -291,11 +291,11 @@ export default function TemplateDetailClient({
           </button>
           
           {/* Fullscreen iframe */}
-          <div className="w-full h-full bg-white rounded-xl overflow-hidden">
+          <div className={`w-full h-full rounded-xl overflow-hidden ${template.theme === "DARK" ? "bg-[#0B0F17]" : "bg-white"}`}>
             <iframe
               src={`/api/templates/${template.slug}/preview`}
               title={template.name}
-              className="w-full h-full border-0"
+              className="w-full h-full border-0 bg-transparent"
               sandbox="allow-scripts"
             />
           </div>

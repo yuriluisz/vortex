@@ -98,6 +98,32 @@ export async function GET(
 
     previewHtml = previewHtml.replaceAll("{{FORM_SLOT}}", staticForm);
 
+    // Extrair assets do <head> do template original
+    const headMatch = pendingVersion.rawHtml.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    let headAssets = "";
+    if (headMatch) {
+      const rawHead = headMatch[1];
+      const tailwindScriptMatch = rawHead.match(/<script[^>]*src=["']https:\/\/cdn\.tailwindcss\.com["'][^>]*>[\s\S]*?<\/script>|<script[^>]*src=["']https:\/\/cdn\.tailwindcss\.com["'][^>]*\/>/i);
+      const tailwindConfigMatch = rawHead.match(/<script[^>]*>[\s\S]*?tailwind\.config[\s\S]*?<\/script>/i);
+      const fontLinks = rawHead.match(/<link[^>]*href=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com[^"']*["'][^>]*>/gi) || [];
+      const styles = rawHead.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
+
+      headAssets = [
+        tailwindScriptMatch ? tailwindScriptMatch[0] : '<script src="https://cdn.tailwindcss.com"></script>',
+        tailwindConfigMatch ? tailwindConfigMatch[0] : '',
+        ...fontLinks,
+        ...styles,
+      ].filter(Boolean).join("\n");
+    } else {
+      headAssets = '<script src="https://cdn.tailwindcss.com"></script>';
+    }
+
+    // Extrair classes e estilos do <body ...> do template original
+    const bodyClassMatch = pendingVersion.rawHtml.match(/<body[^>]*\bclass=["']([^"']*)["']/i);
+    const bodyStyleMatch = pendingVersion.rawHtml.match(/<body[^>]*\bstyle=["']([^"']*)["']/i);
+    const bodyClass = bodyClassMatch ? bodyClassMatch[1] : "";
+    const bodyStyle = bodyStyleMatch ? bodyStyleMatch[1] : "";
+
     // Montar HTML completo com CSS reset e viewport
     const fullHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -105,9 +131,16 @@ export async function GET(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <base href="/">
+  ${headAssets}
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow-x: hidden; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background-color: ${isDarkTheme ? "#0B0F17" : "#ffffff"};
+      color: ${textColor};
+    }
     
     /* Desabilitar todos os links e botões — apenas visuais */
     a, button, [role="button"], input, select, textarea, [onclick] {
@@ -116,7 +149,7 @@ export async function GET(
     }
   </style>
 </head>
-<body>
+<body class="${bodyClass}" style="${bodyStyle}">
 ${previewHtml}
 </body>
 </html>`;

@@ -67,7 +67,7 @@ export function TemplatePreview({ templateId: _templateId, slug, name }: Templat
     <iframe
       ref={iframeRef}
       title={name}
-      className="w-full h-full bg-white"
+      className="w-full h-full border-0 bg-transparent"
       sandbox="allow-scripts"
       loading="lazy"
     />

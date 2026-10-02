@@ -50,6 +50,39 @@ function isSafeIframeUrl(url: string): boolean {
 }
 
 /**
+ * Extrai atributos class e style da tag <body ...> original para replicá-los
+ * em um container seguro, preservando layouts centralizados e cores de fundo.
+ */
+function extractBodyAttributes(html: string): { className: string; style: string } {
+  const bodyMatch = html.match(/<body\b([^>]*)>/i);
+  if (!bodyMatch) return { className: "", style: "" };
+  const attrs = bodyMatch[1];
+  const classMatch = attrs.match(/\bclass=["']([^"']*)["']/i);
+  const styleMatch = attrs.match(/\bstyle=["']([^"']*)["']/i);
+  return {
+    className: classMatch ? classMatch[1] : "",
+    style: styleMatch ? styleMatch[1] : "",
+  };
+}
+
+function parseInlineStyle(styleStr: string): React.CSSProperties {
+  if (!styleStr) return {};
+  const styleObj: Record<string, string> = {};
+  styleStr.split(";").forEach((rule) => {
+    const colonIdx = rule.indexOf(":");
+    if (colonIdx > -1) {
+      const prop = rule.slice(0, colonIdx).trim();
+      const val = rule.slice(colonIdx + 1).trim();
+      if (prop && val) {
+        const camelProp = prop.replace(/-([a-z])/g, (_, g) => g.toUpperCase());
+        styleObj[camelProp] = val;
+      }
+    }
+  });
+  return styleObj;
+}
+
+/**
  * Extrai apenas o conteúdo interno do <body> do HTML da campanha,
  * removendo <html>, <head> e <body> para evitar conflito com o
  * shell do Next.js (hydration mismatch / duplicate html/body).
@@ -281,10 +314,16 @@ export default function HtmlRenderer({
   const hasSlot = sanitizedHtml.includes(SLOT_MARKER);
   const hasCustomForm = sanitizedHtml.includes("data-vortex-custom-form");
 
+  const bodyAttrs = extractBodyAttributes(rawHtml);
+  const wrapperClass = bodyAttrs.className
+    ? `min-h-screen w-full ${bodyAttrs.className}`.trim()
+    : "min-h-screen w-full";
+  const wrapperStyle = bodyAttrs.style ? parseInlineStyle(bodyAttrs.style) : undefined;
+
   // Se não há {{FORM_SLOT}} nem form customizado, renderiza HTML e joga o form no final
   if (!hasSlot && !hasCustomForm) {
     return (
-      <>
+      <div className={wrapperClass} style={wrapperStyle}>
         {tailwindScripts}
         {headAssets && parse(headAssets)}
         {parse(sanitizedHtml)}
@@ -293,8 +332,9 @@ export default function HtmlRenderer({
           slug={slug}
           formSchema={formSchema}
           isCustomDomain={isCustomDomain}
+          isPreview={isPreview}
         />
-      </>
+      </div>
     );
   }
 
@@ -346,7 +386,7 @@ export default function HtmlRenderer({
   };
 
   return (
-    <>
+    <div className={wrapperClass} style={wrapperStyle}>
       {tailwindScripts}
       {headAssets && parse(headAssets)}
       {parse(htmlWithAnchor, options)}
@@ -356,6 +396,6 @@ export default function HtmlRenderer({
         tenantSlug={tenantSlug || "unknown"}
         hidden={!showVortexFooter}
       />
-    </>
+    </div>
   );
 }

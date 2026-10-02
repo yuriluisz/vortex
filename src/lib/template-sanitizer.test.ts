@@ -205,4 +205,13 @@ describe("sanitizeForPreview", () => {
     expect(result).toContain("hero");
     expect(result).toContain("{{FORM_SLOT}}");
   });
+
+  it("preserves safe SVG elements and attributes for social icons in preview", () => {
+    const html = `<div class="social-links"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path></svg></div>`;
+    const result = sanitizeForPreview(html);
+    expect(result).toContain("<svg");
+    expect(result).toContain("viewBox=");
+    expect(result).toContain("<path");
+    expect(result).toContain("stroke-width=");
+  });
 });

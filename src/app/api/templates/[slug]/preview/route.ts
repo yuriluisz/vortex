@@ -106,7 +106,13 @@ export async function GET(
       headAssets = '<script src="https://cdn.tailwindcss.com"></script>';
     }
 
-    // Montar HTML completo com CSS reset e viewport
+    // Extrair classes e estilos do <body ...> do template original
+    const bodyClassMatch = activeVersion.rawHtml.match(/<body[^>]*\bclass=["']([^"']*)["']/i);
+    const bodyStyleMatch = activeVersion.rawHtml.match(/<body[^>]*\bstyle=["']([^"']*)["']/i);
+    const bodyClass = bodyClassMatch ? bodyClassMatch[1] : "";
+    const bodyStyle = bodyStyleMatch ? bodyStyleMatch[1] : "";
+
+    // Montar HTML completo com CSS reset, background e viewport
     const fullHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -116,7 +122,13 @@ export async function GET(
   ${headAssets}
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow-x: hidden; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background-color: ${isDarkTheme ? "#0B0F17" : "#ffffff"};
+      color: ${textColor};
+    }
     
     /* Desabilitar todos os links e botões — apenas visuais */
     a, button, [role="button"], input, select, textarea, [onclick] {
@@ -125,7 +137,7 @@ export async function GET(
     }
   </style>
 </head>
-<body>
+<body class="${bodyClass}" style="${bodyStyle}">
 ${previewHtml}
 </body>
 </html>`;

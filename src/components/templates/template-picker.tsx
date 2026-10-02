@@ -27,6 +27,7 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [selectedRawHtml, setSelectedRawHtml] = useState<string | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -55,11 +56,18 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
     setSelectedId(template.id);
     setLoadingPreview(true);
     try {
-      const res = await fetch(`/api/templates/${template.slug}/preview`);
-      const html = await res.text();
-      const bodyMatch = html.match(/<body>([\s\S]*)<\/body>/i);
-      const bodyContent = bodyMatch?.[1] ?? html;
-      setPreviewHtml(bodyContent);
+      const [previewRes, rawRes] = await Promise.all([
+        fetch(`/api/templates/${template.slug}/preview`),
+        fetch(`/api/templates/${template.slug}`),
+      ]);
+      const html = await previewRes.text();
+      setPreviewHtml(html);
+      if (rawRes.ok) {
+        const data = await rawRes.json();
+        setSelectedRawHtml(data.template?.rawHtml || html);
+      } else {
+        setSelectedRawHtml(html);
+      }
     } catch {
       // fallback
     }
@@ -73,8 +81,8 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
   }
 
   function applyTemplate() {
-    if (previewHtml) {
-      onSelect(previewHtml);
+    if (selectedRawHtml) {
+      onSelect(selectedRawHtml);
     }
   }
 
@@ -173,9 +181,9 @@ export function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
               ) : previewHtml ? (
                 <iframe
                   title="Preview"
-                  className="w-full h-full"
+                  className="w-full h-full border-0 bg-transparent"
                   sandbox="allow-scripts"
-                  srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%}</style></head><body>${previewHtml}</body></html>`}
+                  srcDoc={previewHtml}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">

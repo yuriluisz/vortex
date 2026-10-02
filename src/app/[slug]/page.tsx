@@ -104,6 +104,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps) 
         campaignName={campaign.name}
         tenantSlug={campaign.tenant.slug}
         showVortexFooter={showVortexFooter}
+        isPreview={isPreview}
       />
     </>
   );
