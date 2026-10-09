@@ -1,181 +1,125 @@
 <p align="center">
-  <img src="https://prod-minio.aifsu7.easypanel.host/img/Vortex%20Padr%C3%A3o.svg" alt="Vórtex+" height="64">
+  <img src="https://prod-minio.aifsu7.easypanel.host/img/Vortex%20Padr%C3%A3o.svg" alt="Vórtex+" height="68">
 </p>
 
 <p align="center">
-  <b>A infraestrutura blindada para validação de ofertas, captação de leads e escala no WhatsApp.</b><br>
-  Hospede landing pages de alta conversão, injete formulários com <code>{{FORM_SLOT}}</code>, rotacione grupos de WhatsApp automaticamente e escale operações de tráfego direto.
-</p>
-
-<br>
-
-<p align="center">
-  <a href="#-a-nova-proposta">A Proposta</a> •
-  <a href="#-por-que-o-vórtex-é-diferente">Diferenciais</a> •
-  <a href="#-principais-recursos">Recursos</a> •
-  <a href="#-arquitetura--stack-técnica">Stack</a> •
-  <a href="#-planos--limites">Planos</a> •
-  <a href="#-início-rápido">Início Rápido</a> •
-  <a href="#-documentação">Docs</a>
+  <b>Infraestrutura de alta conversão, injeção modular de formulários e rotação atômica de WhatsApp para operações de tráfego direto em escala.</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/yuriluisz/vortex/actions">
-    <img src="https://img.shields.io/badge/status-em%20produ%C3%A7%C3%A3o-22c55e?style=flat-square" alt="Status">
-  </a>
-  <a href="https://nextjs.org/">
-    <img src="https://img.shields.io/badge/powered%20by-Next.js%2016-000?style=flat-square&logo=next.js" alt="Next.js 16">
-  </a>
-  <a href="https://www.postgresql.org/">
-    <img src="https://img.shields.io/badge/database-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL">
-  </a>
-  <a href="https://redis.io/">
-    <img src="https://img.shields.io/badge/cache-Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis">
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-6b7280?style=flat-square" alt="License">
-  </a>
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js" alt="Next.js 16"></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.2-149eca?style=flat-square&logo=react" alt="React 19"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat-square&logo=typescript" alt="TypeScript"></a>
+  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat-square&logo=tailwindcss" alt="Tailwind CSS"></a>
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-16-4169e1?style=flat-square&logo=postgresql" alt="PostgreSQL"></a>
+  <a href="https://redis.io/"><img src="https://img.shields.io/badge/Redis-ioredis-dc382d?style=flat-square&logo=redis" alt="Redis"></a>
+  <a href="https://bullmq.io/"><img src="https://img.shields.io/badge/Queue-BullMQ-e11d48?style=flat-square" alt="BullMQ"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License"></a>
 </p>
 
-<br>
+---
+
+## ⚡ O Que é o Vórtex+?
+
+O **Vórtex+** é uma estação de alta performance voltada para validação de ofertas, captação de leads e transbordo para grupos de WhatsApp. Projetado para suportar picos agressivos de tráfego pago sem quedas de conversão ou estouro de infraestrutura.
+
+| Desafio Tradicional no Tráfego Direto | Solução de Engenharia da Vórtex+ |
+| :--- | :--- |
+| **Páginas pesadas (WordPress / Elementor)** com TTFB alto que queimam o orçamento de anúncios. | **Entrega estática pura** com Server Components, gerando páginas ultrarrápidas com nota máxima no Google Lighthouse. |
+| **Grupos de WhatsApp lotam na madrugada**, causando perda de cliques e disparada no CPA. | **Rotacionador atômico em Redis**: transbordo em milissegundos para o próximo grupo assim que a capacidade é atingida. |
+| **Operação manual para provisionar grupos** (criar link, subir imagem, configurar admins). | **Auto-provisionamento via Evolution API**: novos grupos são criados, configurados e ativados no fluxo automaticamente. |
+| **Dificuldade para acoplar forms em designs prontos** feitos no Webflow ou IA. | **Tag `{{FORM_SLOT}}`**: injeção dinâmica de formulários customizados diretamente no HTML, sem necessidade de recompilação. |
 
 ---
 
-<br>
+## 🛠️ Arquitetura & Como Funciona
 
-## 🎯 A NOVA PROPOSTA
+A plataforma opera sob um modelo desacoplado: as rotas públicas respondem instantaneamente ao usuário, enquanto tarefas com I/O de banco, analytics e integrações externas são despachadas para background workers gerenciados por Redis e BullMQ.
 
-> **Não somos apenas um hospedador de páginas nem um construtor genérico de sites.**  
-> O **Vórtex+** é uma **estação completa de validação e escala para tráfego direto**.
-
-Quem roda tráfego pago precisa de **velocidade máxima**, **nota 100 no Google Lighthouse (Core Web Vitals)**, **blindagem contra curiosos/scraping** e **automação instantânea de grupos de WhatsApp**.
-
-```
-┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│  1. Cole HTML   │  ──>  │ 2. {{FORM_SLOT}}│  ──>  │ 3. Rotação ZAP  │  ──>  │ 4. Métricas &   │
-│ Webflow / IA /  │       │ Form dinâmico + │       │ Encheu grupo?   │       │ Broadcast em    │
-│ Código puro     │       │ Meta Pixel nativo│      │ Próximo da fila │       │ massa em 1 click│
-└─────────────────┘       └─────────────────┘       └─────────────────┘       └─────────────────┘
-```
-
----
-
-## ⚡ POR QUE O VÓRTEX+ É DIFERENTE?
-
-| Desafio Tradicional | Como o Vórtex+ Resolve |
-|---------------------|------------------------|
-| **Construtores pesados (Elementor, Divi)** geram código sujo e páginas lentas que derrubam o tráfego. | **HTML/CSS/JS estático puro**, sem overhead. O servidor não renderiza divs desnecessárias, garantindo velocidade máxima. |
-| **Grupos de WhatsApp lotam no meio da madrugada** e você perde centenas de reais em cliques do Meta Ads. | **Rotacionador Inteligente**: assim que um grupo atinge a lotação (ex: 1000 membros), o tráfego é redirecionado em milissegundos para o próximo. |
-| **Concorrentes espionam sua oferta e copiam seu funil** pelo slug público. | **Blindagem de Campanha**: URLs protegidas por UUIDs únicos e **Domínio Customizado** que desativa os links genéricos da plataforma. |
-| **Dificuldade para criar formulários e testar campos novos**. | **Injeção Dinâmica via `{{FORM_SLOT}}`**: configure campos, obrigatoriedade e ordem direto pelo painel visual sem encostar em código. |
-
----
-
-## 🚀 PRINCIPAIS RECURSOS
-
-### 1. 🖥️ Editor Visual Split-Pane com Monaco
-- Editor de código profissional (o mesmo do VS Code) com syntax highlighting e autocompletar.
-- **Preview em tempo real**: edite o código e veja a página renderizada ao lado.
-- Modos de visualização flexíveis: **Código**, **Preview** ou **Split**.
-- Seletor de templates integrado para trocar o design com 1 clique.
-
-### 2. 🧩 Injeção Inteligente de Formulários (`{{FORM_SLOT}}`)
-- Insira a tag `{{FORM_SLOT}}` onde quiser dentro do seu HTML.
-- O Vórtex+ renderiza o formulário responsivo, validado e integrado à esteira de leads.
-- Suporta campos de texto, email, telefone/WhatsApp e número, com estilização via CSS nativo (`.vortex-form`).
-
-### 3. 🎨 Identidade Visual & SEO de Links (OpenGraph)
-- Personalize **Meta Título**, **Meta Descrição**, **Imagem de Capa (1200×630)** e **Favicon** para cada campanha.
-- Preview do card social em tempo real dentro do painel para garantir links atraentes no WhatsApp e redes sociais.
-
-### 4. 🌐 Domínios Customizados com Isolamento Total (Ultra)
-- Use seu próprio subdomínio ou domínio via CNAME (ex: `campanha.meudominio.com.br`).
-- **Segurança reforçada**: ao ativar o domínio customizado, os links padrões da Vórtex são desativados para evitar vazamentos da sua oferta.
-
-### 5. 🏪 Ecossistema da Comunidade & Loja de Templates
-- Publique seus melhores designs na **Loja de Templates** da comunidade.
-- Sistema de curadoria e revisão: `PENDING_REVIEW` → `PUBLISHED` / `REJECTED`.
-- Métricas sociais: contador de visualizações, curtidas e número de usos por outros membros.
-- Perfil público de autor com bio, handle (`@seu-nome`) e links sociais.
-
-### 6. 📱 Automação Profissional de WhatsApp (Plano Ultra)
-- **Conexão via QR Code ou Código de Confirmação** com renovação automática.
-- **Auto-Criação de Grupos**: provisione novos grupos automaticamente com foto, descrição e administradores pré-configurados.
-- **Disparos em Massa (Broadcast)**: envie mensagens para múltiplos grupos de uma só vez, com relatórios de entrega e histórico de logs.
-- **Sincronização de Membros**: verificação em tempo real de quais leads realmente entraram no grupo.
-
----
-
-## 🛡️ ARQUITETURA & STACK TÉCNICA
-
-Infraestrutura moderna e resiliente construída para alta concorrência:
-
-```
-src/
-├── app/
-│   ├── [slug]/                  # Renderizador público de landing pages (HTML estático + form)
-│   ├── admin/                   # Painel Administrativo multi-tenant
-│   │   ├── campaigns/           # Gestão de campanhas & grupos
-│   │   ├── templates/           # Publicação, edição e métricas de templates
-│   │   ├── whatsapp/            # Conexão, disparos em massa e logs
-│   │   ├── settings/            # Perfil, cobrança (Asaas), conta e planos
-│   │   └── docs/                # Documentação interna no AdminShell
-│   ├── docs/                    # Documentação oficial pública (sem shell admin)
-│   ├── templates/               # Loja pública de templates da comunidade
-│   ├── community/               # Perfis públicos dos criadores de templates
-│   └── privacy/                 # Política de Privacidade (LGPD, cookies, retenção)
-├── components/
-│   ├── admin/                   # Monaco Editor, CampaignSettingsModal, FieldTooltip, HelpFAB
-│   ├── landing/                 # Componentes visuais da landing page (Aurora, Bento Grid)
-│   └── templates/               # Cards de templates, likes, template picker
-├── lib/
-│   ├── auth.ts                  # Autenticação passwordless por código OTP
-│   ├── session.ts               # Sessão criptografada JWT (jose) em cookie httpOnly
-│   ├── rotator.ts               # Algoritmo de rotação de grupos via Redis
-│   ├── template-sanitizer.ts    # Sanitização DOMPurify contra ataques XSS
-│   ├── audit.ts                 # Trilha de auditoria administrativa
-│   └── prisma.ts                # Conexão singleton Prisma com PostgreSQL
-└── proxy.ts                     # Middleware de roteamento e segurança de domínios
+```text
+                           ┌────────────────────────────────────────┐
+                           │       Tráfego Pago / Orgânico          │
+                           └──────────────────┬─────────────────────┘
+                                              │ HTTP GET / POST
+                                              ▼
+                           ┌────────────────────────────────────────┐
+                           │      Next.js 16 (App Router)           │
+                           │   • Renderizador HTML estático         │
+                           │   • Injeção de {{FORM_SLOT}}           │
+                           │   • Proxy de CNAME Multi-tenant        │
+                           └──────┬──────────────────────┬──────────┘
+                                  │                      │
+                   Ingestão       │                      │ Rotação Atômica
+                   Assíncrona     ▼                      ▼
+                   ┌────────────────────────────────────────┐
+                   │             Redis / BullMQ             │
+                   └──────────────────┬─────────────────────┘
+                                      │ Jobs concorrentes
+                                      ▼
+                   ┌────────────────────────────────────────┐
+                   │           Background Workers           │
+                   ├────────────────────────────────────────┤
+                   │  [leads-queue]    ──> Prisma 7 / PG    │
+                   │  [views-queue]    ──> Incremento View  │
+                   │  [groups-queue]   ──> Auto-Create Zap  │
+                   │  [webhooks-queue] ──> Sync Membros     │
+                   └──────────────────┬─────────────────────┘
+                                      │
+                                      ▼
+                   ┌────────────────────────────────────────┐
+                   │   Evolution API (WhatsApp Gateway)     │
+                   └────────────────────────────────────────┘
 ```
 
-### Tecnologias-Chave:
-- **Core**: Next.js 16 (App Router, Server Components & Server Actions), TypeScript
-- **Banco de Dados**: PostgreSQL 16 com Prisma ORM
-- **Cache & Rate Limiting**: Redis (Upstash / ioredis) para rotacionador e OTPs
-- **Editor**: `@monaco-editor/react` (Monaco Editor)
-- **Segurança**: DOMPurify, Rate Limiting por IP, JWT HS256, Cloudflare Worker Proxy
-- **Pagamentos**: Gateway Asaas (Assinaturas, PIX, Cartão)
-- **Email Transacional**: Resend API
+### Pilares Técnicos
+
+1. **Ingestão Assíncrona de Alta Concorrência:**  
+   Submissões de formulários e contadores de visualização não competem por conexões HTTP nem travam requisições de página. O payload entra diretamente nas filas `leads-queue` e `views-queue` para persistência com backoff e retentativas automáticas.
+2. **Auto-Provisionamento de Grupos:**  
+   Quando o grupo atual atinge o limite (`groupMaxCapacity`), o worker aciona a Evolution API, cria o próximo grupo sequencial (ex: `Turma VIP 02`), promove os números de suporte a administradores, atualiza a foto e a descrição, e gera o novo convite sem intervenção humana.
+3. **Segurança de Borda & Isolamento:**  
+   - Sanitização de HTML com `DOMPurify` para neutralizar injeções de script (XSS).  
+   - Guard contra ataques SSRF na ingestão de imagens remotas.  
+   - Sessões seguras com cookies `httpOnly` assinados via JWT (`jose`).  
+   - Suporte a domínios customizados via CNAME isolando o tráfego de cada tenant.
 
 ---
 
-## 💰 PLANOS & LIMITES
+## 🚀 Principais Funcionalidades
 
-| Recurso | **Starter (Grátis)** | **Validador Pro** | **Scale / Ultra** |
-|---|:---:|:---:|:---:|
-| **Investimento** | **R\$ 0** | **R\$ 97/mês** | **R\$ 157/mês** |
-| Campanhas Ativas | 1 | 10 | **Ilimitadas** |
-| Capacidade de Leads | 100 / mês | 10.000 / mês | **Ilimitados** |
-| Grupos de WhatsApp | 3 | 50 | **Ilimitados** |
-| Injeção `{{FORM_SLOT}}` | ✅ | ✅ | ✅ |
-| SEO & OpenGraph Personalizado | ❌ | ✅ | ✅ |
-| Domínio Customizado (CNAME) | ❌ | ✅ | ✅ |
-| Automação & Rotação WhatsApp | ❌ | ❌ | ✅ |
-| Disparos em Massa (Broadcast) | ❌ | ❌ | ✅ |
-| Auto-Criação de Grupos | ❌ | ❌ | ✅ |
-| Sem Marca Vórtex+ | ❌ | ✅ | ✅ |
-| Suporte | Comunidade | Prioritário | Dedicado 24h |
+- **Injeção Modular `{{FORM_SLOT}}`:** Adicione o placeholder em qualquer ponto do HTML da sua página. O sistema renderiza formulários reativos, validados via Zod e conectados ao funil.
+- **Editor Split-Pane Monaco:** Edite o código fonte da landing page diretamente no painel administrativo com Monaco Editor (mesmo motor do VS Code) e preview em tempo real.
+- **Rotacionador Inteligente de WhatsApp:** Roteamento de tráfego com tolerância a falhas, balanceamento de membros e monitoramento de saturação de grupos.
+- **Disparos em Massa (Broadcast):** Disparo programado de mensagens e mídias para múltiplos grupos com rastreabilidade de entrega por fila dedicada.
+- **Loja de Templates da Comunidade:** Compartilhamento e curadoria de páginas prontas com perfil público de criadores e estatísticas de uso.
+- **Analytics & Sessão em Tempo Real:** Registro detalhado de métricas de conversão e suporte a replays de navegação (`rrweb`).
 
 ---
 
-## 🏁 INÍCIO RÁPIDO
+## 🧰 Stack Tecnológica
+
+| Camada | Tecnologia | Propósito |
+| :--- | :--- | :--- |
+| **Framework** | Next.js 16.2 (React 19) | App Router, Server Actions, Server Components |
+| **Estilização** | Tailwind CSS v4 | Estilização utilitária de alta performance |
+| **Linguagem** | TypeScript 5 | Tipagem estática fim a fim |
+| **Banco de Dados** | PostgreSQL 16 + Prisma 7 | Persistência relacional (`@prisma/adapter-pg`) |
+| **Filas & Cache** | BullMQ + Redis (ioredis) | Concorrência assíncrona, workers e rate limit |
+| **WhatsApp Engine**| Evolution API | Conexão multi-device, webhooks e automação de grupos |
+| **Editor** | Monaco Editor | Interface profissional para edição de código |
+| **Storage** | MinIO / AWS S3 SDK | Armazenamento de assets e imagens de campanhas |
+| **Validação / Auth**| Zod 4 + Jose (JWT) | Schemas de validação e autenticação stateless |
+
+---
+
+## 🏁 Início Rápido
 
 ### Pré-requisitos
-- Node.js 20+
-- Instância PostgreSQL ativa
-- Instância Redis ativa
+- **Node.js** >= 20
+- **PostgreSQL** >= 15
+- **Redis** >= 7
 
-### Instalação
+### Passo a Passo
 
 ```bash
 # 1. Clone o repositório
@@ -185,38 +129,38 @@ cd vortex
 # 2. Instale as dependências
 npm install
 
-# 3. Configure as variáveis de ambiente
+# 3. Configure o ambiente
 cp .env.example .env
-# Preencha DATABASE_URL, REDIS_URL, JWT_SECRET, RESEND_API_KEY, etc.
+# Preencha DATABASE_URL, REDIS_URL, JWT_SECRET, RESEND_API_KEY e EVOLUTION_*
 
-# 4. Execute as migrations do Prisma
+# 4. Aplique as migrations do Prisma
 npx prisma migrate dev
 
-# 5. Inicie o servidor de desenvolvimento
+# 5. Inicie a aplicação web
 npm run dev
+
+# 6. Em um terminal separado, inicie os background workers
+npm run worker
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000) para ver a landing page ou [http://localhost:3000/admin](http://localhost:3000/admin) para o painel.
+- Aplicação Web: [http://localhost:3000](http://localhost:3000)
+- Painel Administrativo: [http://localhost:3000/admin](http://localhost:3000/admin)
 
 ---
 
-## 📖 DOCUMENTAÇÃO
+## 📜 Scripts do Projeto
 
-A plataforma conta com documentação completa em 18 capítulos:
-- **Pública**: Acesse `/docs` para visualizar a documentação oficial da plataforma.
-- **Painel**: Acesse `/admin/docs` dentro do painel para navegar com atalhos contextuais.
-- **Ajuda Rápida**: Use o botão flutuante **HelpFAB** no canto inferior direito do painel ou os ícones de ajuda `(?)` ao lado de cada campo de formulário.
+| Comando | Descrição |
+| :--- | :--- |
+| `npm run dev` | Inicia o servidor Next.js em modo de desenvolvimento |
+| `npm run worker` | Inicia o processador de filas do BullMQ (`src/workers/index.ts`) |
+| `npm run build` | Compila o projeto Next.js para produção |
+| `npm run start` | Inicia o servidor de produção compilado |
+| `npm run test` | Executa os testes automatizados via Vitest |
+| `npm run lint` | Executa a validação de regras de código com ESLint |
 
 ---
 
-## 📄 LICENÇA
+## 📄 Licença
 
-Distribuído sob a licença MIT. Consulte `LICENSE` para obter mais informações.
-
-<br>
-
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/yuriluisz/vortex/public/Vortex%20Logo%20Only.svg" height="28" alt="Vórtex+">
-  <br>
-  <sub><b>Vórtex+</b> — Feito para validar rápido e escalar sem limites.</sub>
-</p>
+Distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](file:///C:/Users/yulus/Documents/GitHub/vortex/LICENSE) para mais detalhes.
