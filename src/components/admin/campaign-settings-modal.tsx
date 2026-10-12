@@ -31,6 +31,7 @@ export interface CampaignSettings {
   gtmId: string;
   customDomain: string;
   sessionRecordingEnabled: boolean;
+  formEnabled: boolean;
   formSchema: string;
   metaTitle: string;
   metaDescription: string;
@@ -524,10 +525,58 @@ export function CampaignSettingsModal({
         </p>
       </div>
 
-      <CampaignFormBuilder
-        defaultValue={settings.formSchema}
-        onChange={(schema) => updateField("formSchema", schema)}
-      />
+      {/* Toggle switch: Habilitar Formulário de Captura */}
+      <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/[0.07] transition-colors">
+        <div className="space-y-1 pr-4">
+          <label htmlFor="settings-formEnabled" className="text-sm font-semibold text-foreground cursor-pointer block">
+            Habilitar Formulário de Captura
+          </label>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Quando desativado, o formulário e a tag <code className="font-mono text-primary bg-primary/10 px-1 py-0.5 rounded text-[11px] font-semibold">{"{{FORM_SLOT}}"}</code> ficam ocultos. Ideal para páginas de vendas diretas, páginas ponte e Hub de Links.
+          </p>
+        </div>
+
+        <button
+          id="settings-formEnabled"
+          type="button"
+          role="switch"
+          aria-checked={settings.formEnabled}
+          onClick={() => updateField("formEnabled", !settings.formEnabled)}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+            settings.formEnabled ? "bg-primary" : "bg-muted"
+          }`}
+          title={settings.formEnabled ? "Desativar formulário" : "Habilitar formulário"}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+              settings.formEnabled ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* Editor de campos: desabilitado visualmente quando o formulário está desligado */}
+      {!settings.formEnabled ? (
+        <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-5 text-center space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Formulário Desativado
+          </p>
+          <p className="text-xs text-neutral-400 max-w-md mx-auto">
+            A edição de campos está suspensa porque o formulário está desativado nesta campanha. Ative o interruptor acima se desejar capturar leads nesta página.
+          </p>
+          <div className="opacity-40 pointer-events-none select-none filter blur-[0.5px] pt-2">
+            <CampaignFormBuilder
+              defaultValue={settings.formSchema}
+              onChange={() => {}}
+            />
+          </div>
+        </div>
+      ) : (
+        <CampaignFormBuilder
+          defaultValue={settings.formSchema}
+          onChange={(schema) => updateField("formSchema", schema)}
+        />
+      )}
     </div>
   );
 

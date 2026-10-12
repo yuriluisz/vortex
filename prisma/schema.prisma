@@ -72,6 +72,7 @@ model Tenant {
   templateUsages     TemplateUsage[]
   tenantMembers      TenantMember[]
   sessionRecordings  SessionRecording[]
+  tenantAssets       TenantAsset[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -376,6 +377,7 @@ model Campaign {
 
   // Gravação de Sessões & Heatmap (Plano ULTRA)
   sessionRecordingEnabled Boolean @default(false)
+  formEnabled             Boolean @default(true)
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   groups        Group[]
@@ -608,4 +610,25 @@ model HeatmapClick {
 
   @@index([campaignId, device, createdAt])
 }
+
+// ============================================================================
+// TENANT ASSETS (MEDIA LIBRARY)
+// ============================================================================
+
+model TenantAsset {
+  id        String   @id @default(uuid())
+  tenantId  String
+  filename  String   // Nome limpo original, ex: "header-img.png"
+  key       String   // Caminho no R2, ex: "assets/{tenantId}/{filename}"
+  url       String   // URL pública completa, ex: "https://r2.vortexpages.online/assets/{tenantId}/{filename}"
+  mimeType  String   // "image/png", "image/webp", etc.
+  size      Int      // Tamanho em bytes
+  createdAt DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, filename])
+  @@index([tenantId])
+}
+
 

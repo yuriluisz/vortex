@@ -27,6 +27,7 @@ interface HtmlRendererProps {
   showVortexFooter?: boolean;
   isCustomDomain?: boolean;
   isPreview?: boolean;
+  formEnabled?: boolean;
 }
 
 const ALLOWED_IFRAME_HOSTS = [
@@ -282,6 +283,7 @@ export default function HtmlRenderer({
   showVortexFooter = false,
   isCustomDomain = false,
   isPreview = false,
+  formEnabled = true,
 }: HtmlRendererProps) {
   const tracked = useRef(false);
 
@@ -294,7 +296,6 @@ export default function HtmlRenderer({
 
   const sanitizedHtml = extractBodyContent(rawHtml);
   const headAssets = extractHeadAssets(rawHtml);
-  const SLOT_MARKER = "{{FORM_SLOT}}";
 
   const hasTailwind = /cdn\.tailwindcss\.com/i.test(rawHtml);
   const tailwindConfigMatch = rawHtml.match(/<script[^>]*>([\s\S]*?tailwind\.config[\s\S]*?)<\/script>/i);
@@ -311,7 +312,7 @@ export default function HtmlRenderer({
     </>
   ) : null;
 
-  const hasSlot = sanitizedHtml.includes(SLOT_MARKER);
+  const hasSlot = /\{\{\s*FORM_SLOT\s*\}\}/i.test(sanitizedHtml);
   const hasCustomForm = sanitizedHtml.includes("data-vortex-custom-form");
 
   const bodyAttrs = extractBodyAttributes(rawHtml);
@@ -320,38 +321,70 @@ export default function HtmlRenderer({
     : "min-h-screen w-full";
   const wrapperStyle = bodyAttrs.style ? parseInlineStyle(bodyAttrs.style) : undefined;
 
-  // Se não há {{FORM_SLOT}} nem form customizado, renderiza HTML e joga o form no final
+  // Se não há {{FORM_SLOT}} nem form customizado: renderiza HTML e joga o form no final apenas se formEnabled
   if (!hasSlot && !hasCustomForm) {
     return (
       <div className={wrapperClass} style={wrapperStyle}>
         {tailwindScripts}
         {headAssets && parse(headAssets)}
-        {parse(sanitizedHtml)}
-        <DynamicForm
-          campaignId={campaignId}
-          slug={slug}
-          formSchema={formSchema}
-          isCustomDomain={isCustomDomain}
-          isPreview={isPreview}
+        {parse(
+          sanitizedHtml,
+          !formEnabled
+            ? {
+                replace: (domNode) => {
+                  if (domNode instanceof Element && domNode.name === "form") {
+                    return null;
+                  }
+                },
+              }
+            : undefined
+        )}
+        {formEnabled && (
+          <DynamicForm
+            campaignId={campaignId}
+            slug={slug}
+            formSchema={formSchema}
+            isCustomDomain={isCustomDomain}
+            isPreview={isPreview}
+          />
+        )}
+        <VortexFooter
+          campaignSlug={slug}
+          campaignName={campaignName || slug}
+          tenantSlug={tenantSlug || "unknown"}
+          hidden={!showVortexFooter}
         />
       </div>
     );
   }
 
-  // Prepara o HTML substituindo TODAS as tags por divs âncoras (usando replaceAll e data-attribute para permitir múltiplas)
-  const htmlWithAnchor = sanitizedHtml.replaceAll(
-    SLOT_MARKER,
-    '<div data-vortex-form-slot="true"></div>'
-  );
+  // Prepara o HTML: se formEnabled, substitui por div âncora; se desabilitado, remove silenciosamente
+  const htmlWithAnchor = formEnabled
+    ? sanitizedHtml.replace(/\{\{\s*FORM_SLOT\s*\}\}/gi, '<div data-vortex-form-slot="true"></div>')
+    : sanitizedHtml.replace(/\{\{\s*FORM_SLOT\s*\}\}/gi, "");
 
   // Parseia o HTML e substitui as divs âncoras / forms customizados
   const options: HTMLReactParserOptions = {
     replace: (domNode) => {
+      // Quando o formulário está desabilitado na campanha, suprime forms e slots completamente
+      if (!formEnabled) {
+        if (
+          domNode instanceof Element &&
+          (domNode.name === "form" ||
+            (domNode.attribs &&
+              (domNode.attribs["data-vortex-form-slot"] === "true" ||
+                domNode.attribs["data-vortex-custom-form"] === "true")))
+        ) {
+          return null;
+        }
+      }
+
       if (
         domNode instanceof Element &&
         domNode.attribs &&
         domNode.attribs["data-vortex-form-slot"] === "true"
       ) {
+        if (!formEnabled) return null;
         return (
           <DynamicForm
             campaignId={campaignId}
@@ -370,6 +403,7 @@ export default function HtmlRenderer({
         domNode.attribs["data-vortex-custom-form"] === "true" &&
         domNode.name === "form"
       ) {
+        if (!formEnabled) return null;
         // Preservar 100% do conteúdo interno do form (inputs, labels, botões)
         return (
           <CustomForm

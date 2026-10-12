@@ -28,9 +28,13 @@ import {
   X,
   Trash2,
   Video,
+  ImageIcon,
 } from "lucide-react";
 import { CampaignShareModal } from "@/components/admin/campaign-share-modal";
 import { TemplatePicker } from "@/components/templates/template-picker";
+import { MediaLibraryModal } from "@/components/admin/media-library-modal";
+import { listTenantAssetsAction, type TenantAssetDTO } from "@/app/admin/assets/actions";
+import { resolveTenantAssets } from "@/lib/asset-resolver";
 import {
   CampaignSettingsModal,
   type CampaignSettings,
@@ -72,6 +76,7 @@ interface CampaignData {
   groupDescription: string | null;
   groupImageUrl: string | null;
   sessionRecordingEnabled?: boolean;
+  formEnabled?: boolean;
   groups?: Array<{
     id: string;
     name: string;
@@ -226,7 +231,9 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
   const [settingsOpen, setSettingsOpen] = useState(mode === "create");
   const [showPicker, setShowPicker] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [tenantAssets, setTenantAssets] = useState<TenantAssetDTO[]>([]);
   const [activeTab, setActiveTab] = useState<"code" | "preview" | "split">("split");
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [isMobile, setIsMobile] = useState(false);
@@ -250,7 +257,37 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
     groupDescription: campaign?.groupDescription || "",
     groupImageUrl: campaign?.groupImageUrl || "",
     sessionRecordingEnabled: campaign?.sessionRecordingEnabled ?? false,
+    formEnabled: campaign?.formEnabled ?? true,
   });
+
+  // ── Carregar biblioteca de mídias do tenant ──
+  useEffect(() => {
+    let ignore = false;
+    listTenantAssetsAction()
+      .then((res) => {
+        if (!ignore && res.success && res.assets) {
+          setTenantAssets(res.assets);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // ── Mapa de assets para resolução automática de imagens no preview ──
+  const assetMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const asset of tenantAssets) {
+      map.set(asset.filename.toLowerCase(), asset.url);
+    }
+    return map;
+  }, [tenantAssets]);
+
+  // ── HTML com assets resolvidos para o preview ao vivo ──
+  const resolvedPreviewHtml = useMemo(() => {
+    return resolveTenantAssets(previewHtml, assetMap);
+  }, [previewHtml, assetMap]);
 
   // ── Controls State (edit only) ──
   const [controls, setControls] = useState<CampaignControlsState>({
@@ -436,6 +473,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
           groupDescription: settings.groupDescription || undefined,
           groupImageUrl: settings.groupImageUrl || undefined,
           sessionRecordingEnabled: settings.sessionRecordingEnabled,
+          formEnabled: settings.formEnabled,
         }
       );
 
@@ -676,6 +714,16 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
 
             <button
               type="button"
+              onClick={() => setShowMediaLibrary(true)}
+              className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
+              title="Biblioteca de Mídias (Cloudflare R2)"
+            >
+              <ImageIcon className="w-3.5 h-3.5 sm:mr-1.5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="hidden sm:inline">Mídias</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowPicker(true)}
               className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 text-foreground shadow-sm hover:shadow active:scale-95 group"
             >
@@ -746,6 +794,18 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                       />
                     </div>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMediaLibrary(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-white/10 transition-colors text-left"
+                  >
+                    <ImageIcon className="w-4 h-4 text-primary" />
+                    Biblioteca de Mídias
+                  </button>
 
                   <button
                     type="button"
@@ -942,11 +1002,12 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
               />
               {iframePortalRoot && createPortal(
                 <HtmlRenderer
-                  rawHtml={previewHtml}
+                  rawHtml={resolvedPreviewHtml}
                   campaignId={campaign?.id || "preview"}
                   slug={campaign?.slug || "preview"}
                   formSchema={parsedFormSchema}
                   isPreview={true}
+                  formEnabled={settings.formEnabled}
                 />,
                 iframePortalRoot
               )}
@@ -1062,6 +1123,13 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
           onClose={() => setShowShareModal(false)}
         />
       )}
+
+      {/* Biblioteca de Mídias do Tenant (R2) */}
+      <MediaLibraryModal
+        isOpen={showMediaLibrary}
+        onClose={() => setShowMediaLibrary(false)}
+        onAssetsUpdated={(updated) => setTenantAssets(updated)}
+      />
     </div>
   );
 }

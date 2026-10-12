@@ -125,6 +125,7 @@ const SaveCampaignSchema = z.object({
   groupDescription: z.string().optional(),
   groupImageUrl: z.string().url("A imagem precisa ser uma URL válida").optional().or(z.literal("")),
   sessionRecordingEnabled: z.boolean().optional().default(false),
+  formEnabled: z.boolean().optional().default(true),
 });
 
 // ============================================================================
@@ -150,7 +151,7 @@ export async function saveCampaignAction(
     name, slug, rawHtml, formSchema, pixelId, gtmId, customDomain,
     metaTitle, metaDescription, ogImageUrl, faviconUrl,
     groupMaxCapacity, groupSupportPhones, groupDescription, groupImageUrl,
-    sessionRecordingEnabled,
+    sessionRecordingEnabled, formEnabled,
   } = parsed.data;
 
   const finalCustomDomain = plan === "ULTRA" ? customDomain || null : null;
@@ -178,6 +179,7 @@ export async function saveCampaignAction(
     ogImageUrl: finalOgImageUrl,
     faviconUrl: finalFaviconUrl,
     sessionRecordingEnabled: finalSessionRecording,
+    formEnabled: formEnabled ?? true,
   };
 
   // ── CREATE ──

@@ -8,6 +8,7 @@ import SessionTracker from "@/components/analytics/SessionTracker";
 import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
+import { resolveTenantAssets } from "@/lib/asset-resolver";
 export const dynamic = "force-dynamic";
 interface PageProps {
   params: Promise<{ hostname: string }>;
@@ -87,6 +88,19 @@ export default async function DomainCampaignPage({ params }: PageProps) {
     options?: string[];
   }>;
 
+  // Buscar biblioteca de mídias do tenant e resolver referências relativas no HTML
+  const tenantAssets = await prisma.tenantAsset.findMany({
+    where: { tenantId: campaign.tenant.id },
+    select: { filename: true, url: true },
+  });
+
+  const assetMap = new Map<string, string>();
+  for (const asset of tenantAssets) {
+    assetMap.set(asset.filename.toLowerCase(), asset.url);
+  }
+
+  const resolvedHtml = resolveTenantAssets(campaign.rawHtml, assetMap);
+
   return (
     <>
       <MetaPixel pixelId={campaign.pixelId} />
@@ -96,7 +110,7 @@ export default async function DomainCampaignPage({ params }: PageProps) {
         enabled={Boolean(campaign.sessionRecordingEnabled)}
       />
       <HtmlRenderer
-        rawHtml={campaign.rawHtml}
+        rawHtml={resolvedHtml}
         campaignId={campaign.id}
         slug={campaign.slug}
         formSchema={formSchema}
@@ -104,6 +118,7 @@ export default async function DomainCampaignPage({ params }: PageProps) {
         tenantSlug={campaign.tenant.slug}
         showVortexFooter={false} // Planos ULTRA não exibem a marca do Vórtex
         isCustomDomain={true}
+        formEnabled={campaign.formEnabled}
       />
     </>
   );

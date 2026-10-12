@@ -9,6 +9,7 @@ import BlockedPage from "@/components/BlockedPage";
 import { enforceSubscription } from "@/lib/subscription-guard";
 import { buildCampaignMetadata } from "@/lib/campaign-meta";
 import { getSession } from "@/lib/session";
+import { resolveTenantAssets } from "@/lib/asset-resolver";
 export const dynamic = "force-dynamic";
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -81,6 +82,19 @@ export default async function CampaignPage({ params, searchParams }: PageProps) 
     options?: string[];
   }>;
 
+  // Buscar biblioteca de mídias do tenant e resolver referências relativas no HTML
+  const tenantAssets = await prisma.tenantAsset.findMany({
+    where: { tenantId: campaign.tenant.id },
+    select: { filename: true, url: true },
+  });
+
+  const assetMap = new Map<string, string>();
+  for (const asset of tenantAssets) {
+    assetMap.set(asset.filename.toLowerCase(), asset.url);
+  }
+
+  const resolvedHtml = resolveTenantAssets(campaign.rawHtml, assetMap);
+
   return (
     <>
       {/* Meta Pixel — injeção dinâmica */}
@@ -97,7 +111,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps) 
 
       {/* Renderizar HTML customizado com slot do formulário */}
       <HtmlRenderer
-        rawHtml={campaign.rawHtml}
+        rawHtml={resolvedHtml}
         campaignId={campaign.id}
         slug={campaign.slug}
         formSchema={formSchema}
@@ -105,6 +119,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps) 
         tenantSlug={campaign.tenant.slug}
         showVortexFooter={showVortexFooter}
         isPreview={isPreview}
+        formEnabled={campaign.formEnabled}
       />
     </>
   );
