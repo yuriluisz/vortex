@@ -1130,7 +1130,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
       <MediaLibraryModal
         isOpen={showMediaLibrary}
         onClose={() => setShowMediaLibrary(false)}
-        onAssetsUpdated={(updated) => setTenantAssets(updated)}
+        onAssetsUpdated={setTenantAssets}
       />
     </div>
   );
