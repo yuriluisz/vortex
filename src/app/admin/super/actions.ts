@@ -280,6 +280,35 @@ export async function toggleCampaignActiveAction(campaignId: string, active: boo
 }
 
 // ============================================================================
+// LIBERAR/BLOQUEAR SCRIPTS DA CAMPANHA (super admin)
+// ============================================================================
+export async function toggleCampaignScriptsAction(campaignId: string, scriptsAllowed: boolean) {
+  const session = await requireSuperAdmin();
+
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: campaignId },
+    select: { id: true, name: true, slug: true, tenantId: true },
+  });
+
+  if (!campaign) {
+    throw new Error("Campanha não encontrada.");
+  }
+
+  await prisma.campaign.update({
+    where: { id: campaignId },
+    data: { scriptsAllowed },
+  });
+
+  await logAudit(
+    "CAMPAIGN_UPDATED",
+    { campaignId, name: campaign.name, slug: campaign.slug, scriptsAllowed, action: "scripts_toggled_by_super_admin" },
+    session.userId,
+    campaign.tenantId
+  );
+  revalidatePath("/admin/super");
+}
+
+// ============================================================================
 // MODERAR TEMPLATE (aprovar/rejeitar)
 // ============================================================================
 export async function moderateTemplateAction(
@@ -573,6 +602,8 @@ export async function updateCampaignSuperAction(
         gtmId,
         rawHtml,
         formSchema: JSON.parse(formSchema),
+        // 🔒 Qualquer alteração derruba a liberação de scripts — aprovar de novo
+        scriptsAllowed: false,
       },
     });
 

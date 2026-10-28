@@ -77,6 +77,7 @@ interface CampaignData {
   groupImageUrl: string | null;
   sessionRecordingEnabled?: boolean;
   formEnabled?: boolean;
+  scriptsAllowed?: boolean;
   groups?: Array<{
     id: string;
     name: string;
@@ -1008,6 +1009,7 @@ export function CampaignEditor({ mode, plan, campaign, tenantId: _tenantId, tena
                   formSchema={parsedFormSchema}
                   isPreview={true}
                   formEnabled={settings.formEnabled}
+                  scriptsAllowed={campaign?.scriptsAllowed}
                 />,
                 iframePortalRoot
               )}

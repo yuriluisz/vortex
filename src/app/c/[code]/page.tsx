@@ -95,6 +95,7 @@ export default async function ProtectedCampaignPage({ params }: PageProps) {
         tenantSlug={campaign.tenant.slug}
         showVortexFooter={showVortexFooter}
         formEnabled={campaign.formEnabled}
+        scriptsAllowed={campaign.scriptsAllowed}
       />
     </>
   );

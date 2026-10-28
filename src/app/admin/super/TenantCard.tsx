@@ -22,6 +22,7 @@ import {
   Megaphone,
   Edit,
   Power,
+  Code2,
 } from "lucide-react";
 import {
   updateTenantPlanAction,
@@ -32,6 +33,7 @@ import {
   deleteCampaignAction,
   sendTenantEmailAction,
   toggleCampaignActiveAction,
+  toggleCampaignScriptsAction,
   updateCampaignSuperAction,
 } from "./actions";
 
@@ -86,7 +88,7 @@ export function TenantCard({ tenant }: { tenant: TenantInfo }) {
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState(tenant.plan);
   const [isActive, setIsActive] = useState(tenant.active);
-  const [campaigns, setCampaigns] = useState<{ id: string; name: string; slug: string; active: boolean; views: number; leads: number }[]>([]);
+  const [campaigns, setCampaigns] = useState<{ id: string; name: string; slug: string; active: boolean; scriptsAllowed: boolean; views: number; leads: number }[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -254,6 +256,14 @@ export function TenantCard({ tenant }: { tenant: TenantInfo }) {
                           } catch (err: any) { alert(err.message || "Erro ao alterar campanha."); }
                         });
                       }}
+                      onToggleScripts={(id, scriptsAllowed) => {
+                        startTransition(async () => {
+                          try {
+                            await toggleCampaignScriptsAction(id, scriptsAllowed);
+                            setCampaigns((prev) => prev.map((c) => (c.id === id ? { ...c, scriptsAllowed } : c)));
+                          } catch (err) { alert(err instanceof Error ? err.message : "Erro ao alterar scripts da campanha."); }
+                        });
+                      }}
                       onEdit={(id) => setEditCampaignId(id)}
                       onDelete={(id) => setShowDeleteCampaignModal(id)}
                     />
@@ -310,11 +320,12 @@ export function TenantCard({ tenant }: { tenant: TenantInfo }) {
 // ============================================================================
 
 function CampaignRow({
-  camp, isPending: parentPending, onToggleActive, onEdit, onDelete,
+  camp, isPending: parentPending, onToggleActive, onToggleScripts, onEdit, onDelete,
 }: {
-  camp: { id: string; name: string; slug: string; active: boolean; views: number; leads: number };
+  camp: { id: string; name: string; slug: string; active: boolean; scriptsAllowed: boolean; views: number; leads: number };
   isPending: boolean;
   onToggleActive: (id: string, active: boolean) => void;
+  onToggleScripts: (id: string, scriptsAllowed: boolean) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
@@ -337,6 +348,16 @@ function CampaignRow({
         <button type="button" onClick={() => onEdit(camp.id)} disabled={parentPending}
           className="p-1.5 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50" title="Editar campanha">
           <Edit className="h-3.5 w-3.5" />
+        </button>
+        <button type="button"
+          onClick={() => {
+            if (!camp.scriptsAllowed && !confirm("Liberar scripts nesta campanha? O HTML vai rodar com JavaScript num iframe isolado. Só libere para quem você confia.")) return;
+            onToggleScripts(camp.id, !camp.scriptsAllowed);
+          }}
+          disabled={parentPending}
+          className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${camp.scriptsAllowed ? "text-chart-1 hover:bg-chart-1/10" : "text-muted-foreground hover:bg-muted"}`}
+          title={camp.scriptsAllowed ? "Bloquear scripts" : "Liberar scripts"}>
+          <Code2 className="h-3.5 w-3.5" />
         </button>
         <button type="button" onClick={() => { setTogglingId(camp.id); onToggleActive(camp.id, !camp.active); }}
           disabled={parentPending || togglingId === camp.id}

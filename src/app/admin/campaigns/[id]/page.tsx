@@ -73,6 +73,7 @@ export default async function CampaignDetailsPage({
         groupImageUrl: campaign.groupImageUrl,
         sessionRecordingEnabled: campaign.sessionRecordingEnabled,
         formEnabled: campaign.formEnabled,
+        scriptsAllowed: campaign.scriptsAllowed,
         groups: campaign.groups.map(g => ({
           id: g.id,
           name: g.name,

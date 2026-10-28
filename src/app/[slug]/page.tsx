@@ -120,6 +120,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps) 
         showVortexFooter={showVortexFooter}
         isPreview={isPreview}
         formEnabled={campaign.formEnabled}
+        scriptsAllowed={campaign.scriptsAllowed}
       />
     </>
   );

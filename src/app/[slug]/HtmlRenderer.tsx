@@ -28,6 +28,7 @@ interface HtmlRendererProps {
   isCustomDomain?: boolean;
   isPreview?: boolean;
   formEnabled?: boolean;
+  scriptsAllowed?: boolean;
 }
 
 const ALLOWED_IFRAME_HOSTS = [
@@ -284,6 +285,7 @@ export default function HtmlRenderer({
   isCustomDomain = false,
   isPreview = false,
   formEnabled = true,
+  scriptsAllowed = false,
 }: HtmlRendererProps) {
   const tracked = useRef(false);
 
@@ -293,6 +295,28 @@ export default function HtmlRenderer({
       trackCampaignViewAction(campaignId);
     }
   }, [campaignId, isPreview]);
+
+  // 🔒 Scripts liberados por SUPER_ADMIN: HTML original roda num iframe sandbox.
+  // Sem allow-same-origin → origem opaca, sem acesso a cookies/sessão/DOM do Vórtex.
+  // ponytail: form Vórtex não é injetado aqui; adicionar via postMessage se alguma campanha precisar
+  if (scriptsAllowed) {
+    return (
+      <>
+        <iframe
+          srcDoc={rawHtml.replace(/\{\{\s*FORM_SLOT\s*\}\}/gi, "")}
+          sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+          title={campaignName || slug}
+          style={{ display: "block", width: "100%", height: "100dvh", border: 0 }}
+        />
+        <VortexFooter
+          campaignSlug={slug}
+          campaignName={campaignName || slug}
+          tenantSlug={tenantSlug || "unknown"}
+          hidden={!showVortexFooter}
+        />
+      </>
+    );
+  }
 
   const sanitizedHtml = extractBodyContent(rawHtml);
   const headAssets = extractHeadAssets(rawHtml);

@@ -180,6 +180,8 @@ export async function saveCampaignAction(
     faviconUrl: finalFaviconUrl,
     sessionRecordingEnabled: finalSessionRecording,
     formEnabled: formEnabled ?? true,
+    // 🔒 Qualquer alteração derruba a liberação de scripts — SUPER_ADMIN precisa aprovar de novo
+    scriptsAllowed: false,
   };
 
   // ── CREATE ──

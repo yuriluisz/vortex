@@ -378,6 +378,8 @@ model Campaign {
   // Gravação de Sessões & Heatmap (Plano ULTRA)
   sessionRecordingEnabled Boolean @default(false)
   formEnabled             Boolean @default(true)
+  // Liberado só por SUPER_ADMIN: HTML roda com scripts num iframe sandbox isolado
+  scriptsAllowed          Boolean @default(false)
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   groups        Group[]

@@ -119,6 +119,7 @@ export default async function DomainCampaignPage({ params }: PageProps) {
         showVortexFooter={false} // Planos ULTRA não exibem a marca do Vórtex
         isCustomDomain={true}
         formEnabled={campaign.formEnabled}
+        scriptsAllowed={campaign.scriptsAllowed}
       />
     </>
   );
