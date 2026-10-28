@@ -189,3 +189,43 @@ describe("deleteTenantAssetAction", () => {
     });
   });
 });
+
+describe("POST /api/assets/upload", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockTenantFindUnique.mockResolvedValue({ id: "tenant-1", active: true });
+  });
+
+  function post(formData: FormData) {
+    return import("@/app/api/assets/upload/route").then(({ POST }) =>
+      POST(new Request("http://localhost/api/assets/upload", { method: "POST", body: formData }))
+    );
+  }
+
+  it("faz upload via multipart e responde 200 com o asset", async () => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
+    const formData = new FormData();
+    formData.append("file", new File([png], "logo.png", { type: "image/png" }));
+    mockUploadImageToR2.mockResolvedValue("https://r2.vortexpages.online/assets/tenant-1/logo.png");
+    mockTenantAssetUpsert.mockResolvedValue({
+      id: "asset-1", tenantId: "tenant-1", filename: "logo.png", key: "assets/tenant-1/logo.png",
+      url: "https://r2.vortexpages.online/assets/tenant-1/logo.png", mimeType: "image/png",
+      size: png.length, createdAt: new Date(),
+    });
+
+    const res = await post(formData);
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.asset.filename).toBe("logo.png");
+  });
+
+  it("responde 400 quando a validação falha", async () => {
+    const res = await post(new FormData());
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.error).toContain("Nenhum arquivo");
+  });
+});

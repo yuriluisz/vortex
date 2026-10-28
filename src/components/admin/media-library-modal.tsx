@@ -18,10 +18,10 @@ import {
   FileImage,
 } from "lucide-react";
 import {
-  uploadTenantAssetAction,
   listTenantAssetsAction,
   deleteTenantAssetAction,
   type TenantAssetDTO,
+  type AssetActionResult,
 } from "@/app/admin/assets/actions";
 
 // ============================================================================
@@ -178,7 +178,11 @@ export function MediaLibraryModal({
           const formData = new FormData();
           formData.append("file", file);
 
-          const result = await uploadTenantAssetAction(formData);
+          // Rota de API (não server action) — ver src/app/api/assets/upload/route.ts
+          const res = await fetch("/api/assets/upload", { method: "POST", body: formData });
+          const result: AssetActionResult = await res
+            .json()
+            .catch(() => ({ success: false, error: `Erro ${res.status} ao enviar ${file.name}.` }));
 
           if (result.success && result.asset) {
             showToast(`"${result.asset.filename}" enviado com sucesso!`, "success");
